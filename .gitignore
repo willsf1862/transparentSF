@@ -8,3 +8,5 @@ swarm/data/datasets
 swarm/data/policeHistory
 swarm/data/anomaly_charts
 swarm/output
+.env
+manual/data
