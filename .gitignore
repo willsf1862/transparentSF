@@ -1,0 +1,10 @@
+node_modules
+Archive
+swarm-main
+swarm/data/climate
+static
+manual/output
+swarm/data/datasets
+swarm/data/policeHistory
+swarm/data/anomaly_charts
+swarm/output
