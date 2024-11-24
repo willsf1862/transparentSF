@@ -103,139 +103,129 @@ def generate_anomalies_summary(results):
     logging.info(f"Anomalies summary in HTML:\n{html_summary}")
     return {"anomalies": html_summary}
 
-def group_data_by_field_and_date(data_array, group_field, numeric_field, date_field=None):
-    logging.info(f"Grouping data by '{group_field}' field.")
-    invalid_records = []
+def group_data_by_field_and_date(data_array, group_field, numeric_field, date_field):
+    logging.info("=== Starting Data Grouping ===")
+    logging.info(f"First 5 records of raw data:")
+    for i, item in enumerate(data_array[:5]):
+        logging.info(f"Record {i + 1}:")
+        logging.info(f"  {group_field}: {item.get(group_field)}")
+        logging.info(f"  {date_field}: {item.get(date_field)} (type: {type(item.get(date_field))})")
+        logging.info(f"  {numeric_field}: {item.get(numeric_field)}")
+        logging.info("---")
 
-    for idx, item in enumerate(data_array):
-        try:
-            # Handle group_field
-            key_group_field = find_key(item, group_field)
-            if key_group_field is None:
-                raise ValueError(f"Missing {group_field}.")
-            group_value = item[key_group_field]
-            if group_value is None:
-                raise ValueError(f"Missing value for {group_field}.")
-            item[group_field] = group_value  # Ensure the key is consistent
+    # Create a set to track all unique dates we see
+    all_dates = set()
 
-            # Handle numeric_field
-            key_numeric_field = find_key(item, numeric_field)
-            if key_numeric_field is None:
-                raise ValueError(f"Missing {numeric_field}.")
-            numeric_value = item[key_numeric_field]
-            if numeric_value is None:
-                raise ValueError(f"Missing value for {numeric_field}.")
-            if isinstance(numeric_value, str):
-                numeric_value = numeric_value.replace(',', '')
-            numeric_value = float(numeric_value)
-            item[numeric_field] = numeric_value
-
-            # Handle date_field if provided
-            if date_field:
-                key_date_field = find_key(item, date_field)
-                if key_date_field is None:
-                    raise ValueError(f"Missing {date_field}.")
-                date_value = item[key_date_field]
-                if date_value is None:
-                    raise ValueError(f"Missing value for {date_field}.")
-                if isinstance(date_value, str):
-                    date_obj = custom_parse_date(date_value)
-                    if date_obj is None:
-                        raise ValueError("Invalid date format")
-                    item[date_field] = date_obj
-                elif isinstance(date_value, (datetime.date, datetime.datetime)):
-                    date_obj = date_value.date() if isinstance(date_value, datetime.datetime) else date_value
-                    item[date_field] = date_obj
-                else:
-                    raise ValueError(f"Unrecognized {date_field} type: {type(date_value)}.")
-        except Exception as e:
-            logging.warning(f"Record {idx}: {e}. Skipping.")
-            invalid_records.append(idx)
-            continue
-
-    # Remove invalid records in reverse order to maintain correct indexing
-    for idx in sorted(invalid_records, reverse=True):
-        del data_array[idx]
-        logging.debug(f"Removed invalid record at index {idx}.")
-
-    # Proceed only if there are valid records left
-    if not data_array:
-        logging.error("All records have been filtered out. Please check your data and parsing logic.")
-        return {}
-
-    # Now perform the grouping
     grouped = {}
     for item in data_array:
-        group_value = item[group_field]
+        group_value = item.get(group_field)
+        date_obj = item.get(date_field)
+        
+        if not date_obj:
+            logging.warning(f"Missing date for record: {item}")
+            continue
 
-        # If date_field is provided, group by date as well
-        if date_field:
-            date_obj = item[date_field]
-            if not date_obj:
-                continue  # Shouldn't happen, but added for safety
+        # Debug the actual date object before strftime
+        # logging.debug(f"Processing date: {date_obj} (type: {type(date_obj)}) for group: {group_value}")
 
-            # Create date_key in 'YYYY-MM' format
-            date_key = date_obj.strftime("%Y-%m")
-        else:
-            date_key = 'All'  # Use a constant key when date_field is not provided
-
+        date_key = date_obj.strftime("%Y-%m")
+        all_dates.add(date_key)
+        
         if group_value not in grouped:
             grouped[group_value] = {}
         if date_key not in grouped[group_value]:
             grouped[group_value][date_key] = 0
 
-        # Get the numeric value from the specified numeric_field
-        numeric_value = item[numeric_field]
+         # Convert numeric value to int, with error handling
+        try:
+            numeric_value = int(item.get(numeric_field, 0))
+        except (ValueError, TypeError):
+            logging.warning(f"Invalid numeric value for record: {item}")
+            numeric_value = 0
+            
         grouped[group_value][date_key] += numeric_value
 
-    logging.info(f"Grouping completed. Total groups: {len(grouped)}")
+    logging.info("=== Grouping Complete ===")
+    logging.info(f"Total groups found: {len(grouped)}")
+    logging.info(f"All unique dates found in data: {sorted(list(all_dates))}")
+    for key in list(grouped.keys())[:3]:  # Show first 3 groups
+        logging.info(f"Sample group '{key}' dates: {list(grouped[key].keys())}")
+
     return grouped
 
 def custom_parse_date(date_str):
-    # Define potential date formats to try
-    date_formats = ["%Y-%m-%d", "%d/%m/%Y", "%d/%m/%Y", "%d/%m/%Y"]  # Added more formats
+    # Handle YYYY-MM format first
+    if isinstance(date_str, str) and len(date_str.split('-')) == 2:
+        try:
+            year, month = map(int, date_str.split('-'))
+            return datetime.date(year, month, 1)
+        except ValueError:
+            pass
+
+    # For other formats, try explicit parsing with known format
+    date_formats = [
+        "%Y-%m-%d",    # YYYY-MM-DD
+        "%Y%m%d",      # YYYYMMDD
+        "%m/%d/%Y",    # MM/DD/YYYY
+        "%d/%m/%Y"     # DD/MM/YYYY
+    ]
+    
     for fmt in date_formats:
         try:
             return datetime.datetime.strptime(date_str, fmt).date()
         except ValueError:
             continue
-    # Try using dateutil.parser as a fallback
+    
+    # Use dateutil.parser as last resort, with explicit dayfirst=False
     try:
-        return parser.parse(date_str, dayfirst=True).date()
+        return parser.parse(date_str, dayfirst=False).date()
     except (ValueError, parser.ParserError):
-        # print(f"WARNING: Invalid date format for record: {date_str}. Skipping.")
-        return None  # Return None if the date is invalid
+        return None
 
 def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None, end_date=None, date_field=None):
     # Initialize error log
     error_log = []
+    # Convert date strings to datetime.date objects
+    def parse_filter_date(date_val):
+        if isinstance(date_val, str):
+            try:
+                if len(date_val.split('-')) == 2:
+                    # For YYYY-MM format
+                    year, month = map(int, date_val.split('-'))
+                    return datetime.date(year, month, 1)
+                else:
+                    # Try parsing as YYYY-MM-DD
+                    return datetime.datetime.strptime(date_val, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+        return date_val
 
-    # If start_date and end_date are provided, ensure they are datetime.date objects
-    if start_date is not None:
-        if isinstance(start_date, str):
-            start_date = custom_parse_date(start_date)
-        elif not isinstance(start_date, datetime.date):
-            error_log.append("Invalid start_date format. Please provide a valid date.")
-            start_date = None
-    if end_date is not None:
-        if isinstance(end_date, str):
-            end_date = custom_parse_date(end_date)
-        elif not isinstance(end_date, datetime.date):
-            error_log.append("Invalid end_date format. Please provide a valid date.")
-            end_date = None
 
-    # Parse date values in filter_conditions
+    if start_date:
+        start_date = parse_filter_date(start_date)
+    if end_date:
+        end_date = parse_filter_date(end_date)
+
+    # Update the date comparison in filter conditions
     for condition in filter_conditions:
-        if isinstance(condition['value'], str):
-            parsed_date = custom_parse_date(condition['value'])
-            if parsed_date:
+        value = condition['value']
+        if isinstance(value, (datetime.date, datetime.datetime)):
+            condition['is_date'] = True
+        elif isinstance(value, str):
+            parsed_date = parse_filter_date(value)
+            if isinstance(parsed_date, datetime.date):
                 condition['value'] = parsed_date
-                condition['is_date'] = True  # Mark this condition as a date comparison
+                condition['is_date'] = True
             else:
                 condition['is_date'] = False
-                error_log.append(f"Condition value for field '{condition['field']}' is not a date.")
         else:
-            condition['is_date'] = isinstance(condition['value'], datetime.date)
+            condition['is_date'] = False
+
+    # Add logging for date range parameters
+    logging.info(f"Date filtering parameters:")
+    logging.info(f"  start_date: {start_date} ({type(start_date)})")
+    logging.info(f"  end_date: {end_date} ({type(end_date)})")
+    logging.info(f"  date_field: {date_field}")
 
     filtered_data = []
     for idx, item in enumerate(data):
@@ -249,34 +239,75 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
                 error_log.append(f"Record {idx} missing {date_field} information. Skipping.")
                 continue
             date_value = item[key_date_field]
-            if date_value is None:
-                error_log.append(f"Record {idx} missing {date_field} information. Skipping.")
-                continue
-
+            
+            # Preserve the original date value
+            original_date = date_value
+            
             # Convert date_field value to datetime.date if necessary
             if isinstance(date_value, str):
-                item_date = custom_parse_date(date_value)
+                if len(date_value.split('-')) == 2:
+                    # If it's YYYY-MM format, keep it as is
+                    item_date = date_value
+                else:
+                    item_date = custom_parse_date(date_value)
             elif isinstance(date_value, pd.Timestamp):
-                item_date = date_value.date()
+                # For Timestamp, convert to YYYY-MM string format
+                item_date = date_value.strftime("%Y-%m")
             elif isinstance(date_value, (datetime.date, datetime.datetime)):
-                item_date = date_value.date() if isinstance(date_value, datetime.datetime) else date_value
-            elif isinstance(date_value, (int, float)):
-                try:
-                    date_str = str(int(date_value))
-                    item_date = datetime.datetime.strptime(date_str, "%Y%m%d").date()
-                except (ValueError, TypeError) as e:
-                    error_log.append(f"Record {idx}: Invalid numeric date for {date_field} {e}. Skipping.")
-                    continue
+                # For date/datetime, convert to YYYY-MM string format
+                item_date = date_value.strftime("%Y-%m")
             else:
                 error_log.append(f"Record {idx}: Unrecognized {date_field} type: {type(date_value)}. Skipping.")
                 continue
 
+            # Update item with original date value
+            item[date_field] = original_date
+
+            # Add logging for date value parsing
+            logging.debug(f"Record {idx}: Processing date value: {date_value} ({type(date_value)})")
+
+            # Convert date_field value to datetime.date if necessary
+            if isinstance(date_value, str):
+                item_date = custom_parse_date(date_value)
+                logging.debug(f"Record {idx}: Parsed string date to: {item_date}")
+            elif isinstance(date_value, pd.Timestamp):
+                item_date = date_value.date()
+                logging.debug(f"Record {idx}: Converted Timestamp to date: {item_date}")
+            elif isinstance(date_value, (datetime.date, datetime.datetime)):
+                item_date = date_value.date() if isinstance(date_value, datetime.datetime) else date_value
+                logging.debug(f"Record {idx}: Using existing date/datetime: {item_date}")
+            elif isinstance(date_value, (int, float)):
+                try:
+                    date_str = str(int(date_value))
+                    item_date = datetime.datetime.strptime(date_str, "%Y%m%d").date()
+                    logging.debug(f"Record {idx}: Converted numeric date to: {item_date}")
+                except (ValueError, TypeError) as e:
+                    error_log.append(f"Record {idx}: Invalid numeric date for {date_field} {e}. Skipping.")
+                    logging.debug(f"Record {idx}: Failed to parse numeric date: {date_value}")
+                    continue
+            else:
+                error_log.append(f"Record {idx}: Unrecognized {date_field} type: {type(date_value)}. Skipping.")
+                logging.debug(f"Record {idx}: Unhandled date type: {type(date_value)}")
+                continue
+
             if item_date is None:
                 error_log.append(f"Record {idx}: Invalid date format for {date_field}. Skipping.")
-                continue  # Skip records with invalid dates
+                continue
+
+            # Add logging for date comparison
+            logging.debug(f"Record {idx}: Comparing dates - Item: {item_date}, Range: {start_date} to {end_date}")
+            
+            # Convert start_date and end_date to first/last day of month if they're year-month dates
+            if isinstance(start_date, str) and len(start_date.split('-')) == 2:
+                start_date = datetime.datetime.strptime(f"{start_date}-01", "%Y-%m-%d").date()
+            if isinstance(end_date, str) and len(end_date.split('-')) == 2:
+                # Set to last day of month
+                next_month = datetime.datetime.strptime(f"{end_date}-01", "%Y-%m-%d").date().replace(day=28) + datetime.timedelta(days=4)
+                end_date = next_month - datetime.timedelta(days=next_month.day)
 
             # Perform date filtering based on start_date and end_date
             if not (start_date <= item_date <= end_date):
+                logging.debug(f"Record {idx}: Date outside range - skipping")
                 continue  # Skip this record
 
             # Update item with parsed date
@@ -398,6 +429,13 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
         if meets_conditions:
             filtered_data.append(item)
 
+    # Add summary of date filtering
+    if date_field and start_date and end_date:
+        logging.info(f"Date filtering summary:")
+        logging.info(f"  Total records before date filtering: {len(data)}")
+        logging.info(f"  Records passing date filter: {len(filtered_data)}")
+        logging.info(f"  Records filtered out by date: {len(data) - len(filtered_data)}")
+
     # At the end of the loop, log the error summary
     total_records = len(data)
     filtered_records = len(filtered_data)
@@ -411,91 +449,6 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
             logging.info(error)
 
     return filtered_data
-
-def group_data_by_field_and_date(data_array, group_field, numeric_field, date_field=None):
-    logging.info(f"Grouping data by '{group_field}' field.")
-    invalid_records = []
-    distinct_dates = set()
-    for item in data_array:
-        if date_field:
-            date_value = item.get(date_field)
-            if date_value:
-                distinct_dates.add(date_value.strftime("%Y-%m"))
-                
-    logging.info(f"Distinct {date_field} values: {len(distinct_dates)}")
-    for idx, item in enumerate(data_array):
-        try:
-            # Handle group_field
-            group_value = item.get(group_field)
-            if group_value is None:
-                raise ValueError(f"Missing {group_field}.")
-
-            # Handle numeric_field
-            numeric_value = item.get(numeric_field)
-            if numeric_value is None:
-                raise ValueError(f"Missing {numeric_field}.")
-            if isinstance(numeric_value, str):
-                numeric_value = numeric_value.replace(',', '')
-            numeric_value = float(numeric_value)
-            item[numeric_field] = numeric_value
-
-            # Handle date_field if provided
-            if date_field:
-                date_value = item.get(date_field)
-                if date_value is None:
-                    raise ValueError(f"Missing {date_field}.")
-                if isinstance(date_value, str):
-                    date_obj = custom_parse_date(date_value)
-                    if date_obj is None:
-                        raise ValueError("Invalid date format")
-                    item[date_field] = date_obj
-                elif isinstance(date_value, (datetime.date, datetime.datetime)):
-                    date_obj = date_value.date() if isinstance(date_value, datetime.datetime) else date_value
-                    item[date_field] = date_obj
-                else:
-                    raise ValueError(f"Unrecognized {date_field} type: {type(date_value)}.")
-        except Exception as e:
-            logging.warning(f"Record {idx}: {e}. Skipping.")
-            invalid_records.append(idx)
-            continue
-
-    # Remove invalid records in reverse order to maintain correct indexing
-    for idx in sorted(invalid_records, reverse=True):
-        del data_array[idx]
-        logging.debug(f"Removed invalid record at index {idx}.")
-
-    # Proceed only if there are valid records left
-    if not data_array:
-        logging.error("All records have been filtered out. Please check your data and parsing logic.")
-        return {}
-
-    # Now perform the grouping
-    grouped = {}
-    for item in data_array:
-        key = item.get(group_field, 'Unknown')
-
-        # If date_field is provided, group by date as well
-        if date_field:
-            date_obj = item.get(date_field)
-            if not date_obj:
-                continue  # Shouldn't happen, but added for safety
-
-            # Create date_key in 'YYYY-MM' format
-            date_key = date_obj.strftime("%Y-%m")
-        else:
-            date_key = 'All'  # Use a constant key when date_field is not provided
-
-        if key not in grouped:
-            grouped[key] = {}
-        if date_key not in grouped[key]:
-            grouped[key][date_key] = 0
-
-        # Get the numeric value from the specified numeric_field
-        numeric_value = item.get(numeric_field, 0)
-        grouped[key][date_key] += numeric_value
-
-    logging.info(f"Grouping completed. Total groups: {len(grouped)}")
-    return grouped
 
 def get_month_range(start_date, end_date):
     from dateutil.relativedelta import relativedelta
@@ -519,7 +472,6 @@ def anomaly_detection(
     y_axis_label=None,
     title=None
 ):
-    # (Logging and initial data retrieval remain the same)
     
     data = context_variables.get("dataset")
     if data is None:
@@ -528,7 +480,13 @@ def anomaly_detection(
 
     data_records = data.to_dict('records')
     logging.info(f"Total records in the dataset: {len(data_records)}")
-
+    logging.info("First 5 records of filtered data:")
+    for i, item in enumerate(data_records[:5]):
+        logging.info(f"Record {i + 1}:")
+        logging.info(f"  {group_field}: {item.get(group_field)}")
+        logging.info(f"  {date_field}: {item.get(date_field)} (type: {type(item.get(date_field))})")
+        logging.info(f"  {numeric_field}: {item.get(numeric_field)}")
+        logging.info("---")
     # Adjust date periods if date_field is provided
     if date_field and (recent_period is None or comparison_period is None):
         date_ranges = get_date_ranges()
@@ -537,15 +495,36 @@ def anomaly_detection(
         if comparison_period is None:
             comparison_period = date_ranges['comparisonPeriod']
 
-    # Convert recent_period and comparison_period to date objects if they are provided
+    # Convert period dates to datetime.date objects, handling both YYYY-MM and YYYY-MM-DD formats
+    def parse_period_date(date_val):
+        if isinstance(date_val, str):
+            if len(date_val.split('-')) == 2:
+                # For YYYY-MM format
+                year, month = map(int, date_val.split('-'))
+                if 'start' in date_val:
+                    return datetime.date(year, month, 1)
+                else:
+                    # For end date, get last day of month
+                    if month == 12:
+                        next_month = datetime.date(year + 1, 1, 1)
+                    else:
+                        next_month = datetime.date(year, month + 1, 1)
+                    return next_month - datetime.timedelta(days=1)
+            else:
+                # For YYYY-MM-DD format
+                return datetime.datetime.strptime(date_val, "%Y-%m-%d").date()
+        return date_val
+
     if recent_period:
-        for key in ['start', 'end']:
-            if isinstance(recent_period[key], str):
-                recent_period[key] = datetime.datetime.strptime(recent_period[key], "%Y-%m-%d").date()
+        recent_period = {
+            'start': parse_period_date(recent_period['start']),
+            'end': parse_period_date(recent_period['end'])
+        }
     if comparison_period:
-        for key in ['start', 'end']:
-            if isinstance(comparison_period[key], str):
-                comparison_period[key] = datetime.datetime.strptime(comparison_period[key], "%Y-%m-%d").date()
+        comparison_period = {
+            'start': parse_period_date(comparison_period['start']),
+            'end': parse_period_date(comparison_period['end'])
+        }
 
     # Log date periods
     if date_field:
@@ -564,7 +543,14 @@ def anomaly_detection(
     )
 
     logging.info(f"Filtered data size: {len(recent_data)} records after applying filters.")
-
+    # show 5 records of our data here to be sure ww haven't lost months. 
+    logging.info("First 5 records of filtered data:")
+    for i, item in enumerate(recent_data[:5]):
+        logging.info(f"Record {i + 1}:")
+        logging.info(f"  {group_field}: {item.get(group_field)}")
+        logging.info(f"  {date_field}: {item.get(date_field)} (type: {type(item.get(date_field))})")
+        logging.info(f"  {numeric_field}: {item.get(numeric_field)}")
+        logging.info("---")
     # Group data
     grouped_data = group_data_by_field_and_date(
         recent_data,
@@ -679,5 +665,5 @@ def anomaly_detection(
     }
 
     html_content = generate_anomalies_summary_with_charts(results, metadata)
-    return  {"anomalies":html_content}
-    # return generate_anomalies_summary(results)
+    markdown_content = generate_anomalies_summary(results)
+    return  {"anomalies":html_content, "anomalies_markdown":markdown_content}

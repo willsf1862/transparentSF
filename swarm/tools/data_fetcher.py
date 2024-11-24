@@ -20,7 +20,7 @@ def fetch_data_from_api(query_object):
     logger.info("Starting fetch_data_from_api with query_object: %s", query_object)
     base_url = "https://data.sfgov.org/resource/"
     all_data = []
-    limit = 3000
+    limit = 5000
     offset = 0
 
     endpoint = query_object.get('endpoint')

@@ -1,0 +1,6 @@
+openai
+python-dotenv
+chardet
+qdrant-client
+fastapi
+git+ssh://git@github.com/openai/swarm.git

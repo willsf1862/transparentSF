@@ -75,8 +75,8 @@ chart_html2 = generate_time_series_chart(
 markdown_content, html_content = chart_html2
 html_doc += html_content
 
-recent_period = {'start': '2024-10-01', 'end': '2024-10-31'}
-comparison_period = {'start': '2023-09-01', 'end': '2024-09-30'}
+recent_period = {'start': '2024-01-01', 'end': '2024-11-15'}
+comparison_period = {'start': '2023-01-01', 'end': '2023-11-12'}
 # Aggregate Quantity Issued by month
 agg_dataIssued = aggregate_data(
     df=context_variables['dataset'],

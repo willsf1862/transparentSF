@@ -10,3 +10,4 @@ swarm/data/anomaly_charts
 swarm/output
 .env
 manual/data
+TransparentAnalysis.code-workspace

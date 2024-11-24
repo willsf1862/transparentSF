@@ -133,6 +133,65 @@ def generate_time_series_chart(
             logging.error("'time_period' column is missing after aggregation.")
             return "**Error**: The 'time_period' column is missing after aggregation. Check the 'aggregate_data' function for proper time grouping."
 
+        # Ensure 'time_period' is datetime and sort the DataFrame
+        aggregated_df['time_period'] = pd.to_datetime(aggregated_df['time_period'])
+        aggregated_df = aggregated_df.sort_values('time_period')
+        logging.debug("Aggregated DataFrame sorted by 'time_period'.")
+
+        # Compute values for the caption
+        try:
+            last_time_period = aggregated_df['time_period'].max()
+            last_month_name = last_time_period.strftime('%B')
+            logging.debug(f"Last time period: {last_time_period}, Month name: {last_month_name}")
+
+            # Caption for all charts
+            total_latest_month = aggregated_df[aggregated_df['time_period'] == last_time_period][numeric_fields[0]].sum()
+            logging.debug(f"Total value for last period: {total_latest_month}")
+
+            # Exclude the last period for calculating the average of the rest
+            rest_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
+            average_of_rest = rest_periods[numeric_fields[0]].mean()
+            logging.debug(f"Average value of rest periods: {average_of_rest}")
+
+            percentage_diff_total = ((total_latest_month - average_of_rest) / average_of_rest) * 100
+            above_below_total = 'above' if total_latest_month > average_of_rest else 'below'
+            percentage_diff_total = abs(round(percentage_diff_total, 2))
+            logging.debug(f"Percentage difference for total: {percentage_diff_total}%, {above_below_total} the average.")
+
+            y_axis_label_lower = y_axis_label.lower()
+            caption_total = f"In {last_month_name}, there were {total_latest_month} {y_axis_label_lower}, which is {percentage_diff_total}% {above_below_total} the average of {average_of_rest:.2f}."
+            logging.info(f"Caption for total: {caption_total}")
+
+            # Caption for charts with a group_field
+            if group_field:
+                last_period_df = aggregated_df[aggregated_df['time_period'] == last_time_period]
+                numeric_values = last_period_df.groupby(group_field)[numeric_fields[0]].sum().to_dict()
+                logging.debug(f"Numeric values for last period by group: {numeric_values}")
+
+                # Calculate the average of the prior period for each group
+                prior_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
+                average_of_prior = prior_periods.groupby(group_field)[numeric_fields[0]].mean().to_dict()
+                logging.debug(f"Average values of prior periods by group: {average_of_prior}")
+
+                captions_group = []
+                for group, value in numeric_values.items():
+                    percentage_diff_group = ((value - average_of_prior[group]) / average_of_prior[group]) * 100
+                    above_below_group = 'above' if value > average_of_prior[group] else 'below'
+                    percentage_diff_group = abs(round(percentage_diff_group, 2))
+                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the average.")
+
+                    captions_group.append(f"For {group}, in {last_month_name}, there were {value} {y_axis_label_lower}, which is {percentage_diff_group}% {above_below_group} the average of {average_of_prior[group]:.2f}.")
+
+                caption_group = " ".join(captions_group)
+                logging.info(f"Caption for groups: {caption_group}")
+            if group_field:
+                caption = f"{caption_total}\n\n{caption_group}"
+            else:
+                caption = caption_total
+        except Exception as e:
+            logging.error("Failed to compute caption values: %s", e)
+            caption = ""
+
         if group_field:
             group_totals = aggregated_df.groupby(group_field)[numeric_fields].sum().sum(axis=1)
             top_groups = group_totals.sort_values(ascending=False).head(max_legend_items).index.tolist()
@@ -209,7 +268,7 @@ def generate_time_series_chart(
                     x=0.5,
                     font=dict(size=8)  # Smaller font for legend
                 ),
-                legend_title_text='',
+                legend_title_text=group_field_original.capitalize() if group_field else '',
                 title={
                     'text': f"{chart_title} by {group_field_original.capitalize()}" if group_field else chart_title,
                     'y': 0.95,
@@ -246,7 +305,7 @@ def generate_time_series_chart(
             fig.add_annotation(
                 text=f"Filter Conditions: {filter_conditions_str}",
                 xref="paper", yref="paper",
-                x=0.0, y=-0.35,  # Adjusted to bottom left
+                x=0.0, y=-0.5,  # Adjusted to bottom left
                 showarrow=False,
                 font=dict(size=10, family='Arial', color='black'),
                 xanchor='left'  # Adjusted to left justify
@@ -254,7 +313,7 @@ def generate_time_series_chart(
             fig.write_image(image_path, engine="kaleido")
             logging.info("Chart saved successfully at %s", image_path)
             relative_path = os.path.relpath(image_path, start=script_dir)
-            markdown_content = f"![Chart]({relative_path.replace(os.sep, '/')})"
+            markdown_content = f"![Chart]({relative_path.replace(os.sep, '/')})\n\n{caption}"
             logging.debug("Markdown content created: %s", markdown_content)
 
             # Generate HTML content
