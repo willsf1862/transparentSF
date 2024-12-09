@@ -66,7 +66,7 @@ qdrant = qdrant_client.QdrantClient(host="localhost", port=6333)
 # Set embedding model
 EMBEDDING_MODEL = "text-embedding-3-large"
 # AGENT_MODEL = "gpt-3.5-turbo-16k"
-AGENT_MODEL = "gpt-4"
+AGENT_MODEL = "gpt-4o"
 
 # Set Qdrant collection
 collection_name = "SFPublicData"
@@ -79,8 +79,28 @@ data_folder = './data'  # Replace with the actual path
 # Initialize context_variables with an empty DataFrame
 combined_df = {"dataset": pd.DataFrame()}
 
-# Pass the dataset as a context variable
-context_variables = {"dataset": combined_df}
+def load_and_combine_notes():
+    logger = logging.getLogger(__name__)
+    data_folder = 'output/Safety'
+    combined_text = ''
+    logger.info(f"Starting to load and combine notes from {data_folder}")
+    for filename in os.listdir(data_folder):
+        if filename.endswith('.txt'):
+            file_path = os.path.join(data_folder, filename)
+            logger.debug(f"Reading file: {file_path}")
+            with open(file_path, 'r', encoding='utf-8') as file:
+                combined_text += file.read() + '\n'
+    logger.info("Finished loading and combining notes")
+    print(f"First 100 characters: {combined_text[:100]}")
+    print(f"Total length: {len(combined_text)} characters")
+    return combined_text
+
+combined_notes=load_and_combine_notes() 
+
+context_variables = {
+    "dataset": combined_df,  # Store the actual DataFrame here
+    "notes": combined_notes  # Store the notes string here
+}
 
 # Define the maximum number of messages to keep in context
 MAX_HISTORY = 10
@@ -95,7 +115,24 @@ def get_dataset(context_variables, *args, **kwargs):
         return dataset
     else:
         return {'error': 'Dataset is not available or is empty.'}
-        
+
+def get_notes(context_variables, *args, **kwargs):
+    notes = context_variables.get("notes", "").strip()
+    logger = logging.getLogger(__name__)
+    logger.info("Context variables contents:")
+    for key, value in context_variables.items():
+        if isinstance(value, pd.DataFrame):
+            logger.info(f"{key}: DataFrame with shape {value.shape}")
+        else:
+            logger.info(f"{key}: {type(value)} - {value[:200]}...")  # Show first 200 chars for strings
+    if notes is not None and len(notes.strip()) > 0:
+        logger.info("Notes found in the dataset.")
+        return {"notes": notes}
+    else:
+        logger.error("No notes found or notes are empty.")
+        return {"error": "No notes found or notes are empty."}
+
+
 def get_columns(context_variables, *args, **kwargs):
 
     """
@@ -128,6 +165,18 @@ def get_data_summary(context_variables,*args, **kwargs):
     else:
         return {"error": "Dataset is not available."}     
 
+def transfer_to_analyst_agent(context_variables, *args, **kwargs):
+    """
+    Transfers the conversation to the Anomaly Finder Agent.
+    """
+    return analyst_agent
+
+def transfer_to_journalist_agent(context_variables, *args, **kwargs):
+    """
+    Transfers the conversation to the Data Agent.
+    """
+    return journalist_agent
+
 # Define the anomaly finder agent
 analyst_agent = Agent(
     model=AGENT_MODEL,
@@ -135,186 +184,8 @@ analyst_agent = Agent(
      instructions="""
    
     """,
-    functions=[query_docs, set_dataset, get_dataset, set_columns, get_data_summary, anomaly_detection, generate_time_series_chart],
-    context_variables=context_variables,
-    debug=False,
-)
-chart_agent = Agent(
-    model=AGENT_MODEL,
-    name="Analyst",
-     instructions="""
-    
-    Tools: 
-
-    - Use `set_dataset(endpoint, query)` to set the dataset after the user selects one. The `endpoint` is the dataset identifier (e.g., `'abcd-1234.json'`), and `query` is the SoQL query string.
-    - Use `generate_time_series_chart` to create visualizations of the aggregated data.
-Agent constructs the query:
-
-    ```soql
-    SELECT incident_date, incident_type, severity
-    WHERE incident_date >= '2023-08-01' AND incident_date <= '2023-09-30'
-    AND (severity = 'High' OR severity = 'Critical')
-    ORDER BY incident_date DESC
-    ```
-    Agent ensures the query is URL-encoded if necessary.
-
-    **Setting the Dataset:**
-
-    Agent uses:
-
-    ```python
-    set_dataset(
-        endpoint='abcd-1234.json',
-        query="SELECT incident_date, incident_type, severity WHERE incident_date >= '2023-08-01' AND incident_date <= '2023-09-30' AND (severity = 'High' OR severity = 'Critical') ORDER BY incident_date DESC"
-    )
-    ```
-
-    Once a dataset is selected, discuss with the user to determine, user set_columns to lock in the column names for this query session. 
-    Specific columns they are interested in. You can show column names or fieldNames to the user, but only use fieldNames when making the query.
-    Exact date ranges (start and end dates in 'YYYY-MM-DD' format).
-    Any filters or conditions (e.g., categories, regions, statuses).
-    Grouping and aggregation requirements.
-    Generate a Complete SoQL Query:
-
-    Construct a SoQL query that incorporates all the parameters provided by the user. Remember to use column functions like date_trunc_y() or date_trunc_ym() for date grouping.
-    Ensure the query includes:
-    A SELECT clause with the desired columns.
-    A WHERE clause with exact dates and specified conditions.
-    GROUP BY, ORDER BY, and LIMIT clauses as needed.
-    Validate that all columns used in the query exist in the dataset's schema.
-    Make sure the query is properly URL-encoded when needed.
-    Set the Dataset:
-
-    Use the set_dataset function to retrieve the data and store it in the context variables.
-    The set_dataset function requires two parameters:
-    endpoint: The 9-character dataset identifier plus the .json extension (e.g., 'wg3w-h783.json'). NOT THE ENTIRE URL.
-    query: The complete SoQL query string.
-    Confirm that the data has been successfully retrieved.
-    Transfer to the Anomaly Finder Agent:
-
-    Generate and Display Data Visualizations:
-
-    The generate_time_series_chart function creates a time series chart by aggregating numeric fields over specified time intervals, applying optional grouping and filter conditions. This function is suitable for visualizing trends, comparing groups, and filtering data dynamically based on specific requirements.
-
-    Function Call Structure
-    ```python
-    markdown_chart = generate_time_series_chart(
-        context_variables={{'dataset': df}},             # Dictionary containing the dataset under 'dataset'
-        time_series_field='date',              # Column name representing time
-        numeric_fields=['sales', 'expenses'],  # List of numeric fields to visualize
-        aggregation_period='month',            # Aggregation period ('day', 'week', 'month', etc.)
-        group_field='agent',                   # Optional field for grouping (e.g., 'agent')
-        agg_functions={{{{'sales': 'sum'}}}},      # Optional aggregation functions for numeric fields
-        filter_conditions=[                    # Optional filter conditions for specific records
-            {{{{"field": "status", "operator": "==", "value": "Completed"}}}},
-            {{{{"field": "sales", "operator": ">", "value": 500}}}}
-        ]
-    )
-    Function Call Structure
-    ```python
-    markdown_chart = generate_time_series_chart(
-        context_variables=context,             # Dictionary containing the dataset under 'dataset'
-        time_series_field='date',              # Column name representing time
-        numeric_fields=['sales', 'expenses'],  # List of numeric fields to visualize
-        aggregation_period='month',            # Aggregation period ('day', 'week', 'month', etc.)
-        group_field='agent',                   # Optional field for grouping (e.g., 'agent')
-        agg_functions={{'sales': 'sum'}},      # Optional aggregation functions for numeric fields
-        filter_conditions=[                    # Optional filter conditions for specific records
-            {{"field": "status", "operator": "==", "value": "Completed"}},
-            {{"field": "sales", "operator": ">", "value": 500}}
-        ]
-    )
-    ```
-    Key Parameters
-    **context_variables:**
-
-    Contains the dataset in the format `{{'dataset': <your_dataframe>}}`.
-    Ensure the dataset is properly loaded into this dictionary under the key `'dataset'`.
-
-    **time_series_field:**
-
-    Specifies the column representing time (e.g., `'date'`).
-    This field will be used to aggregate data over the period specified in `aggregation_period`.
-
-    **numeric_fields:**
-
-    A list of numeric columns to visualize (e.g., `['sales', 'expenses']`).
-    Ensure these fields are numerical, as the function will aggregate them according to the specified aggregation functions.
-
-    **aggregation_period** (optional, defaults to `'day'`):
-
-    Specifies the time interval for data aggregation, such as `'day'`, `'week'`, `'month'`, `'quarter'`, or `'year'`.
-
-    **group_field** (optional):
-
-    The field by which to group data (e.g., `'agent'` or `'category'`).
-    If provided, the chart will display a breakdown by this field; otherwise, it will generate an aggregated time series without grouping.
-
-    **agg_functions** (optional):
-
-    A dictionary defining aggregation functions for each numeric field.
-    Example: `{{'sales': 'sum', 'expenses': 'mean'}}`.
-    If not specified, default aggregation (`'sum'`) will be applied to all numeric fields.
-
-    **filter_conditions** (optional):
-
-    A list of dictionaries, each specifying a condition for filtering records based on specific fields.
-
-    **Format:**
-    ```python
-    filter_conditions = [
-        {{"field": "<field_name>", "operator": "<operator>", "value": <value>}}
-    ]
-    ```
-
-    **Operators:**
-
-    Supported operators include `==` (equals), `!=` (not equals), `>`, `<`, `>=`, and `<=`.
-
-    **Example:**
-    ```python
-    filter_conditions = [
-        {{"field": "status", "operator": "==", "value": "Completed"}},
-        {{"field": "sales", "operator": ">", "value": 500}}
-    ]
-    ```
-    This example keeps only records where the status is `"Completed"` and sales are greater than `500`.
-
-    **Filtering Data with `filter_conditions`**
-
-    When `filter_conditions` is provided, the function uses `filter_data_by_date_and_conditions` to apply filters. Here's how this works:
-
-    **Date Filtering:**
-
-    If `filter_conditions` include date-based criteria (e.g., `{{"field": "transaction_date", "operator": ">", "value": "2023-01-01"}}`), the function will:
-
-    - Parse `value` in the filter condition as a date.
-    - Filter records based on whether the `transaction_date` meets the specified condition (`>` in this example).
-
-    **Range Filtering Using `start_date` and `end_date` (optional):**
-
-    If you wish to filter records within a date range:
-
-    - Set `start_date` and `end_date` in the `filter_data_by_date_and_conditions` function call.
-    - This will exclude records outside the specified range, adding an additional layer to the filtering process.
-
-    **Non-Date Filters:**
-
-    - Conditions not related to dates are applied directly.
-    - The function supports filtering based on numeric or string matches, using the specified operator.
-    - For example, `{{"field": "sales", "operator": ">", "value": 500}}` filters for records with sales greater than `500`.
-
-    **Displaying the Chart**
-
-    The `generate_time_series_chart` function outputs a Markdown string pointing to the chart image. Here's how to display it:
-
-    ```markdown
-    ![Chart](<relative_path_to_chart>)
-    ```
-    The chart will be saved in the `static` directory with a unique filename, and the relative path to this file is returned as Markdown content to be displayed in the interface.
-
-    """,
-    functions=[set_dataset, get_data_summary, anomaly_detection, generate_time_series_chart],
+    functions=[get_notes, transfer_to_journalist_agent],
+    # functions=[query_docs, set_dataset, get_dataset, set_columns, get_data_summary, anomaly_detection, generate_time_series_chart, transfer_to_journalist_agent],
     context_variables=context_variables,
     debug=False,
 )
@@ -646,6 +517,7 @@ def update_agent_instructions_with_columns(columns):
     - Use the `get_dataset` function (without any parameters) to access the dataset.
     - Use the `set_columns` function (without any parameters) to set columns from a dataset the user wants to query
     - Use the `get_data_summary` function (without any parameters) to get a statistical summary of the data.
+    - Use the `transfer_to_journalist_agent` function (without any parameters) to transfer to the journalist agent. 
     - Use the `anomaly_detection` function to perform anomaly detection on the dataset. When calling this function, ensure you correctly pass values for the following parameters:
     - `group_field`: Specify the column name by which you want to group the data. Use the result of `get_columns` to decide which column is suitable for grouping (e.g., `'Category'`).
     - `filter_conditions`: Pass in a list of conditions to filter the data. Use this to narrow down the dataset for specific analysis. The format is a list of dictionaries with `'field'`, `'operator'`, and `'value'` keys.
@@ -703,19 +575,37 @@ def update_agent_instructions_with_columns(columns):
     - Your text should be in Markdown for best formatting.
     """
 
+
 def load_and_combine_climate_data():
     data_folder = 'data/climate'
-    gsf_file = os.path.join(data_folder, 'GSF.csv')
+    # gsf_file = os.path.join(data_folder, 'GSF.csv')
     vera_file = os.path.join(data_folder, 'cleaned_vcusNov19.csv')
     
     # Load the CSV files with detected encoding
-    gsf_df = read_csv_with_encoding(gsf_file)
+    # gsf_df = read_csv_with_encoding(gsf_file)
     vera_df = read_csv_with_encoding(vera_file)
     
     # Combine the DataFrames
     set_dataset_in_context(context_variables, vera_df)
 
     return vera_df
+
+
+
+journalist_agent = Agent(
+    model=AGENT_MODEL,
+    name="Journalist",
+     instructions="""
+        You are a data journalist covering the city of San Francisco. Your mission is to hold public officials accountable for results, both positive and negative but generally with an emphasis on the positive. You are looking for interesting data trends and anomalies. Ultimately we want to connect this data to the public figures responsible for the underlying data. So for example, a decrease in violent crime in the Taraval district might reflect positively on the police captain there. It also might not, depending on if the decrease is due to less crime, or perhaps it's just lax enforcement. This is why you will focus only on the WHAT, not the WHY.
+        Your voice is descriptive and normative. You don't use value words or suggest that we know why something has changed. Still, you would prefer to call out a potentially positive trend than a negative one assuming you have only a few tweets to share.
+        You will be reviewing the combined notes of an analysis of a range of  tables in the city database with a beief description about what is there. You will review these notes and then write a story summarizing crime and Safety in SF in November.
+        The story will contain a few paragraphs and a few charts.  you'll write the story text in markdown, and then you will generate the charts with the help of the analyst agent.  Describe what fields you want in the charts and what type of chart you want.  Place them in the story where you want them to appear with the appropriate caption.
+        Please return neat and clean markdown.
+            """,
+    functions=[get_notes, transfer_to_analyst_agent],  
+    context_variables=context_variables,
+    debug=False,
+)
 
 def set_dataset_in_context(context_variables, dataset):
     """
@@ -726,7 +616,7 @@ def set_dataset_in_context(context_variables, dataset):
     # Retrieve and update column names in the agent's instructions
     columns = get_columns(context_variables).get("columns", [])
     if columns:
-        update_agent_instructions_with_columns(columns)
+       update_agent_instructions_with_columns(columns)
 
 def load_data(context_variables):
     """
@@ -736,11 +626,8 @@ def load_data(context_variables):
     set_dataset_in_context(context_variables, combined_data)
     return combined_data
 
-
 # Ensure the dataset is set in the context variables when initializing
 combined_df = {"dataset": load_data(context_variables)}
-
-
 
 def process_and_print_streaming_response(response):
     content = ""
@@ -771,7 +658,6 @@ def process_and_print_streaming_response(response):
 
         if "response" in chunk:
             return chunk["response"]
-
 def pretty_print_messages(messages) -> None:
     for message in messages:
         if message["role"] != "assistant":
@@ -794,8 +680,12 @@ def pretty_print_messages(messages) -> None:
             arg_str = json.dumps(json.loads(args)).replace(":", "=")
             print(f"\033[95m{name}\033[0m({arg_str[1:-1]})")
 
+
 function_mapping = {
+    'transfer_to_analyst_agent': transfer_to_analyst_agent,
+    'transfer_to_journalist_agent': transfer_to_journalist_agent,
     'get_dataset': get_dataset,
+    'get_notes': get_notes,
     'get_columns': get_columns,
     'get_data_summary': get_data_summary,
     'anomaly_detection': anomaly_detection,
@@ -817,8 +707,8 @@ def get_session(session_id: str = Cookie(None)):
         new_session_id = str(uuid.uuid4())
         sessions[new_session_id] = {
             "messages": [],
-            "agent": chart_agent,  # Start with analyst
-            "context_variables": {"dataset": combined_df["dataset"]}  # Initialize context_variables
+            "agent": journalist_agent,  # Start with journalist
+            "context_variables": {"dataset": combined_df["dataset"],"notes": combined_notes}  # Initialize context_variables
         }
         return sessions[new_session_id]
 
@@ -971,8 +861,8 @@ async def chat(request: Request, session_id: str = Cookie(None)):
         session_id = str(uuid.uuid4())
         sessions[session_id] = {
             "messages": [],
-            "agent": chart_agent,  # Start with analyst
-            "context_variables": {"dataset": combined_df["dataset"]}
+            "agent": journalist_agent,  # Start with analyst
+            "context_variables": {"dataset": combined_df["dataset"],"notes": combined_notes}
         }
 
     session_data = sessions[session_id]
@@ -994,4 +884,4 @@ async def chat(request: Request, session_id: str = Cookie(None)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("webSingle:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("webChat:app", host="0.0.0.0", port=8000, reload=True)

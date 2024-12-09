@@ -83,7 +83,8 @@ def main():
     threshold_date = datetime(2024, 9, 1, tzinfo=pytz.UTC)
 
     # Process each file individually
-    for idx, filename in enumerate(article_list, start=1):
+    # Adjusted to only process the first file for QA
+    for idx, filename in enumerate(article_list, start=1):  # Changed to process only the first file
         article_path = os.path.join(datasets_folder, filename)
         print(f"\nProcessing file {idx}/{len(article_list)}: {filename}")
 
@@ -136,13 +137,15 @@ def main():
             Your task is:
 
             - Given dataset information (title, description, columns), generate a working API query with an endpoint and query that will work.
-              Construct a SoQL query that selects the following: 
+              The field name syou will select and return are the ones that are the output of the query, not the input, so if you use a date_field called _added_date, but select it as a trunc_ym(_added_date) as month, then you would use the fieldname month. 
               Whenever selecting fields always take the value of the fieldName key, NOT the name key.
+              Construct a SoQL query that selects the following:
               Date Fields = at least one date field.  Choose the one that is most likely to be of use to an analyst looking at patterns in San Francisco.  If you can't decide, you can take a few different date fields.  Data should be aggregated and grouped by month by default.  Make sure the field name you return matches the one you names in the query.  In the query, if you queried for date_trunc_ym(report_datetime) AS month, then use the name Month here, not date_trunc_ym(report_datetime).
               Numeric Fields You also need at least one numeric field, use sum() to aggregate when grouping.  If you can't see an interesting numeric field, then use count(*) in the query and call that field 'item_count'. If you do that be sure to add 'item_count' to the numericFields you return.
               Category Fields It should alse include a few category fields that will allow you to breakdown the data into useful groups.  Prefer fields that have names as opposed to ids if you see both. 
-              Filter for only data from 9/1/2022 forward. 
-              Aggregate data by month.
+              Where clause - Include a where clause that filters for only data from 9/1/2022 forward. 
+              Aggregate data by month. 
+              
               Remember to use _ characters instead of spaces in field names
               
               Remember to use column functions like date_trunc_y() or date_trunc_ym() for date grouping.
@@ -155,14 +158,20 @@ def main():
                     Make sure the query is properly URL-encoded when needed.
 
                     
-            - Categorize the dataset into one of the following categories: Safety, Health, Economy, Housing, Education, Transportation, Other.
-            - Estimate the usefullness on a scale of 1-3 (1=least useful, 3=most useful) for an monthly analysis of trends happening in San Francisco.
+            - report_category: Categorize the dataset into one of the following categories: Safety, Health, Economy, Housing, Education, Transportation, Other.
+            - usefulness: Estimate the usefullness on a scale of 1-3 (1=least useful, 3=most useful) for an monthly analysis of trends happening in San Francisco.
+            - column_metadata: Include metadata about all of the fields in the dataset that you have selected including the field name, description, and dataTypeName.
+            - table_metadata: Include metadata about the table including the title, description, endpoint and category.
+            - periodic: Boolean: yes if this is the kind of data with constant new entries like police reports, or is it a lookup table like a list of departments or a rarely changing stock, like stop sign locations or wireless cariiers.  
+            - item_noun - A row in this tableis a what?  In the example above it is a Police Incident Report. 
 
-            Please provide the output in JSON format, with keys 'DateFields' 'NumericFields' 'CategoryFields' 'endpoint', 'query',  'category', and usefulness.  The 'DateFields', 'NumericFields', and 'CategoryFields' keys should contain lists of OUTPUT field names, meaning the ones that the query will return. 
+            Include a 'whom it may interest' section that explains who would be interested in this data and why.
+
+            Please provide the output in JSON format, with keys 'DateFields' 'NumericFields' 'CategoryFields' 'endpoint', 'query',  'report_category',  'usefulness', 'column_metadata', 'table_metadata',  'periodic', 'item_noun', 'whom_it_may_interest'.  The 'DateFields', 'NumericFields', and 'CategoryFields' keys should contain lists of OUTPUT field names, meaning the ones that the query will return. 
             The 'endpoint' and 'query' keys should contain the API endpoint and the SoQL query, respectively.  The 'category' key should contain the category name.  The 'usefulness' key should contain the usefulness estimate.
 
             Ensure that the query is a valid SoQL query, and that the endpoint is correct (the dataset identifier).
-            Remember no from clause.  
+            Remember no from clause. 
             
             Here's a good example: 
             endpoint: "wg3w-h783.json",
@@ -200,7 +209,7 @@ def main():
                 year, 
                 month
 
-            Ensure the output is strictly formatted as valid JSON. Do not include any additional text or explanations outside the JSON block.
+            Ensure the output is strictly formatted as valid JSON.  No operators or additioonal characters, Do not include any additional text or explanations outside the JSON block.
             """
 
         user_message = f"""

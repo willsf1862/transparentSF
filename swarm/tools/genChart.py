@@ -148,12 +148,17 @@ def generate_time_series_chart(
             total_latest_month = aggregated_df[aggregated_df['time_period'] == last_time_period][numeric_fields[0]].sum()
             logging.debug(f"Total value for last period: {total_latest_month}")
 
-            # Exclude the last period for calculating the average of the rest
+            # Exclude the last period for calculating the average of the rest across all groups
             rest_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
-            average_of_rest = rest_periods[numeric_fields[0]].mean()
+            if rest_periods.empty:
+                average_of_rest = 0
+            else:
+                # Sum over groups to get total per time period
+                total_per_time_period = rest_periods.groupby('time_period')[numeric_fields[0]].sum()
+                average_of_rest = total_per_time_period.mean()
             logging.debug(f"Average value of rest periods: {average_of_rest}")
 
-            percentage_diff_total = ((total_latest_month - average_of_rest) / average_of_rest) * 100
+            percentage_diff_total = ((total_latest_month - average_of_rest) / average_of_rest) * 100 if average_of_rest != 0 else 0
             above_below_total = 'above' if total_latest_month > average_of_rest else 'below'
             percentage_diff_total = abs(round(percentage_diff_total, 2))
             logging.debug(f"Percentage difference for total: {percentage_diff_total}%, {above_below_total} the average.")
@@ -172,13 +177,16 @@ def generate_time_series_chart(
                 prior_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
                 average_of_prior = prior_periods.groupby(group_field)[numeric_fields[0]].mean().to_dict()
                 logging.debug(f"Average values of prior periods by group: {average_of_prior}")
-
+                # Calculate the number of periods in the prior period range
+                num_prior_periods = len(prior_periods['time_period'].unique())
+                logging.info(f"Number of periods in the prior period range: {num_prior_periods}")
+                
                 captions_group = []
                 for group, value in numeric_values.items():
                     percentage_diff_group = ((value - average_of_prior[group]) / average_of_prior[group]) * 100
                     above_below_group = 'above' if value > average_of_prior[group] else 'below'
                     percentage_diff_group = abs(round(percentage_diff_group, 2))
-                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the average.")
+                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the {num_prior_periods} {aggregation_period} average.")
 
                     captions_group.append(f"For {group}, in {last_month_name}, there were {value} {y_axis_label_lower}, which is {percentage_diff_group}% {above_below_group} the average of {average_of_prior[group]:.2f}.")
 
@@ -313,7 +321,28 @@ def generate_time_series_chart(
             fig.write_image(image_path, engine="kaleido")
             logging.info("Chart saved successfully at %s", image_path)
             relative_path = os.path.relpath(image_path, start=script_dir)
-            markdown_content = f"![Chart]({relative_path.replace(os.sep, '/')})\n\n{caption}"
+            # Convert datetime columns to date only
+            date_columns = aggregated_df.select_dtypes(include=['datetime64[ns]']).columns
+            for col in date_columns:
+                aggregated_df[col] = aggregated_df[col].dt.date
+
+            # Convert dataframe to JSON
+            json_data = aggregated_df.to_json(orient='records', date_format='date')
+            
+            # Check if JSON data is too long (>1000 tokens)
+            if len(json_data) > 4000:  # Approximate 1000 tokens
+                # Truncate the dataframe and convert again
+                truncated_df = aggregated_df.head(20)  # Take first 20 rows
+                json_data = truncated_df.to_json(orient='records', date_format='iso')
+                json_data += "\n... [truncated]"
+
+            # Create markdown content with chart and JSON data
+            markdown_content = f"![Chart]({relative_path.replace(os.sep, '/')})\n\n{caption}\n\n### Data\n```json\n{json_data}\n```"
+
+            # Create HTML table for the web view
+            html_table = aggregated_df.to_html(index=False, classes='data-table')
+            html_content = fig.to_html(full_html=False) + f"\n<div class='table-container'>\n<h3>Data Table</h3>\n{html_table}\n</div>"
+
             logging.debug("Markdown content created: %s", markdown_content)
 
             # Generate HTML content

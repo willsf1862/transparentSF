@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transparent SF Agent Chat</title>
+    <style>
+        /* Reset default margins and paddings */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* General styles */
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .main {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Chat container */
+        .chat {
+            width: 700px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #ccc;
+            background-color: #ffffff;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #response-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #ffffff;
+        }
+
+        p {
+            margin-bottom: 1em;
+        }
+
+        .message-content ul, li
+        .message-content ol, bl{
+            margin: 0; /* Remove default margins */
+            padding-left: 20px; /* Add consistent padding */
+            padding-bottom: 10px; /* Add space after list */
+            padding-top: 10px; /* Add space before list */
+            list-style-position: inside; /* Ensure bullets/numbers are inside the container */
+        }
+        /* Message styling */
+        .message {
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 15px;
+            max-width: 97%;
+            word-wrap: break-word;
+            display: inline-block;
+            position: relative;
+            clear: both; /* Ensure messages start on a new line */
+        }
+
+        .user-message {
+            background-color: #e6f7ff;
+            color: #333;
+            float: left; /* Align to left */
+        }
+
+        .ai-message {
+            background-color: #f0f0f0;
+            color: #333;
+            float: left; /* Align to left */
+        }
+
+        /* Sender labels */
+        .sender {
+            font-weight: bold;
+            margin-bottom: 3px;
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .message-content ol {
+            list-style-type: decimal;    /* Ensure numbering is decimal */
+            list-style-position: inside; /* Numbers appear inside the content area */
+            padding: 0;                  /* Adjust as needed */
+            margin: 0;                   /* Adjust as needed */
+        }
+
+        .message-content ol li {
+            display: inline-block;       /* Keeps block-level properties (including markers) but on the same line */
+            margin-right: 10px;
+            vertical-align: middle;      /* Adjust vertical alignment if needed */
+        }
+
+        /* Tool call styling */
+        .tool-call {
+            background-color: #fffae6;
+            color: #6b5b95;
+            font-style: italic;
+            border-left: 4px solid #6b5b95;
+            padding: 5px;
+            margin: 10px 0;
+        }
+
+        .tool-call-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-button {
+            background: none;
+            border: none;
+            font-weight: bold;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .tool-call-args {
+            margin-left: 20px;
+            display: none; /* Initially collapsed */
+            white-space: pre-wrap;
+        }
+
+        /* Input area */
+        #input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #userInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #submit-button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: #ffffff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #loading {
+            display: none;
+            color: #007bff;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* Draggable divider */
+        .divider {
+            width: 5px;
+            cursor: col-resize;
+            background-color: #ccc;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Canvas container */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Footer and Header (if any) can be styled here */
+        header, footer {
+            background-color: #f1f1f1;
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .chat {
+                width: 100%;
+            }
+            .divider {
+                display: none; /* Hide divider on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="chat">
+            <h1>Transparent SF Agent Chat</h1>
+            <div id="chat-container">
+                <div id="response-area"></div>
+                <div id="loading">AI is thinking...</div>
+                <div id="input-container">
+                    <input type="text" id="userInput" placeholder="Type your message...">
+                    <button id="submit-button">Send</button>
+                </div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="canvas-container" id="canvasTarget">
+            <!-- Canvas content will load here -->
+        </div>
+    </div>
+
+    <!-- Include Marked.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.2.12/marked.min.js"></script>
+    <!-- Include DOMPurify library -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
+
+    <script>
+        // Corrected element references
+        const responseArea = document.getElementById('response-area');
+        const userInput = document.getElementById('userInput'); // Correct ID
+        const submitBtn = document.getElementById('submit-button'); // Correct ID
+        const loading = document.getElementById('loading');
+        let currentAIMessage = null;    
+
+        function handleServerMessage(data) {
+            console.log('Received message:', data);
+
+            if (currentAIMessage == null) {
+                currentAIMessage = addMessage(data.sender || "AI", "ai-message");
+                currentAIMessage.contentSegments = []; // Initialize content segments array
+            }
+
+            if (data.type === 'content' || data.type === 'tool_call') {
+                if (data.type === 'content') {
+                    // Append to the last content segment if it's a string
+                    if (typeof currentAIMessage.contentSegments[currentAIMessage.contentSegments.length - 1] === 'string') {
+                        currentAIMessage.contentSegments[currentAIMessage.contentSegments.length - 1] += data.content;
+                    } else {
+                        currentAIMessage.contentSegments.push(data.content);
+                    }
+                } else if (data.type === 'tool_call') {
+                    // Add the tool call object as a segment
+                    currentAIMessage.contentSegments.push({
+                        type: 'tool_call',
+                        function_name: data.function_name,
+                        arguments: data.arguments
+                    });
+                }
+
+                // Re-render the content segments
+                renderContentSegments(currentAIMessage);
+            } else {
+                console.warn('Unknown message type:', data.type);
+            }
+
+            responseArea.scrollTop = responseArea.scrollHeight;
+        }
+
+        function renderContentSegments(message) {
+            // Clear the content element
+            message.contentElement.innerHTML = '';
+
+            // Configure Marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: false,
+                mangle: false
+            });
+
+            // Process each segment
+            for (let segment of message.contentSegments) {
+                if (typeof segment === 'string') {
+                    // It's a markdown content segment
+                    try {
+                        const htmlContent = marked.parse(segment);
+                        const sanitizedContent = DOMPurify.sanitize(htmlContent);
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = sanitizedContent;
+
+                        // Append the content to the message content element
+                        while (tempDiv.firstChild) {
+                            message.contentElement.appendChild(tempDiv.firstChild);
+                        }
+                    } catch (error) {
+                        console.warn('Markdown parsing error:', error);
+                        // Optionally, handle parsing errors
+                    }
+                } else if (segment.type === 'tool_call') {
+                    // It's a tool call segment
+                    const toolCallElement = createToolCallElement(segment.function_name, segment.arguments);
+                    message.contentElement.appendChild(toolCallElement);
+                }
+            }
+        }
+
+        function createToolCallElement(functionName, args) {
+            const toolCallContainer = document.createElement('div');
+            toolCallContainer.className = 'tool-call';
+
+            const toolCallHeader = document.createElement('div');
+            toolCallHeader.className = 'tool-call-header';
+
+            const toggleButton = document.createElement('button');
+            toggleButton.textContent = '[+]';
+            toggleButton.className = 'toggle-button';
+
+            toolCallHeader.appendChild(toggleButton);
+            toolCallHeader.appendChild(document.createTextNode(` Tool Call: ${functionName}`));
+
+            const argsContainer = document.createElement('div');
+            argsContainer.className = 'tool-call-args';
+            argsContainer.textContent = `Arguments: ${JSON.stringify(args, null, 2)}`;
+
+            toggleButton.addEventListener('click', () => {
+                if (argsContainer.style.display === 'none') {
+                    argsContainer.style.display = 'block';
+                    toggleButton.textContent = '[-]';
+                } else {
+                    argsContainer.style.display = 'none';
+                    toggleButton.textContent = '[+]';
+                }
+            });
+
+            argsContainer.style.display = 'none'; // Start collapsed
+            toolCallContainer.appendChild(toolCallHeader);
+            toolCallContainer.appendChild(argsContainer);
+
+            return toolCallContainer;
+        }
+
+        async function sendMessage() {
+            const query = userInput.value.trim();
+            if (!query) return;
+
+            // Add user's message to chat log
+            const userMessage = addMessage("You", "user-message");
+            const htmlContent = marked.parse(query);
+            userMessage.contentElement.innerHTML = DOMPurify.sanitize(htmlContent);
+
+            // Reset currentAIMessage to null
+            currentAIMessage = null;
+
+            loading.style.display = 'block';
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query }),
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                let buffer = '';
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    console.log('Received chunk:', chunk);
+                    buffer += chunk;
+
+                    // Process complete lines
+                    let lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep the last incomplete line in the buffer
+
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            try {
+                                const data = JSON.parse(line);
+                                handleServerMessage(data);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                                console.error('Invalid JSON:', line);
+                            }
+                        }
+                    }
+                }
+
+                // Process any remaining data in the buffer
+                if (buffer.trim()) {
+                    try {
+                        const data = JSON.parse(buffer);
+                        handleServerMessage(data);
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                        console.error('Invalid JSON:', buffer);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage("Error", "error-message").contentElement.textContent = "An error occurred. Please try again.";
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function addMessage(sender, messageType) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `message ${messageType}`;
+
+            const senderElement = document.createElement('span');
+            senderElement.className = 'sender';
+            senderElement.textContent = sender ? `${sender}:` : '';
+
+            const contentElement = document.createElement('div'); // Use a div to allow block-level elements
+            contentElement.className = 'message-content';
+
+            messageContainer.appendChild(senderElement);
+            messageContainer.appendChild(contentElement);
+
+            responseArea.appendChild(messageContainer);
+            responseArea.scrollTop = responseArea.scrollHeight;
+
+            return {
+                messageContainer,
+                senderElement,
+                contentElement,
+                contentSegments: [] // Initialize content segments array
+            };
+        }
+
+        // JavaScript for draggable divider
+        const divider = document.querySelector('.divider');
+        const chat = document.querySelector('.chat');
+        const canvas = document.querySelector('.canvas-container');
+
+        let isDragging = false;
+
+        divider.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            document.body.style.cursor = 'col-resize';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+
+            // Calculate new width for the chat
+            const main = document.querySelector('.main');
+            const mainRect = main.getBoundingClientRect();
+            let newChatWidth = e.clientX;
+
+            // Set minimum and maximum widths
+            const minWidth = 200; // Minimum width for chat
+            const maxWidth = mainRect.width - 200; // Minimum width for canvas
+
+            if (newChatWidth < minWidth) newChatWidth = minWidth;
+            if (newChatWidth > maxWidth) newChatWidth = maxWidth;
+
+            chat.style.width = `${newChatWidth}px`;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.cursor = 'default';
+            }
+        });
+
+        // Ensure JavaScript runs after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.getElementById('submit-button');
+            const inputBox = document.getElementById('userInput'); 
+            
+            if (submitButton && inputBox) {
+                submitButton.addEventListener('click', sendMessage);
+                inputBox.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            } else {
+                console.error('submit-button or input-box not found.');
+            }
+        });
+        function modifyLinksToOpenInFrame(element, frameId) {
+    const links = element.getElementsByTagName('a');
+    for (let link of links) {
+        link.setAttribute('target', frameId);
+    }
+}
+
+// Call this function after rendering each message to the chat response area
+function renderContentSegments(message) {
+    message.contentElement.innerHTML = ''; // Clear previous content
+    
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false,
+        mangle: false
+    });
+
+    for (let segment of message.contentSegments) {
+        if (typeof segment === 'string') {
+            try {
+                const htmlContent = marked.parse(segment);
+                const sanitizedContent = DOMPurify.sanitize(htmlContent);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = sanitizedContent;
+
+                // Modify links to open in the specified frame
+                modifyLinksToOpenInFrame(tempDiv, 'canvasTarget');
+
+                while (tempDiv.firstChild) {
+                    message.contentElement.appendChild(tempDiv.firstChild);
+                }
+            } catch (error) {
+                console.warn('Markdown parsing error:', error);
+            }
+        } else if (segment.type === 'tool_call') {
+            const toolCallElement = createToolCallElement(segment.function_name, segment.arguments);
+            message.contentElement.appendChild(toolCallElement);
+        }
+    }
+}
+
+    </script>
+</body>
+</html>
