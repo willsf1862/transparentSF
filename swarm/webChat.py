@@ -29,11 +29,19 @@ import uuid
 # ------------------------------
 
 load_dotenv()
+# Confirm that there is an openai_api_key set
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+if not openai_api_key:
+    raise ValueError("OpenAI API key not found in environment variables.")
 
 # Initialize FastAPI app
 app = FastAPI()
 
 # Serve static files and templates
+# Create static directory if it doesn't exist
+if not os.path.exists("static"):
+    os.makedirs("static")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 # Mount the static directory
 templates = Jinja2Templates(directory="templates")
@@ -599,7 +607,7 @@ journalist_agent = Agent(
         You are a data journalist covering the city of San Francisco. Your mission is to hold public officials accountable for results, both positive and negative but generally with an emphasis on the positive. You are looking for interesting data trends and anomalies. Ultimately we want to connect this data to the public figures responsible for the underlying data. So for example, a decrease in violent crime in the Taraval district might reflect positively on the police captain there. It also might not, depending on if the decrease is due to less crime, or perhaps it's just lax enforcement. This is why you will focus only on the WHAT, not the WHY.
         Your voice is descriptive and normative. You don't use value words or suggest that we know why something has changed. Still, you would prefer to call out a potentially positive trend than a negative one assuming you have only a few tweets to share.
         You will be reviewing the combined notes of an analysis of a range of  tables in the city database with a beief description about what is there. You will review these notes and then write a story summarizing crime and Safety in SF in November.
-        The story will contain a few paragraphs and a few charts.  you'll write the story text in markdown, and then you will generate the charts with the help of the analyst agent.  Describe what fields you want in the charts and what type of chart you want.  Place them in the story where you want them to appear with the appropriate caption.
+        The story will contain a few paragraphs and a few charts.  you'll write the story text in markdown, and then you choose from the charts that have already been generated and referenced in the notes.  If you see a noteworthy trend, take the chart that goes with it and display it in the story.  
         Please return neat and clean markdown.
             """,
     functions=[get_notes, transfer_to_analyst_agent],  
@@ -622,7 +630,8 @@ def load_data(context_variables):
     """
     Loads and combines data, setting the dataset and updating the agent instructions with column names.
     """
-    combined_data = load_and_combine_climate_data()
+    combined_data=combined_df["dataset"]
+    # combined_data = load_and_combine_climate_data()
     set_dataset_in_context(context_variables, combined_data)
     return combined_data
 

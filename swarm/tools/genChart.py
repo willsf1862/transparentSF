@@ -336,18 +336,25 @@ def generate_time_series_chart(
                 json_data = truncated_df.to_json(orient='records', date_format='iso')
                 json_data += "\n... [truncated]"
 
+            # Generate a short unique ID for the chart (6 characters should be sufficient)
+            chart_id = uuid.uuid4().hex[:6]
+
             # Create markdown content with chart and JSON data
-            markdown_content = f"![Chart]({relative_path.replace(os.sep, '/')})\n\n{caption}\n\n### Data\n```json\n{json_data}\n```"
+            markdown_content = f"""![Chart]({relative_path.replace(os.sep, '/')})
 
-            # Create HTML table for the web view
-            html_table = aggregated_df.to_html(index=False, classes='data-table')
-            html_content = fig.to_html(full_html=False) + f"\n<div class='table-container'>\n<h3>Data Table</h3>\n{html_table}\n</div>"
+                {caption}
 
-            logging.debug("Markdown content created: %s", markdown_content)
+                <!-- chart:{chart_id} -->
 
-            # Generate HTML content
-            html_content = fig.to_html(full_html=False)
-            logging.debug("HTML content created.")
+                ### Data
+                ```json
+                {json_data}
+                ```"""
+
+            # Add the chart ID to the HTML output as well
+            html_content = f'<div id="chart_{chart_id}">\n{fig.to_html(full_html=False)}\n</div>'
+
+            logging.debug("Markdown content created with chart ID: %s", chart_id)
 
             return markdown_content, html_content
 

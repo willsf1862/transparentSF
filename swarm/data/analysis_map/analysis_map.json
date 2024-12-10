@@ -263,7 +263,7 @@
             "Area_of_Fire_Origin"
         ],
         "endpoint": "wr8u-xric.json",
-        "query": "SELECT date_trunc_ym(`Incident Date`) AS Incident_Date, sum(`Estimated Property Loss`) AS Estimated_Property_Loss, sum(`Estimated Contents Loss`) AS Estimated_Contents_Loss, COUNT(*) AS item_count, `Primary Situation` AS Primary_Situation, `Action Taken Primary` AS Action_Taken_Primary, `Property Use` AS Property_Use, `Area of Fire Origin` AS Area_of_Fire_Origin WHERE `Incident Date`>='2022-09-01' GROUP BY Incident_Date, Primary_Situation, Action_Taken_Primary, Property_Use, Area_of_Fire_Origin ORDER BY Incident_Date",
+        "query": "SELECT date_trunc_ym(\"Incident Date\") AS \"Incident_Date\", sum(\"Estimated Property Loss\") AS \"Estimated_Property_Loss\", sum(\"Estimated Contents Loss\") AS \"Estimated_Contents_Loss\", COUNT(*) AS \"item_count\", \"Primary Situation\" AS \"Primary_Situation\", \"Action Taken Primary\" AS \"Action_Taken_Primary\", \"Property Use\" AS \"Property_Use\", \"Area of Fire Origin\" AS \"Area_of_Fire_Origin\" WHERE \"Incident Date\">='2022-09-01' GROUP BY \"Incident_Date\", \"Primary_Situation\", \"Action_Taken_Primary\", \"Property_Use\", \"Area_of_Fire_Origin\" ORDER BY \"Incident_Date\"",
         "report_category": "Safety",
         "usefulness": 3,
         "column_metadata": {

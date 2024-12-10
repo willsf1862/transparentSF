@@ -19,7 +19,7 @@ if not openai_api_key:
 client = Swarm()
 
 # GPT_MODEL = 'gpt-3.5-turbo-16k'
-GPT_MODEL = 'gpt-4'
+GPT_MODEL = 'gpt-4o'
 
 def main():
     # Paths
@@ -32,8 +32,8 @@ def main():
     os.makedirs(output_folder, exist_ok=True)
 
     # Set the range of entries to process
-    num_start = 133
-    num_end = 136
+    num_start = 150
+    num_end = 151
 
     # Verify that the datasets directory exists
     if not os.path.isdir(datasets_folder):
@@ -342,6 +342,8 @@ def main():
                         Look for unusual spikes, declines, or patterns over time.
                         Spot improvements that might be considered good outcomes (e.g., reduced incidents, increased housing production, improved public service metrics).
                         Note any negative shifts as well, but avoid speculation.
+                        
+                        Document them in charts and images.  There should be several staic images referenced in the markdown file.  When you find a notwworthy trrend (say police reports are down) then you should documnet that with a chart that supports it.  Just move the chart over in markdown to the final text file.
                         No Explanation of Causes:
 
                         Do not try to explain why these changes occurred.
@@ -349,10 +351,10 @@ def main():
                         If Nothing Remarkable:
 
                         If the data is unremarkable—no visible trend, no anomaly—simply state that nothing significant stands out this period.
-                        Style for Notes:
-
+                        
                         Your output will be internal notes, not a final article. You can include as many details as you find interesting.
                         Keep your language concise and data-focused, so you can easily pick and choose which insights to use later when writing an actual story.
+                        
                         Outcome:
                         A concise but thorough textual summary capturing what is notable (or not) in the provided markdown file. This summary should serve as a quick reference the journalist can review later when deciding which stories to highlight in a monthly report.
                         """

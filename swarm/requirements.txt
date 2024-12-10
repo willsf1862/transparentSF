@@ -5,4 +5,9 @@ qdrant-client
 fastapi
 uvicorn
 tabulate
-git+ssh://git@github.com/openai/swarm.git
+pandas
+plotly
+beautifulsoup4
+selenium
+kaleido
+git+https://github.com/openai/swarm.git
