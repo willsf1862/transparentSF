@@ -6,17 +6,20 @@ import plotly.io as pio
 import datetime
 import uuid
 
-def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/anomaly_charts'):
+def generate_anomalies_summary_with_charts(results, metadata, output_dir='static'):
     """
-    Generates an HTML page with charts for each detected anomaly and a summary table.
+    Generates an HTML page with charts for each detected anomaly and a summary table,
+    along with a concise Markdown summary that references PNG images of the charts.
 
     Parameters:
     - results (list of dict): List containing anomaly details.
     - metadata (dict): Metadata containing period information.
-    - output_dir (str): Directory to save the HTML page and assets.
+    - output_dir (str): Directory to save the HTML page and chart images.
 
     Returns:
-    - str: Path to the generated HTML page.
+    - tuple: (html_content, markdown_summary)
+        html_content (str): The full HTML as a string.
+        markdown_summary (str): A concise Markdown summary of the anomalies referencing the PNG charts.
     """
     if 'title' not in metadata or 'y_axis_label' not in metadata:
         logging.warning("Metadata is missing 'title' or 'y_axis_label'. Default values will be used.")
@@ -30,6 +33,7 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/a
       
     # Sort anomalies by 'out_of_bounds' status
     sorted_anomalies = sorted(results, key=lambda x: x['out_of_bounds'], reverse=True)
+    
     # Generate charts for each anomaly
     for item in sorted_anomalies:
         if item['out_of_bounds']:
@@ -37,7 +41,7 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/a
         else: 
             chart_title = f"{item['group_value']}"
         try:
-            chart_html = generate_chart_html(item, chart_title, metadata, chart_counter)
+            chart_html, chart_id = generate_chart_html(item, chart_title, metadata, chart_counter, output_dir)
             all_charts_html.append(chart_html)
             
             # Prepare data for the table
@@ -52,6 +56,7 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/a
                 'difference': round(item['difference'], 1),
                 'percent_difference': round(abs(percent_difference), 1),
                 'out_of_bounds': item['out_of_bounds'],
+                'chart_id': chart_id  # Store chart_id for markdown reference
             })
             chart_counter += 1  # Increment the chart counter
 
@@ -141,7 +146,6 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/a
         {% endfor %}
     </body>
     </html>
-
     """
     template = env.from_string(template_str)
     
@@ -157,19 +161,28 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='data/a
         f.write(html_content)
     
     logging.info(f"Anomaly charts HTML page generated at: {html_file_path}")
-    
-    return html_content
 
-def generate_chart_html(item, chart_title, metadata,chart_counter):
+    # Generate a Markdown summary
+    markdown_summary = generate_markdown_summary(table_data, metadata, output_dir)
+
+    return html_content, markdown_summary
+
+
+def generate_chart_html(item, chart_title, metadata, chart_counter, output_dir):
     """
-    Generates an HTML snippet containing a Plotly chart for the given anomaly.
+    Generates an HTML snippet containing a Plotly chart for the given anomaly
+    and saves the chart as a PNG image using Kaleido.
 
     Parameters:
     - item (dict): Anomaly data containing dates, counts, comparison_mean, etc.
     - metadata (dict): Contains comparison_period and recent_period information.
+    - chart_counter (int): Index number of the chart.
+    - output_dir (str): Directory to save the chart images.
 
     Returns:
-    - str: HTML string for the chart.
+    - tuple: (chart_html, chart_id)
+        chart_html (str): HTML string for the chart.
+        chart_id (str): The 8-char unique ID of this chart image.
     """
     
     # Validate input data
@@ -285,17 +298,33 @@ def generate_chart_html(item, chart_title, metadata,chart_counter):
     if connector_trace:
         plot_data.append(connector_trace)
 
-   # Create layout
+    # Create layout
+    annotation = []
+    if recent_dates and recent_counts:
+        annotation.append(
+            dict(
+                text=f"{recent_dates[-1].strftime('%B %Y')}:<br>{recent_counts[-1]:,.0f} {metadata.get('y_axis_label', 'credits').lower()}",
+                x=recent_dates[-1],
+                y=recent_counts[-1],
+                arrowhead=2,
+                ax=-75,
+                ay=20,
+                bgcolor='rgba(255, 255, 0, 0.7)',
+                bordercolor='gold',
+                borderwidth=1,
+            )
+        )
+
     layout = go.Layout(
         title=dict(text=chart_title, font=dict(size=14)),
         xaxis=dict(
-            tickformat='%b %Y',  # Format to include month and year
-            dtick='M1',         # Tick marks for each month
+            tickformat='%b %Y',
+            dtick='M1',
             title=metadata.get('date_field', 'Value'),
-            ticklabelmode='period'  # Show year only when necessary
+            ticklabelmode='period'
         ),
         yaxis=dict(
-            title=metadata.get('y_axis_label', 'Value'),  # Use y_axis_label from metadata or a default fallback
+            title=metadata.get('y_axis_label', 'Value'),
             rangemode='tozero'
         ),
         showlegend=True,
@@ -309,24 +338,10 @@ def generate_chart_html(item, chart_title, metadata,chart_counter):
             font=dict(size=10)
         ),
         margin=dict(t=50, b=80, l=50, r=20),
-        annotations=[
-            dict(
-                text=f"{recent_dates[-1].strftime('%B %Y')}:<br>{recent_counts[-1]:,.0f} {metadata.get('y_axis_label', 'credits').lower()}",
-                x=recent_dates[-1],
-                y=recent_counts[-1],
-                arrowhead=2,
-                ax=-75,
-                ay=20,
-                bgcolor='rgba(255, 255, 0, 0.7)',
-                bordercolor='gold',
-                borderwidth=1,
-            )
-        ],
+        annotations=annotation,
         autosize=True
     )
 
-
-    # Create figure
     fig = go.Figure(data=plot_data, layout=layout)
 
     # Generate caption
@@ -334,23 +349,24 @@ def generate_chart_html(item, chart_title, metadata,chart_counter):
     action = 'increase' if item['difference'] > 0 else 'drop' if item['difference'] < 0 else 'no change'
 
     comparison_period_label = f"{comparison_start.strftime('%B %Y')} to {comparison_end.strftime('%B %Y')}"
-    recent_period_label = f"{recent_start.strftime('%B %Y')}"  # Assuming 'entireMonth' is not present
-    # Validate and retrieve y_axis_label
-    
+    recent_period_label = f"{recent_start.strftime('%B %Y')}"
+
     y_axis_labels = metadata['y_axis_label'].lower()
-    
-    logging.info(f"metadata: {metadata['y_axis_label']}")
-    # Generate the caption
     caption = (
         f"In {recent_period_label}, there were {item['recent_mean']:,.0f} {item['group_value']} {y_axis_labels} per month, "
         f"compared to an average of {comparison_mean:,.0f} per month over {comparison_period_label}, "
         f"a {percent_difference:.1f}% {action}."
     )
+
     # Generate Plotly HTML div
     plot_html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
-    # Generate unique Caption ID
-    unique_caption_id = f"caption-{uuid.uuid4().hex}"
+    # Save chart as PNG using Kaleido
+    chart_id = uuid.uuid4().hex[:8]
+    chart_filename = f"chart_{chart_id}.png"
+    chart_path = os.path.join(output_dir, chart_filename)
+    fig.write_image(chart_path, engine="kaleido")
+    logging.info(f"Chart image saved as {chart_path}")
 
     # Assemble the HTML snippet for the chart and its caption
     chart_html = f"""
@@ -361,5 +377,45 @@ def generate_chart_html(item, chart_title, metadata,chart_counter):
         {caption}
     </div>
     """
+    # Assemble the markdown summary with the Chart reference as well
 
-    return chart_html
+    return chart_html, chart_id
+
+
+def generate_markdown_summary(table_data, metadata, output_dir):
+    """
+    Generate a concise Markdown summary of the anomalies including references to the saved PNG charts.
+    """
+    title = metadata.get('title', 'Anomaly Detection Charts')
+    y_axis_label = metadata.get('y_axis_label', 'Value')
+
+    md_lines = []
+    md_lines.append(f"# {y_axis_label} Summary\n")
+    md_lines.append("Below is a concise summary of the anomalies and their statistics.")
+    md_lines.append("")
+    md_lines.append(f"| Group | Recent Mean | Comparison Mean | Difference | % Difference | Std Dev | Anomaly? | Chart |")
+    md_lines.append("|---|---|---|---|---|---|---|---|")
+
+    # Include a column referencing the saved PNG chart
+    for row in table_data:
+        anomaly_marker = "**Yes**" if row['out_of_bounds'] else "No"
+        # Relative path: since markdown and images in same folder (if referencing from same dir)
+        # If referencing from outside, adjust path as needed. Here we assume the markdown might be placed in output_dir.
+        # If you want to reference from outside this code, you might need a different relative path.
+        chart_rel_path = f"../static/chart_{row['chart_id']}.png"
+        md_lines.append(
+            f"| {row['group_value']} | {row['recent_mean']:,} | {row['comparison_mean']:,} | {row['difference']:,} | {row['percent_difference']}% | {row['std_dev']:,} | {anomaly_marker} | ![Chart]({chart_rel_path}) |"
+        )
+
+    md_lines.append("")
+    md_lines.append("**Anomalies** (Out of Bounds) detected above are highlighted with **Yes**.")
+
+    md_lines.append("\n## Anomaly Highlights\n")
+    for row in table_data:
+        if row['out_of_bounds']:
+            direction = "increase" if row['difference'] > 0 else "decrease" if row['difference'] < 0 else "no change"
+            md_lines.append(
+                f"- **{row['group_value']}**: {row['recent_mean']:,} vs {row['comparison_mean']:,} historically, a {row['percent_difference']}% {direction}. [Chart](..static/chart_{row['chart_id']}.png)"
+            )
+
+    return "\n".join(md_lines)

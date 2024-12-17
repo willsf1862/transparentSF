@@ -1,0 +1,50 @@
+{
+    "endpoint": "imvp-dq3v.json",
+    "query": "SELECT street_block, payment_type, meter_event_type, date_trunc_ym(session_start_dt) AS month, SUM(gross_paid_amt) AS total_revenue WHERE session_start_dt >= '2022-09-01' GROUP BY street_block, payment_type, meter_event_type, month ORDER BY month, street_block, payment_type, meter_event_type",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "street_block",
+            "description": "The name of the street block the meter sits on.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "payment_type",
+            "description": "How the customer paid, one of the following: CASH, CREDIT CARD, SMART CARD",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "meter_event_type",
+            "description": "Event type of the meter, one of the following: NS = New Session; AT = Additional Time; SC = Status Change",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Month of the session start date.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_revenue",
+            "description": "Sum of the amount paid by the customer for this meter transaction.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "SFMTA Parking Meter Detailed Revenue Transactions",
+        "description": "Parking meter transaction records where each row equals a single transaction.",
+        "endpoint": "imvp-dq3v",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "transaction",
+        "whom_it_may_interest": "City planners, economists, and public policy makers."
+    },
+    "periodic": "yes",
+    "item_noun": "transaction",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, economists, and public policy makers.",
+    "filename": "SFMTA Parking Meter Detailed Revenue Transactions.json",
+    "title": "SFMTA Parking Meter Detailed Revenue Transactions",
+    "data_validated": true,
+    "error": "Expecting value: line 14 column 14 (char 264)"
+}

@@ -1,0 +1,29 @@
+{
+    "endpoint": "43zc-xw3x.json",
+    "query": "SELECT date_trunc_ym(flight_date_time) AS month, operation_type, airline, COUNT(*) AS operations_count WHERE flight_date_time >= '2022-09-01' GROUP BY month, operation_type, airline ORDER BY month, operation_type, airline",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "month": "Aggregated month of the flight operation.",
+        "operation_type": "Type of operation such as Arrival, Departure, etc.",
+        "airline": "The airline associated with the flight operation.",
+        "operations_count": "Total count of operations for the given month, type, and airline."
+    },
+    "table_metadata": {
+        "title": "SFO Flight Operations",
+        "description": "Tracks historical flight operations for reporting and analyzing noise concerns and runway use at San Francisco International Airport.",
+        "endpoint": "43zc-xw3x",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "flight operation",
+        "whom_it_may_interest": "Airlines, policy makers at SFO, Environmental Officers, residents of surrounding communities, researchers studying transportation trends or environmental impacts."
+    },
+    "periodic": "yes",
+    "item_noun": "flight operation",
+    "district_level": false,
+    "whom_it_may_interest": "airport authorities, airline companies, researchers investigating flight patterns, environmental analysts",
+    "filename": "SFO Flight Operations.json",
+    "title": "SFO Flight Operations",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(flight_date_time) AS month, operation_type, airline, COUNT(*) AS operations_count FROM WHERE flight_date_time >= '2022-09-01' GROUP BY month, operation_type, airline ORDER BY month, operation_type, airline LIMIT 1\" at line 1 character 109: Expected a table identifier, but got `WHERE'"
+}

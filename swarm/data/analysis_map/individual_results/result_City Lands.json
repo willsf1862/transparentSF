@@ -1,0 +1,40 @@
+{
+    "endpoint": "gtnh-hgvs.json",
+    "query": "SELECT date_trunc_ym(data_last_updated) AS month, count(*) AS count, category, department_name WHERE data_last_updated >= '2022-09-01' GROUP BY month, category, department_name ORDER BY month, category, department_name",
+    "report_category": "Housing",
+    "usefulness": 2,
+    "column_metadata": {
+        "month": {
+            "description": "Month of the last update, aggregated by year and month.",
+            "type": "date"
+        },
+        "count": {
+            "description": "Count of city lands updated in a given month.",
+            "type": "integer"
+        },
+        "category": {
+            "description": "Category of the department that has jurisdiction over the land, helpful for categorization of land usage.",
+            "type": "text"
+        },
+        "department_name": {
+            "description": "Name of the department that exercises jurisdiction over the city land.",
+            "type": "text"
+        }
+    },
+    "table_metadata": {
+        "title": "City Lands",
+        "description": "This dataset contains information about city-owned lands managed by various agencies within and outside the jurisdiction of the City and County of San Francisco.",
+        "endpoint": "gtnh-hgvs.json",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "city land",
+        "whom_it_may_interest": "City planners, real estate departments, and policy makers involved in city land management and development."
+    },
+    "periodic": "yes",
+    "item_noun": "city land",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, real estate departments, policy makers",
+    "filename": "City Lands.json",
+    "title": "City Lands",
+    "data_validated": true
+}

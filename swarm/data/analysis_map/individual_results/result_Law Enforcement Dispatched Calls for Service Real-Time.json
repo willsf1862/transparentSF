@@ -1,0 +1,41 @@
+{
+    "endpoint": "gnap-fj3t.json",
+    "query": "SELECT date_trunc_ym(received_datetime) AS month, COUNT(*) AS total_calls, agency, call_type_final_desc, supervisor_district WHERE received_datetime >= '2022-09-01' GROUP BY month, agency, call_type_final_desc, supervisor_district ORDER BY month, agency, call_type_final_desc, supervisor_district",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": {
+        "received_datetime": {
+            "type": "calendar_date",
+            "description": "Date and time when the 911 Dispatch Center receives the call."
+        },
+        "agency": {
+            "type": "text",
+            "description": "Primary agency assigned (Police, Sheriff, or MTA)."
+        },
+        "call_type_final_desc": {
+            "type": "text",
+            "description": "Standard description of final call type."
+        },
+        "supervisor_district": {
+            "type": "text",
+            "description": "Supervisor district based on anonymized intersection coordinates."
+        }
+    },
+    "table_metadata": {
+        "title": "Law Enforcement Dispatched Calls for Service: Real-Time",
+        "description": "This dataset includes all dispatched calls originating from the public via 911 or law enforcement officers in the field, with a continuous 48-hour window of data updated every 10 minutes.",
+        "endpoint": "gnap-fj3t",
+        "category": "Safety",
+        "district_level": true,
+        "item_noun": "call",
+        "whom_it_may_interest": "law enforcement agencies, policy makers, data analysts"
+    },
+    "periodic": "yes",
+    "filename": "Law Enforcement Dispatched Calls for Service Real-Time.json",
+    "title": "Law Enforcement Dispatched Calls for Service: Real-Time",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(received_datetime) AS month, COUNT(*) AS total_calls, agency, call_type_final_desc, supervisor_district FROM WHERE received_datetime >= '2022-09-01' GROUP BY month, agency, call_type_final_desc, supervisor_district ORDER BY month, agency, call_type_final_desc, supervisor_district LIMIT 1\" at line 1 character 131: Expected a table identifier, but got `WHERE'",
+    "item_noun": "response call",
+    "district_level": "true",
+    "whom_it_may_interest": "Public safety officials, policymakers, social workers"
+}

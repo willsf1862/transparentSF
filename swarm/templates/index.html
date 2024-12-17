@@ -26,7 +26,7 @@
 
         /* Chat container */
         .chat {
-            width: 700px;
+            width: 800px;
             display: flex;
             flex-direction: column;
             border-right: 1px solid #ccc;
@@ -62,14 +62,21 @@
             margin-bottom: 1em;
         }
 
-        .message-content ul, li
-        .message-content ol, bl{
-            margin: 0; /* Remove default margins */
-            padding-left: 20px; /* Add consistent padding */
-            padding-bottom: 10px; /* Add space after list */
-            padding-top: 10px; /* Add space before list */
-            list-style-position: inside; /* Ensure bullets/numbers are inside the container */
+        .message-content ul,
+        .message-content ol {
+            margin: 0; 
+            padding-left: 20px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            list-style-position: outside; /* more standard positioning */
         }
+
+        .message-content ul li,
+        .message-content ol li {
+            margin: 0;
+            padding: 0;
+        }
+
         /* Message styling */
         .message {
             padding: 10px 15px;

@@ -1,0 +1,42 @@
+{
+    "endpoint": "5m6g-bqm4.json",
+    "query": "SELECT airline, airline_code, date_trunc_ym(month_start_date) AS month, COUNT(*) AS total_reports, SUM(total_noise_exceedances) AS total_exceedances WHERE month_start_date >= '2022-09-01' GROUP BY airline, airline_code, month ORDER BY month, airline",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "airline": {
+            "description": "The name of the aircraft operating agency.",
+            "type": "text"
+        },
+        "airline_code": {
+            "description": "International Civil Aviation Organization (ICAO) three-letter identifier for aircraft operating agency.",
+            "type": "text"
+        },
+        "month_start_date": {
+            "description": "Start date of the month the aircraft noise exceedance occurred, measured at a fixed community noise monitor location.",
+            "type": "calendar_date",
+            "aggregated_by": "month"
+        },
+        "total_noise_exceedances": {
+            "description": "The amount of noise exceedance measured at community noise monitors associated by an operator.",
+            "type": "number",
+            "aggregation": "SUM"
+        }
+    },
+    "table_metadata": {
+        "title": "Noise Exceedance Rating",
+        "description": "Counts of airline operations that incur noise exceeding threshold by airline and by month. The Aircraft Noise Abatement Office collects this data using an Airport Noise and Operations Management System. It is collected using remote noise monitor sites in the communities surrounding SFO. This data is collected to monitor and grade airlines' performance as part of SFO's Fly Quiet Program.",
+        "category": "Transportation",
+        "endpoint": "5m6g-bqm4",
+        "district_level": false,
+        "item_noun": "noise exceedance report",
+        "whom_it_may_interest": "Airport management, community members, environmental researchers"
+    },
+    "periodic": "yes",
+    "item_noun": "noise exceedance report",
+    "district_level": "false",
+    "whom_it_may_interest": "Airport management, community members, environmental researchers",
+    "filename": "Noise Exceedance Rating.json",
+    "title": "Noise Exceedance Rating",
+    "data_validated": true
+}

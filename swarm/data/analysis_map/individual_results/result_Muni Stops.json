@@ -1,0 +1,40 @@
+{
+    "endpoint": "i28k-bkz6.json",
+    "query": "SELECT supervisor_district, date_trunc_ym(data_as_of) AS month, COUNT(*) AS stop_count WHERE data_as_of >= '2022-09-01' GROUP BY supervisor_district, month ORDER BY month, supervisor_district",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "supervisor_district",
+            "description": "The district number of the supervisor overseeing the area where the stop is located.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "The month and year when the data was processed, aggregated by month.",
+            "dataTypeName": "date"
+        },
+        {
+            "fieldName": "stop_count",
+            "description": "The count of transit stops in each district for each given month.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Muni Stops",
+        "description": "All transit stops in SFMTA system.",
+        "endpoint": "i28k-bkz6",
+        "category": "Transportation",
+        "district_level": true,
+        "item_noun": "stop",
+        "whom_it_may_interest": "City planners, transit authorities, residents"
+    },
+    "periodic": "yes",
+    "item_noun": "stop",
+    "district_level": "true",
+    "whom_it_may_interest": "City planners, transit authorities, and residents interested in understanding and improving transportation infrastructure in their districts.",
+    "filename": "Muni Stops.json",
+    "title": "Muni Stops",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS stop_count FROM i28k-bkz6 WHERE data_as_of >= '2022-09-01' GROUP BY month ORDER BY month LIMIT 1\" at line 1 character 72: Expected a table identifier, but got `i28k'"
+}

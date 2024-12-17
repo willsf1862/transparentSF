@@ -1,0 +1,44 @@
+{
+    "endpoint": "vi7r-brsi.json",
+    "query": "SELECT date_trunc_ym(episode_date) as month, sum(new_cases) as total_new_cases, max(cumulative_cases) as total_cumulative_cases WHERE episode_date >= '2022-09-01' GROUP BY month ORDER BY month",
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "total_new_cases",
+        "total_cumulative_cases"
+    ],
+    "CategoryFields": [],
+    "report_category": "Health",
+    "usefulness": 3,
+    "column_metadata": {
+        "episode_date": {
+            "field_name": "episode_date",
+            "description": "Episode start date, defined as the date of symptom onset, or if not available, date of specimen collection",
+            "dataTypeName": "calendar_date"
+        },
+        "new_cases": {
+            "field_name": "new_cases",
+            "description": "Number of cases identified with an episode start date on the given episode_date",
+            "dataTypeName": "number"
+        },
+        "cumulative_cases": {
+            "field_name": "cumulative_cases",
+            "description": "Total number of cases identified with an episode start date on *or before* the given episode_date",
+            "dataTypeName": "number"
+        }
+    },
+    "table_metadata": {
+        "title": "Mpox Cases Over Time",
+        "description": "This dataset represents probable or confirmed mpox cases among San Francisco residents. Cases are included by the episode date, defined as either the date when self-reported symptoms began or, if that date is not available, the date the positive test was collected (i.e., specimen collection date)",
+        "endpoint": "vi7r-brsi",
+        "category": "Health"
+    },
+    "periodic": true,
+    "item_noun": "Mpox Case",
+    "district_level": false,
+    "whom_it_may_interest": "This data would be useful to public health officials, epidemiologists, healthcare providers, and policy makers interested in tracking and responding to the spread of Mpox in San Francisco.",
+    "filename": "Mpox Cases Over Time.json",
+    "title": "Mpox Cases Over Time",
+    "data_validated": true
+}

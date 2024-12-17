@@ -1,0 +1,40 @@
+{
+    "endpoint": "abvp-arbf.json",
+    "query": "SELECT date_trunc_ym(dateaccepted) AS month, streetname, jurisdiction, COUNT(*) AS count WHERE dateaccepted >= '2022-09-01' GROUP BY month, streetname, jurisdiction ORDER BY month, streetname, jurisdiction",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": {
+        "dateaccepted": {
+            "type": "calendar_date",
+            "description": "Date street segment was accepted for maintenance by the City & County of San Francisco"
+        },
+        "streetname": {
+            "type": "text",
+            "description": "Street name"
+        },
+        "jurisdiction": {
+            "type": "text",
+            "description": "Jurisdiction of street segment"
+        },
+        "count": {
+            "type": "number",
+            "description": "Count of street segments accepted"
+        }
+    },
+    "table_metadata": {
+        "title": "Street Acceptance Data",
+        "description": "List of streets by block (street segment) accepted for maintenance with details about maintenance agreements and jurisdiction.",
+        "endpoint": "abvp-arbf",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "Street maintenance acceptance record",
+        "whom_it_may_interest": "City planners, civil engineers, public works departments"
+    },
+    "periodic": "yes",
+    "item_noun": "Street maintenance acceptance record",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, civil engineers, public works departments",
+    "filename": "Street Acceptance Data.json",
+    "title": "Street Acceptance Data",
+    "data_validated": true
+}

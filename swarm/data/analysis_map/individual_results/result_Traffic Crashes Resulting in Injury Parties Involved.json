@@ -1,0 +1,48 @@
+{
+    "endpoint": "8gtc-pjc6.json",
+    "query": "SELECT date_trunc_ym(collision_datetime) AS month, COUNT(*) AS total_crashes, SUM(number_killed) AS total_fatalities, SUM(number_injured) AS total_injuries, police_district, accident_year, weather_1 WHERE collision_datetime >= '2022-09-01' GROUP BY month, police_district, accident_year, weather_1 ORDER BY month, police_district, accident_year, weather_1",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "collision_datetime": {
+            "type": "calendar_date",
+            "description": "The date and time when the crash occurred"
+        },
+        "number_killed": {
+            "type": "number",
+            "description": "Counts victims in the crash with degree of injury of fatal"
+        },
+        "number_injured": {
+            "type": "number",
+            "description": "Counts victims in the crash with degree of injury of severe, visible, or complaint of pain"
+        },
+        "police_district": {
+            "type": "text",
+            "description": "SFPD police district"
+        },
+        "accident_year": {
+            "type": "text",
+            "description": "The year when the crash occurred"
+        },
+        "weather_1": {
+            "type": "text",
+            "description": "The weather condition at the time of the crash"
+        }
+    },
+    "table_metadata": {
+        "title": "Traffic Crashes Resulting in Injury: Parties Involved",
+        "description": "This table contains all parties involved in a traffic crash resulting in an injury in the City of San Francisco.",
+        "endpoint": "8gtc-pjc6",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "party involved in a traffic crash",
+        "whom_it_may_interest": "Public health agencies, city planners, law enforcement, researchers studying traffic safety or urban planning"
+    },
+    "periodic": "yes",
+    "item_noun": "traffic crash event",
+    "district_level": "false",
+    "whom_it_may_interest": "Public health officials, traffic safety analysts, urban planners, policymakers",
+    "filename": "Traffic Crashes Resulting in Injury Parties Involved.json",
+    "title": "Traffic Crashes Resulting in Injury: Parties Involved",
+    "data_validated": true
+}

@@ -1,0 +1,50 @@
+{
+    "endpoint": "64rb-55bi.json",
+    "query": "SELECT departmentname, businesstype, date_trunc_ym(filingdate) AS month, COUNT(*) AS total_filings, SUM(grossincomereceived) AS total_income_received WHERE filingdate >= '2022-09-01' GROUP BY departmentname, businesstype, month ORDER BY month, departmentname, businesstype",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "departmentname",
+            "description": "Department name of the filer",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "businesstype",
+            "description": "Entity type (trust or business entity)",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Month of the filing",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_filings",
+            "description": "Total number of filings",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "total_income_received",
+            "description": "Sum of gross income received",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Form 700 Schedule A2 - Investments, Income, and Assets of Business Entities/Trusts",
+        "description": "Investments, income, and assets of business entities/trusts where ownership interest is 10% or greater. Includes elements such as filing date, investment entity, and received income.",
+        "endpoint": "64rb-55bi",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "filing",
+        "whom_it_may_interest": "Policy makers, researchers studying economic interests of public officers, journalists"
+    },
+    "periodic": "yes",
+    "item_noun": "filing",
+    "district_level": false,
+    "whom_it_may_interest": "Policy makers, researchers, journalists",
+    "filename": "Form 700 Schedule A2 - Investments, Income, and Assets of Business EntitiesTrusts.json",
+    "title": "Form 700 Schedule A2 - Investments, Income, and Assets of Business Entities/Trusts",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(filingdate) AS month, COUNT(*) AS total_filings, departmentname, businesstype, SUM(grossincomereceived) AS total_income_received FROM 64rb-55bi WHERE filingdate >= '2022-09-01' GROUP BY departmentname, businesstype, month ORDER BY month, departmentname, businesstype LIMIT 1\" at line 1 character 156: Expected a table identifier, but got `64'"
+}

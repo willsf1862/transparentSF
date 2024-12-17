@@ -1,0 +1,57 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "incident_count"
+    ],
+    "CategoryFields": [
+        "grouped_category",
+        "incident_category",
+        "incident_subcategory",
+        "police_district"
+    ],
+    "endpoint": "wg3w-h783.json",
+    "query": "SELECT Incident_Category, supervisor_district, CASE WHEN Incident_Category IN ('Assault', 'Homicide', 'Rape', 'Robbery', 'Human Trafficking (A), Commercial Sex Acts', 'Human Trafficking, Commercial Sex Acts', 'Human Trafficking (B), Involuntary Servitude', 'Offences Against The Family And Children', 'Weapons Carrying Etc', 'Weapons Offense', 'Weapons Offence') THEN 'Violent Crime' WHEN Incident_Category IN ('Arson', 'Burglary', 'Forgery And Counterfeiting', 'Fraud', 'Larceny Theft', 'Motor Vehicle Theft', 'Motor Vehicle Theft?', 'Stolen Property', 'Vandalism', 'Embezzlement', 'Recovered Vehicle', 'Vehicle Impounded', 'Vehicle Misplaced') THEN 'Property Crime' WHEN Incident_Category IN ('Drug Offense', 'Drug Violation') THEN 'Drug Crimes' ELSE 'Other Crimes' END AS grouped_category, Report_Type_Description, Police_District, date_trunc_ym(Report_Datetime) AS month, COUNT(*) AS incident_count WHERE Report_Datetime>='2018-09-01T00:00:00' GROUP BY supervisor_district, grouped_category, Report_Type_Description, Police_District, Incident_Category, supervisor_district, month ORDER BY month, grouped_category",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Datetime when the report was filed, grouped by month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of incidents",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "incident_category",
+            "description": "The category mapped on to the Incident Code used in statistics and reporting",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "incident_subcategory",
+            "description": "Subcategory mapped to the Incident Code that is used for statistics and reporting",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "police_district",
+            "description": "The Police District where the incident occurred",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Police Department Incident Reports: 2018 to Present",
+        "description": "This dataset includes incident reports filed by officers or self-reported by the public, categorized into different types based on how the report was received and the type of incident.",
+        "endpoint": "wg3w-h783.json",
+        "category": "Safety",
+        "periodic": true,
+        "item_noun": "Incident Report"
+    },
+    "whom_it_may_interest": "Data Analysts, Public Safety Officials, Policy Makers, Researchers studying crime patterns and public safety trends, and Citizens concerned with neighborhood safety",
+    "filename": "Police Department Incident Reports 2018 to Present.json",
+    "title": "Police Department Incident Reports: 2018 to Present",
+    "data_validated": true
+}

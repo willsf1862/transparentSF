@@ -1,0 +1,40 @@
+{
+    "endpoint": "vx35-bnbs.json",
+    "query": "SELECT status, dataset_name, date_trunc_ym(alert_date) AS month, COUNT(*) AS count WHERE alert_date>='2022-09-01' GROUP BY status, dataset_name, month ORDER BY month, status, dataset_name",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": {
+        "status": {
+            "type": "text",
+            "description": "The status of the issue (Open, Monitoring, Resolved)"
+        },
+        "dataset_name": {
+            "type": "text",
+            "description": "The name of the impacted dataset"
+        },
+        "month": {
+            "type": "calendar_date",
+            "description": "The month extracted from the alert_date for aggregation purposes"
+        },
+        "count": {
+            "type": "numeric",
+            "description": "Count of alerts per status and dataset_name per month"
+        }
+    },
+    "table_metadata": {
+        "title": "Dataset Alerts",
+        "description": "A log of dataset alerts, including issues as well as deprecation or discontinuation notices",
+        "endpoint": "vx35-bnbs",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "dataset alert",
+        "whom_it_may_interest": "Data managers, dataset users, and administrators of the open data portal"
+    },
+    "periodic": "yes",
+    "item_noun": "dataset alert",
+    "district_level": false,
+    "whom_it_may_interest": "Data managers, dataset users, and administrators of the open data portal",
+    "filename": "Dataset Alerts.json",
+    "title": "Dataset Alerts",
+    "data_validated": true
+}

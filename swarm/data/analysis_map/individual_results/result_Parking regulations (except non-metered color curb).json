@@ -1,0 +1,58 @@
+{
+    "endpoint": "hi6h-neyh.json",
+    "query": "SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS item_count, AGENCY, REGULATION, DAYS WHERE data_as_of>='2022-09-01T00:00:00' GROUP BY month, AGENCY, REGULATION, DAYS",
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "AGENCY",
+        "REGULATION",
+        "DAYS"
+    ],
+    "report_category": "Transportation",
+    "usefulness": 1,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month of the data entry",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Number of parking regulations",
+            "dataTypeName": "integer"
+        },
+        {
+            "fieldName": "AGENCY",
+            "description": "The agency for which a Government Permit is allowed on that blockface",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "REGULATION",
+            "description": "Primary parking regulation applied to that blockface",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "DAYS",
+            "description": "Days for which regulation is in effect",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Parking regulations (except non-metered color curb)",
+        "description": "Parking regulations by blockface for the City of San Francisco. Includes the following regulations: Residential Parking Permits, Time limits, Government Permit, No overnight, Oversized Vehicle. Does not include non metered color curb or curb cuts.",
+        "endpoint": "hi6h-neyh.json",
+        "category": "Transportation"
+    },
+    "periodic": true,
+    "item_noun": "Parking regulation",
+    "district_level": true,
+    "whom_it_may_interest": "Transport policymakers, city planners, residents of San Francisco looking for parking information, and companies that offer parking services.",
+    "filename": "Parking regulations (except non-metered color curb).json",
+    "title": "Parking regulations (except non-metered color curb)",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.type-mismatch; Type mismatch for sum, is text; position: Map(row -> 1, column -> 564, line -> \"SELECT `objectid`, `agency`, `regulation`, `days`, `hours`, `hrs_begin`, `hrs_end`, `regdetails`, `modified`, `editor`, `rpparea1`, `rpparea2`, `rpparea3`, `fid_100`, `length_ft`, `conflict`, `enacted`, `created_us`, `created_da`, `last_edite`, `last_edi_1`, `hrlimit`, `created_user`, `created_date`, `last_edited_user`, `last_edited_date`, `rpp_sym`, `mtab_date`, `mtab_motion`, `mtab_reso_text`, `sym_rpp2`, `globalid`, `exceptions`, `from_time`, `to_time`, `shape`, `data_as_of`, `analysis_neighborhood`, `supervisor_district`, `data_loaded_at` |> SELECT sum(`objectid`) AS `item_count`, date_trunc_ym(`data_as_of`) AS `month`, `AGENCY`, `REGULATION`, `DAYS`, `HRS_BEGIN`, `HRS_END` WHERE `data_as_of` >= \\\"2022-09-01T00:00:00\\\" GROUP BY `month`, `AGENCY`, `REGULATION`, `DAYS`, `HRS_BEGIN`, `HRS_END` ORDER BY `month` ASC NULL LAST, `AGENCY` ASC NULL LAST, `REGULATION` ASC NULL LAST, `DAYS` ASC NULL LAST, `HRS_BEGIN` ASC NULL LAST, `HRS_END` ASC NULL LAST LIMIT 1\\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^\")"
+}

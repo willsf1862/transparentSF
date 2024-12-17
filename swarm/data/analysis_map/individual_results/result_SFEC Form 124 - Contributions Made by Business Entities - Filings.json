@@ -1,0 +1,62 @@
+{
+    "DateFields": [
+        {
+            "field_name": "month_signed",
+            "description": "The month in which the form was signed and filed."
+        }
+    ],
+    "NumericFields": [
+        {
+            "field_name": "total_contributions",
+            "description": "The total sum of contributions received counting by each business entity grouped by month and committee."
+        }
+    ],
+    "CategoryFields": [
+        {
+            "field_name": "filingtype",
+            "description": "The type of filing: Original, Amendment, or Supplemental."
+        },
+        {
+            "field_name": "committeename",
+            "description": "The name of the committee that filed the form."
+        }
+    ],
+    "endpoint": "https://data.sfgov.org/resource/tsy6-7xfs.json",
+    "query": "SELECT date_trunc_ym(datesigned) as month_signed, sum(contributiontotal) as total_contributions, filingtype, committeename WHERE datesigned >= '2022-09-01' GROUP BY month_signed, filingtype, committeename",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": {
+        "month_signed": {
+            "description": "Month of the date when the form was signed, aggregated from the 'datesigned' column.",
+            "type": "date"
+        },
+        "total_contributions": {
+            "description": "Sum of contributions received, calculated from 'contributiontotal'.",
+            "type": "numeric"
+        },
+        "filingtype": {
+            "description": "Type of the form filing (Original, Amendment, Supplemental)",
+            "type": "text"
+        },
+        "committeename": {
+            "description": "Name of the committee filing the form.",
+            "type": "text"
+        }
+    },
+    "table_metadata": {
+        "title": "SFEC Form 124 - Contributions Made by Business Entities - Filings",
+        "description": "Records of contributions made by business entities to committees, detailing amounts that reach or exceed $10,000 in a single election cycle. Includes data about the filing type and the committees involved.",
+        "endpoint": "https://data.sfgov.org/resource/tsy6-7xfs.json",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "campaign contribution record",
+        "whom_it_may_interest": "Campaign finance analysts, political science researchers, journalists"
+    },
+    "periodic": "yes",
+    "item_noun": "campaign contribution record",
+    "district_level": false,
+    "whom_it_may_interest": "Campaign finance analysts, political science researchers, journalists",
+    "filename": "SFEC Form 124 - Contributions Made by Business Entities - Filings.json",
+    "title": "SFEC Form 124 - Contributions Made by Business Entities - Filings",
+    "data_validated": true
+}

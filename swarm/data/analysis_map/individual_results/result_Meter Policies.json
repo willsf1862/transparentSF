@@ -1,0 +1,70 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "total_hourly_rate",
+        "average_time_limit"
+    ],
+    "CategoryFields": [
+        "post_id",
+        "day_of_week",
+        "schedule_type",
+        "cap_color"
+    ],
+    "endpoint": "qq7v-hds4.json",
+    "query": "SELECT PostID AS post_id, DayOfWeek as day_of_week, ScheduleType as schedule_type, CapColor as cap_color, date_trunc_ym(StartDate) AS month, SUM(HourlyRate) AS total_hourly_rate, AVG(TimeLimitMinutes) AS average_time_limit WHERE StartDate >= '2022-09-01T00:00:00' GROUP BY month, post_id, day_of_week, schedule_type, cap_color",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "post_id",
+            "description": "Post ID is unique meter identifier",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "day_of_week",
+            "description": "Day of week",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "schedule_type",
+            "description": "Schedule type",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "cap_color",
+            "description": "Meter cap color",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Start date when policy is effective from",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_hourly_rate",
+            "description": "Hourly rate",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "average_time_limit",
+            "description": "Time limit for particular time bucket",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Meter Policies",
+        "description": "Dataset has meter daily schedules with hourly rates.",
+        "endpoint": "qq7v-hds4",
+        "category": "Transportation"
+    },
+    "periodic": true,
+    "item_noun": "Meter Policy",
+    "district_level": false,
+    "whom_it_may_interest": "This data set could be useful for city planners, transportation companies and policy makers interested in monitoring and analyzing parking meter policies.",
+    "filename": "Meter Policies.json",
+    "title": "Meter Policies",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.no-such-column; No such column: day_of_week; position: Map(row -> 1, column -> 31, line -> \"SELECT `PostID` AS `post_id`, `day_of_week`, `schedule_type`, `cap_color`, date_trunc_ym(`start_date`) AS `month`, SUM(`hourly_rate`) AS `total_hourly_rate`, AVG(`time_limit_minutes`) AS `average_time_limit` WHERE `start_date` >= \\\"2022-09-01\\\" GROUP BY `month`, `post_id`, `day_of_week`, `schedule_type`, `cap_color` LIMIT 1\\n                              ^\")"
+}

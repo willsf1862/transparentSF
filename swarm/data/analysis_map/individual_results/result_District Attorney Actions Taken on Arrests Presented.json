@@ -1,0 +1,87 @@
+{
+    "DateFields": [
+        "month_action_taken",
+        "month_arrest_date",
+        "month_data_loaded_at",
+        "month_data_as_of"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "arresting_agency",
+        "crime_type",
+        "booked_case_type",
+        "dv_case",
+        "da_action_taken"
+    ],
+    "endpoint": "czsm-3ei3.json",
+    "query": "SELECT date_trunc_ym(arrest_date) AS month_arrest_date, date_trunc_ym(data_as_of) AS month_data_as_of, date_trunc_ym(data_loaded_at) AS month_data_loaded_at, arresting_agency, crime_type, booked_case_type, dv_case, da_action_taken, COUNT(*) as item_count WHERE arrest_date >='2022-09-01' GROUP BY month_arrest_date, month_data_as_of, month_data_loaded_at, arresting_agency, crime_type, booked_case_type, dv_case, da_action_taken ORDER BY month_arrest_date",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month_action_taken",
+            "description": "Month when the action was taken",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month_arrest_date",
+            "description": "Month when arrest took place",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month_data_loaded_at",
+            "description": "Month when data was last updated here",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month_data_as_of",
+            "description": "Month when data was last updated in the source",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "arresting_agency",
+            "description": "Law enforcement agency that made the arrest",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "crime_type",
+            "description": "Type of crime",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "booked_case_type",
+            "description": "Case type the arrest was booked as",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "dv_case",
+            "description": "Indicator for domestic violence cases",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "da_action_taken",
+            "description": "Action taken by District Attorney\u2019s office",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Number of items",
+            "dataTypeName": "int"
+        }
+    ],
+    "table_metadata": {
+        "title": "District Attorney Actions Taken on Arrests Presented",
+        "description": "This dataset includes information on every arrest that has been presented to the SFDA since 2011 and the \u201caction\u201d decision made by the office on each, based on data from the SFDA\u2019s internal case management system.",
+        "endpoint": "czsm-3ei3.json",
+        "category": "Safety"
+    },
+    "periodic": true,
+    "item_noun": "DA Arrest Handling Report",
+    "district_level": false,
+    "whom_it_may_interest": "This data could interest analysts interested in crime trends and prosecutions, and law enforcement agencies interested in the prosecution rates for their arrests. It could also interest researchers studying crime trends, or news organizations.",
+    "filename": "District Attorney Actions Taken on Arrests Presented.json",
+    "title": "District Attorney Actions Taken on Arrests Presented",
+    "data_validated": true
+}

@@ -13,7 +13,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import logging
 from tools.data_fetcher import set_dataset
-from tools.vector_query import query_docs  # Add this import
+from tools.vector_query import query_docs  #
 from tools.genChart import generate_time_series_chart
 from tools.retirementdata import read_csv_with_encoding
 
@@ -89,7 +89,7 @@ combined_df = {"dataset": pd.DataFrame()}
 
 def load_and_combine_notes():
     logger = logging.getLogger(__name__)
-    data_folder = 'output/Safety'
+    data_folder = 'output/2024-11/Safety'
     combined_text = ''
     logger.info(f"Starting to load and combine notes from {data_folder}")
     for filename in os.listdir(data_folder):
@@ -604,13 +604,15 @@ journalist_agent = Agent(
     model=AGENT_MODEL,
     name="Journalist",
      instructions="""
-        You are a data journalist covering the city of San Francisco. Your mission is to hold public officials accountable for results, both positive and negative but generally with an emphasis on the positive. You are looking for interesting data trends and anomalies. Ultimately we want to connect this data to the public figures responsible for the underlying data. So for example, a decrease in violent crime in the Taraval district might reflect positively on the police captain there. It also might not, depending on if the decrease is due to less crime, or perhaps it's just lax enforcement. This is why you will focus only on the WHAT, not the WHY.
-        Your voice is descriptive and normative. You don't use value words or suggest that we know why something has changed. Still, you would prefer to call out a potentially positive trend than a negative one assuming you have only a few tweets to share.
-        You will be reviewing the combined notes of an analysis of a range of  tables in the city database with a beief description about what is there. You will review these notes and then write a story summarizing crime and Safety in SF in November.
-        The story will contain a few paragraphs and a few charts.  you'll write the story text in markdown, and then you choose from the charts that have already been generated and referenced in the notes.  If you see a noteworthy trend, take the chart that goes with it and display it in the story.  
-        Please return neat and clean markdown.
-            """,
-    functions=[get_notes, transfer_to_analyst_agent],  
+       You are a data journalist covering the city of San Francisco. 
+       Your team has prepared an extensive analysis of trends in the city.  They have also prepared some notes highlighting areas they think are interesting.
+       - Use `get_notes()` to get the notes of the analysis of a range of  tables in the city database with a beief description about what is there.
+       - Use `query_docs(context_variables, "2024-11_Safety", query)` to search for data that isn't available in your notes. The `query` parameter is a string describing the data the user is interested in.  Pass no other arguments to this function.
+       - Use `transfer_to_analyst_agent()` to transfer to the analyst agent if the user has a question about the data that is available in your notes or docs.
+       Be breif and concise.
+       Whenever possible, support your analysis with charts.
+        """,
+    functions=[get_notes, query_docs, transfer_to_analyst_agent],  
     context_variables=context_variables,
     debug=False,
 )

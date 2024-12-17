@@ -1,0 +1,44 @@
+{
+    "DateFields": [],
+    "NumericFields": [
+        "gen_hght"
+    ],
+    "CategoryFields": [
+        "height"
+    ],
+    "endpoint": "h9wh-cg3m.json",
+    "query": "SELECT height, gen_hght",
+    "report_category": "Housing",
+    "usefulness": 1,
+    "column_metadata": [
+        {
+            "FieldName": "height",
+            "DataType": "text",
+            "Description": "Height and Bulk District"
+        },
+        {
+            "FieldName": "gen_hght",
+            "DataType": "number",
+            "Description": "General Height"
+        }
+    ],
+    "table_metadata": {
+        "title": "Zoning Map - Height and Bulk Districts",
+        "description": "The Height and Bulk Districts are a component of the Zoning Map which in turn is a key component of the San Francisco Planning Code. A PDF poster of this data is available from here: https://sfplanning.org/resource/zoning-height-and-bulk-districts",
+        "endpoint": "h9wh-cg3m.json"
+    },
+    "periodic": false,
+    "item_noun": "Zoning District",
+    "district_level": false,
+    "whom_it_may_interest": [
+        "Builders",
+        "Urban planners",
+        "City policy makers",
+        "Real estate developers",
+        "Researchers in urban studies"
+    ],
+    "filename": "Zoning Map - Height and Bulk Districts.json",
+    "title": "Zoning Map - Height and Bulk Districts",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.no-such-function; No such function 'date_trunc_y'; arity=0; position: Map(row -> 1, column -> 61, line -> \"SELECT `height`, `gen_hght`, COUNT(*) AS `item_count` WHERE date_trunc_y() >= \\\"2022-09-01\\\" GROUP BY `height`, `gen_hght` LIMIT 1\\n                                                            ^\")"
+}

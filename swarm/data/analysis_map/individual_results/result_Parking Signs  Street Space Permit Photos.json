@@ -1,0 +1,45 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "permit"
+    ],
+    "endpoint": "pigs-fac7.json",
+    "query": "SELECT date_trunc_ym(DateAdded) as month, Permit as permit, COUNT(*) as item_count WHERE DateAdded>='2022-09-01' GROUP BY month, permit",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month the permit was added to the system",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "permit",
+            "description": "Permit Number",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of items per month and permit",
+            "dataTypeName": "numeric"
+        }
+    ],
+    "table_metadata": {
+        "title": "Parking Signs / Street Space Permit Photos",
+        "description": "Posting Photos of Parking Signs / Street Space Permits. Related parking sign/ street space permit data is here: https://data.sfgov.org/d/sftu-nd43",
+        "endpoint": "pigs-fac7",
+        "category": "Transportation"
+    },
+    "periodic": true,
+    "item_noun": "Parking Sign / Street Space Permit Photo",
+    "district_level": false,
+    "whom_it_may_interest": "This dataset may be interesting for the city's transportation department, urban planners, developers who require details on parking signs and street space permits, and residents who would like to understand the distribution of parking signs and street space permits in San Francisco.",
+    "filename": "Parking Signs  Street Space Permit Photos.json",
+    "title": "Parking Signs / Street Space Permit Photos",
+    "data_validated": true
+}

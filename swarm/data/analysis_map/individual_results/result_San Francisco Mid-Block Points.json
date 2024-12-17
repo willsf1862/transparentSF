@@ -1,0 +1,37 @@
+{
+    "endpoint": "iqyu-pwpr.json",
+    "query": "SELECT supervisor_district, analysis_neighborhood, date_trunc_ym(data_loaded_at) AS month, COUNT(*) AS count WHERE data_loaded_at >= '2022-09-01' GROUP BY supervisor_district, analysis_neighborhood, month ORDER BY month, supervisor_district, analysis_neighborhood",
+    "report_category": "Other",
+    "usefulness": 1,
+    "column_metadata": {
+        "supervisor_district": {
+            "type": "text",
+            "description": "San Francisco Supervisorial District."
+        },
+        "analysis_neighborhood": {
+            "type": "text",
+            "description": "The neighborhood used for analysis purposes."
+        },
+        "data_loaded_at": {
+            "type": "calendar_date",
+            "description": "The date when the data was loaded."
+        }
+    },
+    "table_metadata": {
+        "title": "San Francisco Mid-Block Points",
+        "description": "This dataset contains points representing the midpoint of each block in the City of San Francisco used for geomasking and other anonymization tasks.",
+        "endpoint": "iqyu-pwpr",
+        "category": "Other",
+        "district_level": true,
+        "item_noun": "Mid-block point",
+        "whom_it_may_interest": "Researchers and analysts in urban planning, privacy, and data anonymization."
+    },
+    "periodic": "yes",
+    "item_noun": "Mid-block point",
+    "district_level": "true",
+    "whom_it_may_interest": "Researchers and analysts in urban planning, privacy, and data anonymization.",
+    "filename": "San Francisco Mid-Block Points.json",
+    "title": "San Francisco Mid-Block Points",
+    "data_validated": true,
+    "error": "Expecting value: line 3 column 14 (char 49)"
+}

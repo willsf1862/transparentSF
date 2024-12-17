@@ -1,0 +1,49 @@
+{
+    "endpoint": "g8m3-pdis.json",
+    "query": "SELECT date_trunc_ym(dba_start_date) AS month, COUNT(*) AS business_count, naic_code, ownership_name, neighborhoods_analysis_boundaries WHERE dba_start_date>='2022-09-01' GROUP BY naic_code, ownership_name, neighborhoods_analysis_boundaries, month ORDER BY month, naic_code, ownership_name, neighborhoods_analysis_boundaries",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month of the business start date",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "business_count",
+            "description": "Count of businesses",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "naic_code",
+            "description": "North American Industry Classification System code",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "ownership_name",
+            "description": "Business owner(s) name",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "neighborhoods_analysis_boundaries",
+            "description": "The Analysis Neighborhood in which the business location falls",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Registered Business Locations - San Francisco",
+        "description": "Locations of businesses that pay taxes to the City and County of San Francisco. Each location is recorded in a row, with data collected to enforce the Business and Tax Regulations Code.",
+        "endpoint": "g8m3-pdis",
+        "category": "Economy",
+        "district_level": true,
+        "item_noun": "business location",
+        "whom_it_may_interest": "Economists, business analysts, city planners, tax authorities"
+    },
+    "periodic": "yes",
+    "item_noun": "business location",
+    "district_level": true,
+    "whom_it_may_interest": "Economists, business analysts, city planners, tax authorities",
+    "filename": "Registered Business Locations - San Francisco.json",
+    "title": "Registered Business Locations - San Francisco",
+    "data_validated": true
+}

@@ -1,0 +1,82 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "landed_weight",
+        "landing_count"
+    ],
+    "CategoryFields": [
+        "operating_airline",
+        "geo_summary",
+        "geo_region",
+        "landing_aircraft_type",
+        "aircraft_body_type",
+        "aircraft_manufacturer",
+        "aircraft_model"
+    ],
+    "endpoint": "https://data.sfgov.org/resource/fpux-q53t.json",
+    "query": "SELECT date_trunc_ym(activity_period_start_date) AS month, sum(total_landed_weight) AS landed_weight, count(*) AS landing_count, operating_airline, geo_summary, geo_region, landing_aircraft_type, aircraft_body_type, aircraft_manufacturer, aircraft_model WHERE activity_period_start_date >= '2022-09-01T00:00:00' GROUP BY operating_airline, geo_summary, geo_region, landing_aircraft_type, aircraft_body_type, aircraft_manufacturer, aircraft_model, month ORDER BY month",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "activity_period_start_date",
+            "description": "Start date of the year and month at which passenger, cargo or landings activity took place.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_landed_weight",
+            "description": "The aircraft landed weight (in pounds) associated with General and Landings Statistics attribute fields.",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "operating_airline",
+            "description": "Airline name for the operator of aircraft with landing activity",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "geo_summary",
+            "description": "Designates whether the passenger, cargo or landings activity in relation to SFO arrived from or departed to a location within the United States (domestic), or outside the United States (international) without stops",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "geo_region",
+            "description": "Provides a more detailed breakdown of the GEO Summary field to designate the region in the world where activity in relation to SFO arrived from or departed to without stops.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "landing_aircraft_type",
+            "description": "A designation for three types of aircraft that landed at SFO, which includes passenger aircraft, cargoonly aircraft (freighters) or combination aircraft (combi).",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "aircraft_body_type",
+            "description": "A designation that is independent from Landing Aircraft Type, which determines whether commercial aircraft landed at SFO is a wide body jet, narrow body jet, regional jet or a propeller operated aircraft.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "aircraft_manufacturer",
+            "description": "Manufacturer name for the aircraft that landed at SFO.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "aircraft_model",
+            "description": "Model designation of aircraft by the manufacturer.",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Air Traffic Landings Statistics",
+        "description": "This dataset consists of San Francisco International Airport (SFO) landings data. The dataset contains data about aircraft landings at SFO with monthly landing counts and landed weight by airline, region and aircraft model and type.",
+        "endpoint": "fpux-q53t",
+        "category": "Transportation"
+    },
+    "periodic": true,
+    "item_noun": "Plane Landing",
+    "district_level": false,
+    "whom_it_may_interest": "This data may interest those in the transportation industry, airline companies, policy makers and data scientists performing trend analysis or forecasting for transport planning and airport management. It's also highly relevant for environmental analysts, given the associated CO2 emissions with planes and the weight of aircrafts.",
+    "filename": "Air Traffic Landings Statistics.json",
+    "title": "Air Traffic Landings Statistics",
+    "data_validated": true
+}

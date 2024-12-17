@@ -1,0 +1,62 @@
+{
+    "DateFields": [
+        "month",
+        "year"
+    ],
+    "NumericFields": [
+        "units_count"
+    ],
+    "CategoryFields": [
+        "case_type_name",
+        "occupancy_type",
+        "analysis_neighborhood",
+        "supervisor_district"
+    ],
+    "endpoint": "gdc7-dmcn.json",
+    "query": "SELECT date_trunc_ym(signature_date) AS month, date_trunc_y(signature_date) AS year, COUNT(*) AS units_count, case_type_name, occupancy_type, analysis_neighborhood, supervisor_district WHERE signature_date>='2022-09-01T00:00:00' GROUP BY month, year, case_type_name, occupancy_type, analysis_neighborhood, supervisor_district",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": {
+        "month": {
+            "description": "Month of submission",
+            "dataTypeName": "calendar_date"
+        },
+        "year": {
+            "description": "Year of submission",
+            "dataTypeName": "text"
+        },
+        "units_count": {
+            "description": "Count of units",
+            "dataTypeName": "text"
+        },
+        "case_type_name": {
+            "description": "Name of the submission type",
+            "dataTypeName": "text"
+        },
+        "occupancy_type": {
+            "description": "Occupancy type reported for this residential unit",
+            "dataTypeName": "text"
+        },
+        "analysis_neighborhood": {
+            "description": "Analysis Neighborhood of the inventoried property",
+            "dataTypeName": "text"
+        },
+        "supervisor_district": {
+            "description": "Current supervisor district of the inventoried property",
+            "dataTypeName": "text"
+        }
+    },
+    "table_metadata": {
+        "title": "Rent Board Housing Inventory",
+        "description": "This dataset contains information submitted by residential property owners and tenants related to housing inventory all subject to the Rent Ordinance. The data is continuously updated.",
+        "endpoint": "https://data.sfgov.org/resource/gdc7-dmcn.json",
+        "category": "Housing"
+    },
+    "periodic": true,
+    "item_noun": "Unit",
+    "district_level": true,
+    "whom_it_may_interest": "This data may interest housing policy analysts, urban planners, advocacy groups, and elected officials, who need to track changes in rental housing supply in San Francisco neighborhoods. It could be particularly insightful for analysis on the impact of housing policy changes, understanding the spatial distribution of different types of units, and tracking housing availability over time.",
+    "filename": "Rent Board Housing Inventory.json",
+    "title": "Rent Board Housing Inventory",
+    "data_validated": true
+}

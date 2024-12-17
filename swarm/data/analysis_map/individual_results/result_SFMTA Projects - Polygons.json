@@ -1,0 +1,58 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "PROJECTNAME",
+        "PROJECTPHASE",
+        "CIP_TITLE",
+        "NEIGHBORHOOD"
+    ],
+    "endpoint": "6ibt-jpn7.json",
+    "query": "SELECT PROJECTNAME, PROJECTPHASE, CIP_TITLE, NEIGHBORHOOD, count(*) as item_count, date_trunc_ym(data_as_of) AS month WHERE data_as_of >= '2022-09-01T00:00:00' GROUP BY PROJECTNAME, PROJECTPHASE, CIP_TITLE, NEIGHBORHOOD, month",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "field_name": "PROJECTNAME",
+            "description": "Auto-populated field that grabs the appropriate project name based on the PROJECTNODE entered with the map attribute",
+            "dataTypeName": "text"
+        },
+        {
+            "field_name": "PROJECTPHASE",
+            "description": "Auto-populated field that grabs Project Phase info from SFMTA.com project page",
+            "dataTypeName": "text"
+        },
+        {
+            "field_name": "CIP_TITLE",
+            "description": "The CIP Title assigned to projects. If the field says NEW the project has not yet been assigned a CIP Title, please reach out to Capital Finance staff",
+            "dataTypeName": "text"
+        },
+        {
+            "field_name": "NEIGHBORHOOD",
+            "description": "Auto-populated field with the name of the neighborhood based on project extent",
+            "dataTypeName": "text"
+        },
+        {
+            "field_name": "data_as_of",
+            "description": "Timestamp the data was last updated in the source system",
+            "dataTypeName": "calendar_date"
+        }
+    ],
+    "table_metadata": {
+        "title": "SFMTA Projects - Polygons",
+        "description": "This dataset is the data behind the Interactive Project Map (IPM) Collector Tool web map. The IPM web map gathers spatial data for agency projects that have project pages on SFMTA.com and CIP projects.",
+        "endpoint": "6ibt-jpn7",
+        "category": "Transportation"
+    },
+    "periodic": false,
+    "item_noun": "SFMTA Project",
+    "district_level": true,
+    "whom_it_may_interest": "This dataset might be of interest to city planners, traffic engineers, public transportation advocates, and residents interested in the transportation projects in their neighborhood or districts.",
+    "filename": "SFMTA Projects - Polygons.json",
+    "title": "SFMTA Projects - Polygons",
+    "data_validated": true
+}

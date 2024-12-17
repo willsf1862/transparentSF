@@ -1,0 +1,32 @@
+{
+    "endpoint": "k6kv-9kix.json",
+    "query": "SELECT date_trunc_ym(data_as_of) AS month, city, COUNT(*) AS count WHERE data_as_of >= '2022-09-01' GROUP BY city, month ORDER BY month, city",
+    "report_category": "Economy",
+    "usefulness": 2,
+    "column_metadata": {
+        "data_as_of": {
+            "type": "calendar_date",
+            "description": "Timestamp data was updated in the source system"
+        },
+        "city": {
+            "type": "text",
+            "description": "City where the contractor firm is located"
+        }
+    },
+    "table_metadata": {
+        "title": "Plumbing Permits Contacts",
+        "description": "Contacts of contractors for Plumbing Permits",
+        "endpoint": "k6kv-9kix",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "contractor contact",
+        "whom_it_may_interest": "Economists, city planners, contractors"
+    },
+    "periodic": "yes",
+    "item_noun": "contractor contact",
+    "district_level": false,
+    "whom_it_may_interest": "Economists, city planners, business analysts",
+    "filename": "Plumbing Permits Contacts.json",
+    "title": "Plumbing Permits Contacts",
+    "data_validated": true
+}

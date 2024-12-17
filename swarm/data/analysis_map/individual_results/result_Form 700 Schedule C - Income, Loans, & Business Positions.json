@@ -1,0 +1,55 @@
+{
+    "endpoint": "u5rm-p23y.json",
+    "query": "SELECT departmentname, positionname, nameofincomesource, incomebusinessactivity, date_trunc_ym(filingdate) AS month, SUM(incomegrossincome) AS total_income_gross WHERE filingdate >= '2022-09-01' GROUP BY departmentname, positionname, nameofincomesource, incomebusinessactivity, month ORDER BY departmentname, positionname, nameofincomesource, incomebusinessactivity, month",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "departmentname",
+            "description": "Department name of the filer",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "positionname",
+            "description": "Filer's position",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "nameofincomesource",
+            "description": "Name of source of income",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "incomebusinessactivity",
+            "description": "Business activity of income source",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "filingdate",
+            "description": "Date of the filing",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "incomegrossincome",
+            "description": "Gross income received (range floor)",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Form 700 Schedule C - Income, Loans, & Business Positions",
+        "description": "Details income, loans, and business positions filed by public officials.",
+        "endpoint": "u5rm-p23y",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "filing",
+        "whom_it_may_interest": "Economists, researchers, journalists, policymakers"
+    },
+    "periodic": "yes",
+    "item_noun": "income filing",
+    "district_level": false,
+    "whom_it_may_interest": "Economists, financial analysts, public interest groups",
+    "filename": "Form 700 Schedule C - Income, Loans, & Business Positions.json",
+    "title": "Form 700 Schedule C - Income, Loans, & Business Positions",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT departmentname, positionname, nameofincomesource, incomebusinessactivity, date_trunc_ym(filingdate) AS month, COUNT(*) AS count FROM u5rm-p23y WHERE filingdate >= '2022-09-01' GROUP BY departmentname, positionname, nameofincomesource, incomebusinessactivity, month ORDER BY month, departmentname, positionname, nameofincomesource, incomebusinessactivity LIMIT 1\" at line 1 character 141: Expected a table identifier, but got `u5rm'"
+}

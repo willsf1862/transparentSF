@@ -36,7 +36,7 @@ TransparentSF is a web-based application that provides interactive visualization
 ## Technology Stack
 
 - **Frontend**: HTML, CSS, JavaScript  
-- **Backend**: Node.js, Python  
+- **Backend**: Python  
 - **Data Visualization**: Plotly.js, Mapbox  
 - **APIs**:  
   - OpenAI API for analysis  
@@ -46,7 +46,6 @@ TransparentSF is a web-based application that provides interactive visualization
 ## Installation
 
 **Prerequisites:**  
-- Node.js (with npm)  
 - Python3 with `pip`  
 - Docker (for Qdrant)  
 
@@ -58,19 +57,14 @@ TransparentSF is a web-based application that provides interactive visualization
    cd transparentSF
    ```
 
-2. **Install Node.js dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Install Python dependencies:**
+2. **Install Python dependencies:**
    ```bash
    cd swarm
    pip install -r requirements.txt
    cd ..
    ```
 
-4. **Set up environment variables:**  
+3. **Set up environment variables:**  
    Create a `.env` file in the project root with the following variables:
    ```env
    OPENAI_API_KEY=your_openai_api_key

@@ -1,4 +1,3 @@
-# Reviews tables and columns available and makes decisions about what to analyze for each category
 import os
 import json
 import re
@@ -12,20 +11,17 @@ from dateutil.parser import parse as parse_date
 import pytz  # Add this for timezone handling
 from swarm import Swarm, Agent
 from dateutil.parser import parse as parse_date
+from tools.data_fetcher import set_dataset
 
 # Set key variables 
 # Load environment variables
 load_dotenv()
-
 # Initialize OpenAI API key
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     raise ValueError("OpenAI API key not found in environment variables.")
-
 client = Swarm()
-
-# GPT_MODEL = 'gpt-3.5-turbo-16k'
-GPT_MODEL = 'gpt-4'
+GPT_MODEL = 'gpt-4-turbo'
 
 # ------------------------------
 # Utility Functions
@@ -37,14 +33,16 @@ def sanitize_filename(filename):
     sanitized = sanitized.strip()
     return sanitized
 
+
 def format_columns(columns):
     """Format the columns information into a readable string."""
     if not columns:
         return ""
     formatted = ""
     for col in columns:
-        formatted += f"- {col['name']} ({col['dataTypeName']}): {col['description']}\n"
+        formatted += f"- {col['fieldName']} ({col['dataTypeName']}): {col['description']}\n"
     return formatted
+
 
 # ------------------------------
 # Main Processing
@@ -56,6 +54,7 @@ def main():
     data_folder = os.path.join(script_dir, 'data')
     datasets_folder = os.path.join(data_folder, 'datasets')
     output_folder = os.path.join(data_folder, 'analysis_map')
+    error_log_path = os.path.join(output_folder, 'error_log.json')  # Path for error log
 
     # Ensure the output directory exists
     os.makedirs(output_folder, exist_ok=True)
@@ -67,26 +66,38 @@ def main():
 
     # List all JSON files in the datasets directory
     article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
-
     if not article_list:
         print(f"No JSON files found in {datasets_folder}")
         return
-
-    print(f"Found {len(article_list)} JSON files to process.")
-
+    print(f"Found {len(article_list)} JSON files to process:")
+    for idx, filename in enumerate(article_list):
+        print(f"{idx}. {filename}")
     # Create a single output file for all results
-    output_filename = f"filtered_outputs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     output_path = os.path.join(output_folder, output_filename)
-    all_outputs = []
+
+    # Initialize error log
+    error_log = []
 
     # Define the threshold date (make it offset-aware)
     threshold_date = datetime(2024, 9, 1, tzinfo=pytz.UTC)
 
+    # Create a directory for individual results
+    individual_results_dir = os.path.join(output_folder, 'individual_results')
+    os.makedirs(individual_results_dir, exist_ok=True)
+
     # Process each file individually
-    # Adjusted to only process the first file for QA
-    for idx, filename in enumerate(article_list, start=1):  # Changed to process only the first file
+    for idx, filename in enumerate(article_list[146:147]):  
         article_path = os.path.join(datasets_folder, filename)
         print(f"\nProcessing file {idx}/{len(article_list)}: {filename}")
+
+        # At the start of processing loop, check if already processed
+        result_filename = f"result_{sanitize_filename(filename)}"
+        result_path = os.path.join(individual_results_dir, result_filename)
+        
+        if os.path.exists(result_path):
+            print(f"Skipping already processed file: {filename}")
+            continue
 
         try:
             with open(article_path, 'r', encoding='utf-8') as f:
@@ -110,7 +121,7 @@ def main():
             if updated_at_date.tzinfo is None:
                 # If the date is offset-naive, make it UTC
                 updated_at_date = updated_at_date.replace(tzinfo=pytz.UTC)
-            
+
             # Compare the dates
             if updated_at_date <= threshold_date:
                 print(f"File '{filename}' skipped: 'rows_updated_at' is not after {threshold_date}.")
@@ -118,12 +129,18 @@ def main():
         except Exception as e:
             print(f"Error parsing 'rows_updated_at' for file '{filename}': {e}")
             continue
-        
+
         # Extract relevant fields
         title = data.get('title', 'Untitled')
         description = data.get('description', '')
         page_text = data.get('page_text', '')
         columns = data.get('columns', [])
+        # Extract just fieldName and description from columns
+        columns = [{
+            'fieldName': col['fieldName'],
+            'description': col.get('description', ''),
+            'dataTypeName': col.get('dataTypeName', '')
+        } for col in columns if 'fieldName' in col]
         url = data.get('url', '')
         endpoint = data.get('endpoint', '')
 
@@ -132,7 +149,7 @@ def main():
 
         # Construct the prompt
         system_message = """
-            You are an AI assistant that generates working API queries and categorizes datasets for analysis.  We are looking to find anomalous trends within the dataset.  Trends are spoting by comparing sums or averages over time by category.  So we are looking for data that updates reugularrly, has at least one time series variable and at least one numeric variable.  Often with city datasets, the numeric variable we need is actually just a count of the number of items by month (like for police or fire reports).
+          You are an AI assistant that generates working API queries and categorizes datasets for analysis.  We are looking to find anomalous trends within the dataset.  Trends are spoting by comparing sums or averages over time by category.  So we are looking for data that updates reugularrly, has at least one time series variable and at least one numeric variable.  Often with city datasets, the numeric variable we need is actually just a count of the number of items by month (like for police or fire reports).
 
             Your task is:
 
@@ -173,42 +190,75 @@ def main():
             Ensure that the query is a valid SoQL query, and that the endpoint is correct (the dataset identifier).
             Remember no from clause. 
             
-            Here's a good example: 
-            endpoint: "wg3w-h783.json",
-        query: `
-            SELECT 
-                supervisor_district, 
-                incident_category, 
-                incident_subcategory, 
-                incident_description, 
-                report_type_code, 
-                date_trunc_ym(report_datetime) AS month
-                COUNT(*) AS count, 
-                CASE 
-                    WHEN incident_category IN ('Assault', 'Homicide', 'Rape', 'Robbery') THEN 'Violent Crime'
-                    WHEN incident_category IN ('Burglary', 'Malicious Mischief', 'Embezzlement', 'Larceny Theft', 'Stolen Property', 'Vandalism', 'Motor Vehicle Theft', 'Arson') THEN 'Property Crime'
-                    ELSE 'Other Crime'
-                END AS category_group
-            WHERE report_datetime>='2022-09-01'
-            GROUP BY 
-                category_group, 
-                incident_category, 
-                incident_subcategory, 
-                incident_description, 
-                report_type_code, 
-                supervisor_district, 
-                year, 
-                month
-            ORDER BY 
-                category_group, 
-                incident_category, 
-                incident_subcategory, 
-                incident_description, 
-                report_type_code, 
-                supervisor_district, 
-                year, 
-                month
-
+            Here's an example: 
+            {
+                "DateFields": [
+                    "month"
+                ],
+                "NumericFields": [
+                    "total_payments"
+                ],
+                "CategoryFields": [
+                    "organization_group",
+                    "department",
+                    "program",
+                    "character",
+                    "object"
+                ],
+                "endpoint": "n9pm-xkyq.json",
+                "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(vouchers_paid) as total_payments, organization_group, department, program, character, object WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, organization_group, department, program, character, object",
+                "report_category": "Economy",
+                "column_metadata": [
+                    {
+                        "fieldName": "month",
+                        "description": "Datetime the data was loaded to the open data portal, grouped by month",
+                        "dataTypeName": "calendar_date"
+                    },
+                    {
+                        "fieldName": "total_payments",
+                        "description": "Total of completed payments to vendors",
+                        "dataTypeName": "number"
+                    },
+                    {
+                        "fieldName": "organization_group",
+                        "description": "Org Group is a group of Departments",
+                        "dataTypeName": "text"
+                    },
+                    {
+                        "fieldName": "department",
+                        "description": "Departments are the primary organizational unit used by the City and County of San Francisco",
+                        "dataTypeName": "text"
+                    },
+                    {
+                        "fieldName": "program",
+                        "description": "A program identifies the services a department provides",
+                        "dataTypeName": "text"
+                    },
+                    {
+                        "fieldName": "character",
+                        "description": "In the type hierarchy, Character is the highest level",
+                        "dataTypeName": "text"
+                    },
+                    {
+                        "fieldName": "object",
+                        "description": "In the type hierarchy, Object is the middle level",
+                        "dataTypeName": "text"
+                    }
+                ],
+                "table_metadata": {
+                    "title": "Vendor Payments (Vouchers)",
+                    "description": "The San Francisco Controller's Office maintains a database of payments made to vendors from fiscal year 2007 forward",
+                    "endpoint": "n9pm-xkyq.json",
+                    "category": "Economy",
+                    "periodic": true,
+                    "item_noun": "Vendor Payment",
+                    "district_level": false,
+                    "whom_it_may_interest": "Economists, Data Analysts, City and County controllers, vendors that work with the city, and citizens interested in the city's spending",
+                    "filename": "Vendor Payments (Vouchers).json",
+                    "data_validated": true,
+                    "usefulness": 3,
+                },
+            }
             Ensure the output is strictly formatted as valid JSON.  No operators or additioonal characters, Do not include any additional text or explanations outside the JSON block.
             """
 
@@ -224,6 +274,17 @@ def main():
         Columns:
         {columns_formatted}
 
+        
+        """
+
+        user_message = f"""
+        Here is the dataset information:
+        Title: {title}
+        Endpoint: {endpoint}
+        Description:
+        {description}
+        Columns:
+        {columns_formatted}
         """
 
         # Define the anomaly finder agent   
@@ -234,63 +295,181 @@ def main():
             functions=[],
             debug=True,
         )
+
         # Call the OpenAI API
         messages = [{"role": "user", "content": user_message}]
-        
         response = client.run(agent=analyst_agent, messages=messages)
         assistant_reply = response.messages[-1]["content"]
 
-        # Extract JSON part using regex
-        import re
+        # Extract JSON part
         json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
-        if json_match:
-            json_content = json_match.group()
-        else:
-            raise ValueError("No JSON content found in the assistant's reply.")
+        if not json_match:
+            print(f"No JSON content found in the assistant's reply for '{title}'.")
+            error_log.append({
+                'filename': filename,
+                'title': title,
+                'error': "No JSON content found in the assistant's reply.",
+                'assistant_reply': assistant_reply
+            })
+            continue
 
-        # Attempt to parse the extracted JSON
+        json_content = json_match.group()
         try:
             result = json.loads(json_content)
             # Add the filename and title to the result
             result['filename'] = filename
             result['title'] = title
-            endpoint=result['endpoint'] 
-            query=result['query']
-            datefields=result['DateFields']
+            endpoint = result.get('endpoint', endpoint)
+            query = result.get('query', '')
+            datefields = result.get('DateFields', [])
             print(f"DateFields: {datefields}")
-            # set_dataset(endpoint,query)
-            all_outputs.append(result)
-            print(f"Successfully processed '{title}'.")
-            print(result)
+
+            # Attempt validation up to 3 times
+            attempt_errors = []
+            for attempt in range(3):
+                try:
+                    test_query = query + " LIMIT 1"
+                    data_result = set_dataset({}, endpoint=endpoint, query=test_query)
+                    if data_result is None:
+                        # If we got None, let's set it to an empty dict so we can safely call .get()
+                        data_result = {}
+                    data = data_result.get('error') if 'error' in data_result else data_result.get('status')
+                    
+                    queryURL = data_result.get('queryURL')
+
+                    if data == 'success' and not data_result.get('error'):
+                        # Data is valid
+                        print(f"Data validated: {data}")
+                        result['data_validated'] = True
+                        with open(result_path, 'w', encoding='utf-8') as f:
+                            json.dump(result, f, indent=4)
+                        print(f"Successfully processed and saved '{title}'")
+                        print(result)
+                        break
+                    else:
+                        # No data or error
+                        if isinstance(data, dict) and 'error' in data:
+                            error_msg = data['error']
+                        else:
+                            error_msg = data if isinstance(data, str) else "Query returned no data"
+                        print(f"Attempt {attempt + 1}: {error_msg}")
+                        print(f"Endpoint: {endpoint}")
+                        print(f"Query: {test_query}")
+                        print(f"Query URL: {queryURL}")
+
+                        attempt_errors.append({
+                            'attempt': attempt + 1,
+                            'endpoint': endpoint,
+                            'query': test_query,
+                            'queryURL': queryURL,
+                            'error': error_msg
+                        })
+                        
+                        # Request a revised query
+                        result['data_validated'] = False
+                        result['error'] = error_msg
+                        messages.append({"role": "user", 
+                                         "content": f"The query returned no data. Please revise the query. Error: {error_msg}"})
+                        response = client.run(agent=analyst_agent, messages=messages)
+                        assistant_reply = response.messages[-1]["content"]
+                        json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
+                        if json_match:
+                            updated_result = json.loads(json_match.group())
+                            result.update(updated_result)
+                            query = updated_result['query']
+
+                except Exception as e:
+                    error_msg = str(e)
+                    print(f"Attempt {attempt + 1} failed with error: {error_msg}")
+                    # Log attempt details without accessing data_result if it's not defined
+                    attempt_errors.append({
+                        'attempt': attempt + 1,
+                        'endpoint': endpoint,
+                        'query': test_query,
+                        'queryURL': queryURL if 'queryURL' in locals() else None,
+                        'error': error_msg
+                    })
+
+                    result['data_validated'] = False 
+                    result['error'] = error_msg
+                    messages.append({"role": "user",
+                                     "content": f"The query failed. Please revise the query. Error: {error_msg}"})
+                    response = client.run(agent=analyst_agent, messages=messages)
+                    assistant_reply = response.messages[-1]["content"]
+                    json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
+                    if json_match:
+                        updated_result = json.loads(json_match.group())
+                        result.update(updated_result)  
+                        query = updated_result['query']
+            else:
+                # If we exit the loop without break, validation failed
+                print(f"Failed to validate query for '{title}'.")
+                print(result)
+                # Add attempt details to error log entry
+                error_entry = {
+                    'filename': filename,
+                    'title': title,
+                    'error': "Failed to validate query after 3 attempts",
+                    'attempt_details': attempt_errors,
+                    'assistant_reply': assistant_reply
+                }
+                error_log.append(error_entry)
 
         except json.JSONDecodeError as e:
             print(f"Failed to parse assistant's reply as JSON for file '{filename}': {e}")
             print("Assistant's reply:")
             print(assistant_reply)
-            # Add the error information to all_outputs
-            all_outputs.append({
+            # Add the error information to error_log
+            error_log.append({
                 'filename': filename,
                 'title': title,
                 'error': str(e),
                 'assistant_reply': assistant_reply
             })
-            continue
-
         except Exception as e:
             print(f"Error processing file '{filename}': {e}")
-            # Add the error information to all_outputs
-            all_outputs.append({
+            # Add the error information to error_log
+            error_log.append({
                 'filename': filename,
                 'title': title,
                 'error': str(e)
             })
-            continue
 
-    # Save all outputs to a single JSON file
+        # Combine all individual results at the end
+    all_results = []
+    for result_file in os.listdir(individual_results_dir):
+        if result_file.startswith('result_'):
+            with open(os.path.join(individual_results_dir, result_file), 'r', encoding='utf-8') as f:
+                try:
+                    result = json.load(f)
+                    all_results.append(result)
+                except Exception as e:
+                    print(f"Error reading {result_file}: {e}")
+
+    # Write combined results
     with open(output_path, 'w', encoding='utf-8') as out_f:
-        json.dump(all_outputs, out_f, indent=4)
+        json.dump(all_results, out_f, indent=4)
 
-    print(f"\nProcessing completed. All outputs saved to '{output_filename}'.")
+    # Append to existing error log instead of overwriting
+    existing_errors = []
+    if os.path.exists(error_log_path):
+        with open(error_log_path, 'r', encoding='utf-8') as err_f:
+            try:
+                existing_errors = json.load(err_f)
+            except Exception as e:
+                print(f"Error reading existing error log: {e}")
+                existing_errors = []
 
-if __name__ == '__main__':
+    existing_errors.extend(error_log)
+
+    with open(error_log_path, 'w', encoding='utf-8') as err_f:
+        json.dump(existing_errors, err_f, indent=4)
+
+    print(f"\nProcessing completed. Individual results saved in '{individual_results_dir}'")
+    print(f"Combined results saved to '{output_filename}'")
+    print(f"Errors logged to '{error_log_path}'")
+
+
+
+if __name__ == "__main__":
     main()

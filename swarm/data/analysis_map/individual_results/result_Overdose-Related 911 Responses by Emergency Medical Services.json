@@ -1,0 +1,41 @@
+{
+    "endpoint": "ed3a-sn39.json",
+    "query": "SELECT date_trunc_ym(week_start_date) AS month, sum(total_overdose_related_911_calls) AS total_calls, week, year WHERE week_start_date >= '2022-09-01' GROUP BY month, week, year ORDER BY year, month",
+    "report_category": "Health",
+    "usefulness": 3,
+    "column_metadata": {
+        "week_start_date": {
+            "type": "calendar_date",
+            "description": "The (Sunday) date when the week number started."
+        },
+        "total_overdose_related_911_calls": {
+            "type": "number",
+            "description": "The total number of overdose-related 911 calls that occurred during the week."
+        },
+        "week": {
+            "type": "text",
+            "description": "The week number when the overdose-related calls occurred. Week 1 is the first full week of reporting each year."
+        },
+        "year": {
+            "type": "number",
+            "description": "The year when the overdose-related calls occurred."
+        }
+    },
+    "table_metadata": {
+        "title": "Overdose-Related 911 Responses by Emergency Medical Services",
+        "description": "This dataset includes all opioid overdose-related 911 calls responded to by emergency medical services in San Francisco, filtered by opioid involvement and/or naloxone administration.",
+        "endpoint": "ed3a-sn39",
+        "category": "Health",
+        "district_level": false,
+        "item_noun": "emergency response",
+        "whom_it_may_interest": "Healthcare providers, public health officials, policymakers, researchers"
+    },
+    "periodic": "yes",
+    "item_noun": "emergency response",
+    "district_level": false,
+    "whom_it_may_interest": "Healthcare providers, public health officials, policymakers, researchers",
+    "filename": "Overdose-Related 911 Responses by Emergency Medical Services.json",
+    "title": "Overdose-Related 911 Responses by Emergency Medical Services",
+    "data_validated": true,
+    "error": "Expecting value: line 3 column 14 (char 49)"
+}

@@ -1,0 +1,42 @@
+{
+    "DateFields": [
+        "data_loaded_at"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [],
+    "endpoint": "u3rf-fdu7.json",
+    "query": "SELECT date_trunc_ym(data_loaded_at) AS month, COUNT(*) AS item_count WHERE data_loaded_at>='2022-09-01' GROUP BY month",
+    "report_category": "Housing",
+    "usefulness": 1,
+    "column_metadata": [
+        {
+            "fieldName": "data_loaded_at",
+            "description": "the date when the data was loaded",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "district",
+            "description": "the district where the inspection took place",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "total count of inspection records per month",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "DBI Plumbing Inspection Division Districts",
+        "description": "The data in this map displays plumbing inspectors by district.",
+        "endpoint": "u3rf-fdu7"
+    },
+    "periodic": true,
+    "item_noun": "Plumbing Inspection Record",
+    "district_level": false,
+    "whom_it_may_interest": "This data may interest San Francisco city planning or building departments, plumbers, real estate developers, and researchers studying trends in plumbing inspections.",
+    "filename": "DBI Plumbing Inspection Division Districts.json",
+    "title": "DBI Plumbing Inspection Division Districts",
+    "data_validated": true
+}

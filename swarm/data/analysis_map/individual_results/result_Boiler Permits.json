@@ -1,0 +1,44 @@
+{
+    "endpoint": "5dp4-gtxk.json",
+    "query": "SELECT supervisor_district, boiler_type, status, date_trunc_ym(application_date) AS month, count(*) AS permit_count WHERE application_date>='2022-09-01' GROUP BY supervisor_district, boiler_type, status, month ORDER BY month, supervisor_district, boiler_type, status",
+    "report_category": "Housing",
+    "usefulness": 2,
+    "column_metadata": {
+        "supervisor_district": {
+            "type": "text",
+            "description": "Supervisory district where the boiler is located"
+        },
+        "boiler_type": {
+            "type": "text",
+            "description": "Type of the boiler"
+        },
+        "status": {
+            "type": "text",
+            "description": "Current status of the boiler permit"
+        },
+        "month": {
+            "type": "calendar_date",
+            "description": "Month of the application date, truncated to the first day of the month"
+        },
+        "permit_count": {
+            "type": "number",
+            "description": "Count of permits issued"
+        }
+    },
+    "table_metadata": {
+        "title": "Boiler Permits",
+        "description": "This dataset pertains to all permits to operate boilers, includes details like permit numbers, addresses, districts, and status. Data is updated weekly.",
+        "endpoint": "5dp4-gtxk",
+        "category": "Housing",
+        "district_level": true,
+        "item_noun": "boiler permit",
+        "whom_it_may_interest": "Property owners, contractors, real estate developers, housing regulators"
+    },
+    "periodic": "yes",
+    "item_noun": "boiler permit",
+    "district_level": "true",
+    "whom_it_may_interest": "Property owners, contractors, real estate developers, housing regulators",
+    "filename": "Boiler Permits.json",
+    "title": "Boiler Permits",
+    "data_validated": true
+}

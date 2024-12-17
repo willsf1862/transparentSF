@@ -1,0 +1,44 @@
+{
+    "endpoint": "j67f-aayr.json",
+    "query": "SELECT date_trunc_ym(date_issued) AS month, building_permit_application, building_address, document_type, SUM(number_of_units_certified) AS total_units_certified WHERE date_issued >= '2022-09-01' GROUP BY month, building_permit_application, building_address, document_type ORDER BY month, building_permit_application, building_address, document_type",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": {
+        "month": {
+            "type": "calendar_date",
+            "description": "The month the document was issued, aggregated by year and month."
+        },
+        "building_permit_application": {
+            "type": "text",
+            "description": "Reference number identifying a building permit application."
+        },
+        "building_address": {
+            "type": "text",
+            "description": "Address of residential units."
+        },
+        "document_type": {
+            "type": "text",
+            "description": "Type of document that certifies units for occupation."
+        },
+        "total_units_certified": {
+            "type": "number",
+            "description": "Sum of units certified for occupancy grouped by document type and date."
+        }
+    },
+    "table_metadata": {
+        "title": "Dwelling Unit Completion Counts by Building Permit",
+        "description": "Tracks number of new residential units certified for occupancy by building permit application.",
+        "endpoint": "j67f-aayr",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "building permit record",
+        "whom_it_may_interest": "city planners, developers, policy makers, housing advocacy groups"
+    },
+    "periodic": "yes",
+    "item_noun": "building permit record",
+    "district_level": "false",
+    "whom_it_may_interest": "city planners, developers, policy makers, housing advocacy groups",
+    "filename": "Dwelling Unit Completion Counts by Building Permit.json",
+    "title": "Dwelling Unit Completion Counts by Building Permit",
+    "data_validated": true
+}

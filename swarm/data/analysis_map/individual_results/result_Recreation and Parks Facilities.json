@@ -1,0 +1,44 @@
+{
+    "endpoint": "ib5c-xgwu.json",
+    "query": "SELECT supdist, facility_type, date_trunc_ym(created_date) AS month, COUNT(*) AS count WHERE created_date >= '2022-09-01' GROUP BY supdist, facility_type, month ORDER BY month, supdist, facility_type",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "supdist",
+            "description": "Supervisor district where the facility is located",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "facility_type",
+            "description": "Type of the facility",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "created_date",
+            "description": "Date when the facility entry was created",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "count",
+            "description": "Count of facilities",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Recreation and Parks Facilities",
+        "description": "Facilities maintained by the Recreation and Parks Department. A facility in this dataset represents a structural or physical amenity within a property's boundaries.",
+        "endpoint": "ib5c-xgwu",
+        "category": "Other",
+        "district_level": true,
+        "item_noun": "facility",
+        "whom_it_may_interest": "City planners, community groups, policy makers"
+    },
+    "periodic": "yes",
+    "item_noun": "facility",
+    "district_level": true,
+    "whom_it_may_interest": "City planners, community groups, policy makers",
+    "filename": "Recreation and Parks Facilities.json",
+    "title": "Recreation and Parks Facilities",
+    "data_validated": true
+}

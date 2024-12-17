@@ -1,0 +1,29 @@
+{
+    "endpoint": "87xy-gk8d.json",
+    "query": "SELECT station, department, date_trunc_ym(arrive) AS month, COUNT(*) AS count WHERE arrive>='2022-09-01' GROUP BY station, department, month ORDER BY month, station, department",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": {
+        "station": "Identifier for the business group responsible for reviewing or processing the permit or addenda",
+        "department": "Department that the review station belongs to",
+        "arrive": "Date the permit or addenda arrived at the station formatted as YYYY-MM-DD",
+        "month": "Date truncated to month for grouping purposes"
+    },
+    "table_metadata": {
+        "title": "Building Permit Addenda with Routing",
+        "description": "This dataset lists each review step on a building permit or site permit addenda routing list, detailing the review timeline and departmental involvement.",
+        "endpoint": "87xy-gk8d",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "routing record",
+        "whom_it_may_interest": "Building developers, city planners, construction managers, and policy makers"
+    },
+    "periodic": "yes",
+    "item_noun": "routing record",
+    "district_level": false,
+    "whom_it_may_interest": "Architects, developers, city planners",
+    "filename": "Building Permit Addenda with Routing.json",
+    "title": "Building Permit Addenda with Routing",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT station, department, date_trunc_ym(arrive) AS month, COUNT(*) AS count FROM WHERE arrive >= '2022-09-01' GROUP BY station, department, month ORDER BY month, station, department LIMIT 1\" at line 1 character 84: Expected a table identifier, but got `WHERE'"
+}

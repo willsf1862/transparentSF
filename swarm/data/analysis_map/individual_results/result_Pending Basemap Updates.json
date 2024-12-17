@@ -1,0 +1,39 @@
+{
+    "endpoint": "2q9t-p8jg.json",
+    "query": "SELECT project_type, date_trunc_ym(date_recorded) AS month, COUNT(*) AS count WHERE date_recorded >= '2022-09-01' GROUP BY project_type, month ORDER BY project_type, month",
+    "report_category": "Housing",
+    "usefulness": 2,
+    "column_metadata": {
+        "project_type": {
+            "field": "project_type",
+            "description": "The type of project.",
+            "type": "text"
+        },
+        "date_recorded": {
+            "field": "date_recorded",
+            "description": "The date when the parcel map was officially recorded.",
+            "type": "calendar_date"
+        },
+        "count": {
+            "field": "count",
+            "description": "Number of projects of each type recorded each month.",
+            "type": "number"
+        }
+    },
+    "table_metadata": {
+        "title": "Pending Basemap Updates",
+        "description": "Official parcel boundaries pending recorded Covenants, Conditions & Restrictions (CC&R) maintained by San Francisco Public Works",
+        "endpoint": "2q9t-p8jg",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "project",
+        "whom_it_may_interest": "Urban planners, developers, government officials"
+    },
+    "periodic": "yes",
+    "item_noun": "project",
+    "district_level": "false",
+    "whom_it_may_interest": "Urban planners, developers, government officials",
+    "filename": "Pending Basemap Updates.json",
+    "title": "Pending Basemap Updates",
+    "data_validated": true
+}

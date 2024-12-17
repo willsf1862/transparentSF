@@ -1,0 +1,56 @@
+{
+    "DateFields": [],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "name",
+        "stname",
+        "sttype",
+        "ceqacode"
+    ],
+    "endpoint": "3tsw-4idn.json",
+    "query": "SELECT name, stname, sttype, ceqacode, COUNT(*) AS item_count GROUP BY name, stname, sttype, ceqacode",
+    "report_category": "Other",
+    "usefulness": 1,
+    "column_metadata": [
+        {
+            "fieldName": "name",
+            "description": "Name of Historic Resource",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "stname",
+            "description": "Street Name",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "sttype",
+            "description": "Type of street",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "ceqacode",
+            "description": "Resource status",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of Historic Resources",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Historic Resources",
+        "description": "The ceqacode field contains an A, B or C: A - historic resource present B - unknown C - historic resource not present",
+        "endpoint": "3tsw-4idn.json",
+        "category": "Other"
+    },
+    "periodic": false,
+    "item_noun": "Historic Resource",
+    "district_level": false,
+    "whom_it_may_interest": "Heritage and culture enthusiasts, historic preservation teams, architects, historians, and city planners.",
+    "filename": "Historic Resources.json",
+    "title": "Historic Resources",
+    "data_validated": true
+}

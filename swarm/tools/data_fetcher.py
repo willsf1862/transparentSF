@@ -7,7 +7,14 @@ import logging
 
 # Create a logger for this module
 logger = logging.getLogger(__name__)
-
+# Add these lines after the imports
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()  # This will output to console
+    ]
+)
 def clean_query_string(query):
     """
     Cleans the query string by removing unnecessary whitespace and line breaks.
@@ -59,7 +66,7 @@ def fetch_data_from_api(query_object):
                     response.status_code,
                     response.text[:200]
                 )
-                return {'error': 'Failed to decode JSON response from the API.'}
+                return {'error': 'Failed to decode JSON response from the API.', 'queryURL': response.url}
             all_data.extend(data)
             logger.info("Fetched %d records in current batch.", len(data))
 
@@ -83,10 +90,10 @@ def fetch_data_from_api(query_object):
                 http_err,
                 error_content
             )
-            return {'error': error_content}
+            return {'error': error_content, 'queryURL': response.url}
         except Exception as err:
             logger.exception("An error occurred: %s", err)
-            return {'error': str(err)}
+            return {'error': str(err), 'queryURL': response.url if response else None}
 
     logger.debug("Finished fetching data. Total records retrieved: %d", len(all_data))
     return {
@@ -98,12 +105,14 @@ def set_dataset(context_variables, *args, **kwargs):
     """
     Fetches data from the API and sets it in the context variables.
     """
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     logger.debug("Starting set_dataset with kwargs: %s", kwargs)
     endpoint = kwargs.get('endpoint')
     query = kwargs.get('query')
     if not endpoint or not query:
         logger.error("Endpoint and query are required parameters.")
-        return {'error': 'Endpoint and query are required parameters.'}
+        return {'error': 'Endpoint and query are required parameters.', 'queryURL': None}
 
     query_object = {'endpoint': endpoint, 'query': query}
     result = fetch_data_from_api(query_object)
@@ -114,12 +123,12 @@ def set_dataset(context_variables, *args, **kwargs):
             context_variables['dataset'] = df
             logger.info("Dataset successfully set with %d records.", len(df))
             return {'status': 'success', 'queryURL': result.get('queryURL')}
+        elif 'error' in result:
+            logger.error("Failed to fetch data from the API: %s", result['error'])
+            return {'error': result['error'], 'queryURL': result.get('queryURL')}
         else:
             logger.warning("No data returned from the API.")
-            return {'error': 'No data returned from the API.'}
-    elif 'error' in result:
-        logger.error("Failed to fetch data from the API: %s", result['error'])
-        return {'error': result['error']}
+            return {'error': 'No data returned from the API.', 'queryURL': result.get('queryURL')}
     else:
-        logger.error("Failed to fetch data from the API.")
-        return {'error': 'Failed to fetch data from the API.'}
+        logger.error("Invalid result format or error in result: %s", result)
+        return {'error': result.get('error', 'Invalid result format'), 'queryURL': result.get('queryURL')}

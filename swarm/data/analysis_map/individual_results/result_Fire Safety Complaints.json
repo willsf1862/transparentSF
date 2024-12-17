@@ -1,0 +1,44 @@
+{
+    "endpoint": "2wsq-7wmv.json",
+    "query": "SELECT neighborhood_district, disposition, date_trunc_ym(received_date) AS month, COUNT(*) AS count WHERE received_date >= '2022-09-01' GROUP BY neighborhood_district, disposition, month ORDER BY month, neighborhood_district, disposition",
+    "report_category": "Safety",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "neighborhood_district",
+            "description": "The district in which the complaint was reported.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "disposition",
+            "description": "The final status of the complaint.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "received_date",
+            "description": "The date on which the complaint was received.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "count",
+            "description": "The number of complaints received.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Fire Safety Complaints",
+        "description": "Information on Complaints received by the Fire Department (from the public) for a particular location. Key fields include Complaint Number, Complaint Type, Address, Disposition",
+        "endpoint": "2wsq-7wmv",
+        "category": "Safety",
+        "district_level": false,
+        "item_noun": "complaint",
+        "whom_it_may_interest": "Fire safety officials, policy makers, public safety administrators"
+    },
+    "periodic": "yes",
+    "item_noun": "complaint",
+    "district_level": "false",
+    "whom_it_may_interest": "Fire safety officials, policy makers, public safety administrators",
+    "filename": "Fire Safety Complaints.json",
+    "title": "Fire Safety Complaints",
+    "data_validated": true
+}

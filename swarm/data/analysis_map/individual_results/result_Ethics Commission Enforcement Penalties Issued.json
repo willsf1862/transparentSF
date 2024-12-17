@@ -1,0 +1,44 @@
+{
+    "endpoint": "yre9-mzkb.json",
+    "query": "SELECT date_trunc_ym(date) AS month, violation_s, disposition, COUNT(*) AS count, SUM(penalty_amount) AS total_penalty WHERE date>='2022-09-01' GROUP BY month, violation_s, disposition ORDER BY month, violation_s, disposition",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": {
+        "month": {
+            "data_type": "date",
+            "description": "Month and year of the record, aggregated from the 'date' field."
+        },
+        "violation_s": {
+            "data_type": "text",
+            "description": "Type of violation committed, as stated in the dataset."
+        },
+        "disposition": {
+            "data_type": "text",
+            "description": "Outcome of the ethics investigation or judgment."
+        },
+        "count": {
+            "data_type": "number",
+            "description": "Count of records for the given month, violation type, and disposition."
+        },
+        "total_penalty": {
+            "data_type": "number",
+            "description": "Sum of penalties assessed for the records in the specific group (month, violation type, disposition)."
+        }
+    },
+    "table_metadata": {
+        "title": "Ethics Commission Enforcement Penalties Issued",
+        "description": "Completed investigations by the Ethics Commission on which a final decision and penalty have been issued.",
+        "endpoint": "yre9-mzkb",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "penalty record",
+        "whom_it_may_interest": "Ethics agencies, policy makers, legal professionals, and researchers in law or ethics."
+    },
+    "periodic": "yes",
+    "item_noun": "penalty record",
+    "district_level": "false",
+    "whom_it_may_interest": "Ethics agencies, policy makers, legal professionals, researchers in law or ethics.",
+    "filename": "Ethics Commission Enforcement Penalties Issued.json",
+    "title": "Ethics Commission Enforcement Penalties Issued",
+    "data_validated": true
+}

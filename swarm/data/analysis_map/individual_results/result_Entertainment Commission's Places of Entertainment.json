@@ -1,0 +1,58 @@
+{
+    "query": "SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS item_count, POE_Class_Code, Permit_Status, DBA_Name WHERE data_as_of >= '2022-09-01' GROUP BY month, POE_Class_Code, Permit_Status, DBA_Name",
+    "endpoint": "86e8-rfem.json",
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "POE_Class_Code",
+        "Permit_Status",
+        "DBA_Name"
+    ],
+    "report_category": "Other",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "name": "month",
+            "description": "Month the data was logged",
+            "dataTypeName": "text"
+        },
+        {
+            "name": "item_count",
+            "description": "Count of new entertainment licenses",
+            "dataTypeName": "number"
+        },
+        {
+            "name": "POE_Class_Code",
+            "description": "Class code of the Place of Entertainment",
+            "dataTypeName": "text"
+        },
+        {
+            "name": "Permit_Status",
+            "description": "Status of the permit",
+            "dataTypeName": "text"
+        },
+        {
+            "name": "DBA_Name",
+            "description": "Name of the entertainment place",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Entertainment Commission's Places of Entertainment",
+        "description": "This dataset is a list of all active Place of Entertainment permits granted by the San Francisco Entertainment Commission. Newly granted permits are manually input by EC staff as they are received. This dataset is updated automatically by DataSF daily",
+        "endpoint": "86e8-rfem.json",
+        "category": "Other"
+    },
+    "periodic": true,
+    "item_noun": "Entertainment Permit",
+    "district_level": false,
+    "whom_it_may_interest": "It may interest event organizers, city planners and the general public looking for information on places of entertainment in the city.",
+    "filename": "Entertainment Commission's Places of Entertainment.json",
+    "title": "Entertainment Commission's Places of Entertainment",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.no-such-function; No such function 'data_trunc_ym'; arity=1; position: Map(row -> 1, column -> 8, line -> \"SELECT data_trunc_ym(`data_as_of`) AS `month`, count(*) AS `item_count`, `POE_Class_Code`, `Permit_Status`, `DBA_Name` WHERE `data_as_of` >= \\\"2022-09-01\\\" GROUP BY `month`, `POE_Class_Code`, `Permit_Status`, `DBA_Name` ORDER BY `month` ASC NULL LAST, `POE_Class_Code` ASC NULL LAST, `Permit_Status` ASC NULL LAST, `DBA_Name` ASC NULL LAST LIMIT 1\\n       ^\")"
+}

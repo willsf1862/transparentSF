@@ -664,6 +664,6 @@ def anomaly_detection(
         'filter_conditions': filter_conditions
     }
 
-    html_content = generate_anomalies_summary_with_charts(results, metadata)
-    markdown_content = generate_anomalies_summary(results)
+    html_content, markdown_content = generate_anomalies_summary_with_charts(results, metadata)
+    
     return  {"anomalies":html_content, "anomalies_markdown":markdown_content}

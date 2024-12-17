@@ -1,0 +1,44 @@
+{
+    "endpoint": "wmam-7g8d.json",
+    "query": "SELECT supervisor_district, analysis_neighborhood, date_trunc_ym(buyout_agreement_date) AS month, SUM(buyout_amount) AS total_buyout_amount, COUNT(*) AS total_agreements WHERE buyout_agreement_date >= '2022-09-01' GROUP BY supervisor_district, analysis_neighborhood, month ORDER BY month, supervisor_district, analysis_neighborhood",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "supervisor_district",
+            "description": "District Number - San Francisco Board of Supervisors (1 to 11).",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "Analysis neighborhoods corresponding to census boundaries.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "buyout_agreement_date",
+            "description": "Date buyout was filed.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "buyout_amount",
+            "description": "The amount of the buyout offered by the landlord.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Buyout Agreements",
+        "description": "Contains buyout declarations and buyout agreements filed at the Rent Board, regulating 'buyout agreements' between landlords and tenants to vacate rent-controlled units.",
+        "endpoint": "wmam-7g8d",
+        "category": "Housing",
+        "district_level": true,
+        "item_noun": "buyout agreement",
+        "whom_it_may_interest": "Housing policy makers, tenant rights groups, city housing authorities"
+    },
+    "periodic": "yes",
+    "item_noun": "buyout agreement",
+    "district_level": "true",
+    "whom_it_may_interest": "Researchers, city planners, and anyone interested in housing and district-based analysis",
+    "filename": "Buyout Agreements.json",
+    "title": "Buyout Agreements",
+    "data_validated": true
+}

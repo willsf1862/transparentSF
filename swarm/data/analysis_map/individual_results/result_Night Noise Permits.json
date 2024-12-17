@@ -1,0 +1,49 @@
+{
+    "endpoint": "e7pr-36bt.json",
+    "query": "SELECT supervisor_district, type_of_work, analysis_neighborhood, date_trunc_ym(start_date) AS month, COUNT(*) AS count WHERE start_date >= '2022-09-01' GROUP BY supervisor_district, type_of_work, analysis_neighborhood, month ORDER BY month, supervisor_district, type_of_work",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "supervisor_district",
+            "description": "Supervisor district (1 through 11)",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "type_of_work",
+            "description": "Night work description",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "Neighborhoods correspond to this reference dataset: https://data.sfgov.org/d/p5b7-5n3h",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Month extracted from the start_date",
+            "dataTypeName": "date"
+        },
+        {
+            "fieldName": "count",
+            "description": "Count of night noise permits",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Night Noise Permits",
+        "description": "This dataset contains all night noise permits (and pending requests) issued since August 1, 2019.",
+        "endpoint": "e7pr-36bt.json",
+        "category": "Other",
+        "district_level": true,
+        "item_noun": "night noise permit",
+        "whom_it_may_interest": "city planners, public health officials, residents"
+    },
+    "periodic": "yes",
+    "item_noun": "night noise permit",
+    "district_level": true,
+    "whom_it_may_interest": "city planners, public health officials, residents",
+    "filename": "Night Noise Permits.json",
+    "title": "Night Noise Permits",
+    "data_validated": true
+}

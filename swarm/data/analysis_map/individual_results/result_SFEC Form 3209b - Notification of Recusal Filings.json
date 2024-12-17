@@ -1,0 +1,44 @@
+{
+    "endpoint": "y8qm-zrwi.json",
+    "query": "SELECT boardcommissionname, membername, filingtype, date_trunc_ym(recusaldate) AS month, COUNT(*) AS count WHERE recusaldate >= '2022-09-01' GROUP BY boardcommissionname, membername, filingtype, month ORDER BY month, boardcommissionname, membername",
+    "report_category": "Government",
+    "usefulness": 3,
+    "column_metadata": {
+        "boardcommissionname": {
+            "type": "text",
+            "description": "Name of board or commission"
+        },
+        "membername": {
+            "type": "text",
+            "description": "Name of member of the board or commission"
+        },
+        "filingtype": {
+            "type": "text",
+            "description": "Is the Filing Original or Amendment?"
+        },
+        "month": {
+            "type": "date",
+            "description": "Month of the Recusal Date"
+        },
+        "count": {
+            "type": "numeric",
+            "description": "Count of recusal filings"
+        }
+    },
+    "table_metadata": {
+        "title": "SFEC Form 3209b - Notification of Recusal Filings",
+        "description": "Notification of recusal filings by members of city boards or commissions excluding members of the Board of Supervisors.",
+        "endpoint": "y8qm-zrwi",
+        "category": "Government",
+        "district_level": false,
+        "item_noun": "recusal filing",
+        "whom_it_may_interest": "Government officials, policymakers, researchers, and the general public interested in governance and ethical compliance"
+    },
+    "periodic": "yes",
+    "item_noun": "recusal filing",
+    "district_level": "false",
+    "whom_it_may_interest": "Policymakers, researchers, and citizens interested in board or commission ethics and transparency",
+    "filename": "SFEC Form 3209b - Notification of Recusal Filings.json",
+    "title": "SFEC Form 3209b - Notification of Recusal Filings",
+    "data_validated": true
+}

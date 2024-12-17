@@ -9,7 +9,7 @@ from tools.anomaly_detection import filter_data_by_date_and_conditions
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler()]
 )
@@ -161,37 +161,37 @@ def generate_time_series_chart(
             percentage_diff_total = ((total_latest_month - average_of_rest) / average_of_rest) * 100 if average_of_rest != 0 else 0
             above_below_total = 'above' if total_latest_month > average_of_rest else 'below'
             percentage_diff_total = abs(round(percentage_diff_total, 2))
-            logging.debug(f"Percentage difference for total: {percentage_diff_total}%, {above_below_total} the average.")
+            total_months = len(rest_periods['time_period'].unique())
+            logging.debug(f"Percentage difference for total: {percentage_diff_total}%, {above_below_total} {total_months} month average.")
 
             y_axis_label_lower = y_axis_label.lower()
             caption_total = f"In {last_month_name}, there were {total_latest_month} {y_axis_label_lower}, which is {percentage_diff_total}% {above_below_total} the average of {average_of_rest:.2f}."
             logging.info(f"Caption for total: {caption_total}")
 
             # Caption for charts with a group_field
+            caption_group = ""
             if group_field:
                 last_period_df = aggregated_df[aggregated_df['time_period'] == last_time_period]
                 numeric_values = last_period_df.groupby(group_field)[numeric_fields[0]].sum().to_dict()
                 logging.debug(f"Numeric values for last period by group: {numeric_values}")
 
-                # Calculate the average of the prior period for each group
+                # Calculate the average of the prior periods for each group
                 prior_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
                 average_of_prior = prior_periods.groupby(group_field)[numeric_fields[0]].mean().to_dict()
                 logging.debug(f"Average values of prior periods by group: {average_of_prior}")
-                # Calculate the number of periods in the prior period range
-                num_prior_periods = len(prior_periods['time_period'].unique())
-                logging.info(f"Number of periods in the prior period range: {num_prior_periods}")
-                
+
                 captions_group = []
                 for group, value in numeric_values.items():
-                    percentage_diff_group = ((value - average_of_prior[group]) / average_of_prior[group]) * 100
+                    if group not in average_of_prior:
+                        # If there's no prior data for this group, skip calculation.
+                        continue
+                    percentage_diff_group = ((value - average_of_prior[group]) / average_of_prior[group]) * 100 if average_of_prior[group] != 0 else 0
                     above_below_group = 'above' if value > average_of_prior[group] else 'below'
                     percentage_diff_group = abs(round(percentage_diff_group, 2))
-                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the {num_prior_periods} {aggregation_period} average.")
-
+                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the average.")
                     captions_group.append(f"For {group}, in {last_month_name}, there were {value} {y_axis_label_lower}, which is {percentage_diff_group}% {above_below_group} the average of {average_of_prior[group]:.2f}.")
-
                 caption_group = " ".join(captions_group)
-                logging.info(f"Caption for groups: {caption_group}")
+
             if group_field:
                 caption = f"{caption_total}\n\n{caption_group}"
             else:
@@ -205,30 +205,28 @@ def generate_time_series_chart(
             top_groups = group_totals.sort_values(ascending=False).head(max_legend_items).index.tolist()
             logging.info("Top groups based on total values: %s", top_groups)
 
-            aggregated_df = aggregated_df[aggregated_df[group_field].isin(top_groups)]
-
-            other_groups = set(group_totals.index) - set(top_groups)
+            filtered_agg = aggregated_df[aggregated_df[group_field].isin(top_groups)]
+            other_groups = set(aggregated_df[group_field].unique()) - set(top_groups)
             if other_groups:
                 others_df = aggregated_df[aggregated_df[group_field].isin(other_groups)].copy()
                 if not others_df.empty:
                     others_df[group_field] = 'Others'
-                    aggregated_df = pd.concat([aggregated_df, others_df], ignore_index=True)
-
-            logging.debug("Aggregated DataFrame after limiting to top groups: %s", aggregated_df.head())
+                    filtered_agg = pd.concat([filtered_agg, others_df], ignore_index=True)
+            aggregated_df = filtered_agg
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
         static_dir = os.path.join(script_dir, '..', 'static')
         os.makedirs(static_dir, exist_ok=True)
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        unique_id = uuid.uuid4().hex
-        image_filename = f"chart_{timestamp}_{unique_id}.png"
+       # Use a short unique ID for the filename
+        chart_id = uuid.uuid4().hex[:6]
+        image_filename = f"chart_{chart_id}.png"
         image_path = os.path.join(static_dir, image_filename)
         logging.debug("Image will be saved to: %s", image_path)
 
         try:
             if group_field:
-                group_field_original = column_mapping.get(group_field)
+                group_field_original = column_mapping.get(group_field, group_field)
                 logging.debug(f"Original group field name from mapping: {group_field_original}")
                 fig = px.area(
                     aggregated_df,
@@ -242,7 +240,8 @@ def generate_time_series_chart(
                     }
                 )
             else:
-                fig = px.area(
+                # Use a line chart when there is no group field
+                fig = px.line(
                     aggregated_df,
                     x='time_period',
                     y=numeric_fields[0],
@@ -259,9 +258,11 @@ def generate_time_series_chart(
                         lambda x: f"{x}" if x < 1_000 else (f"{int(x / 1_000)}K" if x < 999_950 else (f"{int(x / 1_000_000)}M" if x < 999_950_000 else f"{int(x / 1_000_000_000)}B"))
                     ),
                     textposition="top center",
-                    textfont=dict(size=8)  # Smaller font for labels
+                    textfont=dict(size=10)  # Smaller font for labels
                 )
 
+            # Ensure Y-axis always starts at 0
+            fig.update_yaxes(range=[0, None])
             # Add average line if show_average_line is True
             if show_average_line:
                 average_line = pd.Series(aggregated_df[numeric_fields[0]].mean(), index=aggregated_df['time_period'])
@@ -276,9 +277,79 @@ def generate_time_series_chart(
                     x=0.5,
                     font=dict(size=8)  # Smaller font for legend
                 ),
-                legend_title_text=group_field_original.capitalize() if group_field else '',
+                legend_title_text=column_mapping.get(group_field, '').capitalize() if group_field else '',
                 title={
-                    'text': f"{chart_title} by {group_field_original.capitalize()}" if group_field else chart_title,
+                    'text': f"{chart_title} <br> by {column_mapping.get(group_field, group_field).capitalize()}" if group_field else chart_title,
+                    'y': 0.95,
+                    'x': 0.5,
+                    'xanchor': 'center',
+                    'yanchor': 'top',
+                    'font': dict(size=16, family='Arial', color='black', weight='bold')
+                },
+                xaxis=dict(
+                    title=dict(font=dict(size=14, family='Arial', color='black')),
+                    tickfont=dict(size=10, family='Arial', color='black')
+                ),
+                yaxis=dict(
+                    title=dict(font=dict(size=14, family='Arial', color='black')),
+                    tickfont=dict(size=10, family='Arial', color='black')
+                ),
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font=dict(family="Arial", size=10, color="black"),
+                autosize=True,
+                height=600,
+                margin=dict(l=50, r=50, t=80, b=100)  # Increased margin for whitespace
+            )
+             # Highlight the last data point with a yellow circle and annotate it
+            if not group_field:
+                last_point = aggregated_df.iloc[-1]
+                last_x = last_point['time_period']
+                last_y = last_point[numeric_fields[0]]
+        
+                fig.add_scatter(
+                    x=[last_x],
+                    y=[last_y],
+                    mode='markers',
+                    name='Current Month',
+                    marker=dict(
+                        size=12,
+                        color='gold',
+                        symbol='circle-open',
+                        line=dict(width=2, color='gold')
+                    ),
+                    showlegend=False,
+                    hoverinfo='skip'
+                )
+
+                fig.add_annotation(
+                    x=last_x,
+                    y=last_y,
+                    text=f"{last_month_name}<br>{last_y} {y_axis_label}",
+                    showarrow=True,
+                    arrowhead=2,
+                    font=dict(size=12, family='Arial', color='#333'),
+                    arrowcolor='gold',
+                    arrowwidth=1,
+                    bgcolor='rgba(255, 255, 0, 0.7)',
+                    bordercolor='gold',
+                    borderwidth=1,
+                    ax= -60,
+                    ay= -20,
+                )
+
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",    
+                    yanchor="bottom",
+                    y=-0.40,
+                    xanchor="center",
+                    x=0.5,
+                    font=dict(size=8)
+                ),
+                legend_title_text=column_mapping.get(group_field, '').capitalize() if group_field else '',
+                title={
+                    'text': f"{chart_title} by {column_mapping.get(group_field, group_field).capitalize()}" if group_field else chart_title,
                     'y': 0.95,
                     'x': 0.5,
                     'xanchor': 'center',
@@ -296,16 +367,12 @@ def generate_time_series_chart(
                 plot_bgcolor='white',
                 paper_bgcolor='white',
                 font=dict(family="Arial", size=10, color="black"),
-                autosize=False,
-                width=800,  # Set chart width to 800px
-                height=600,
-                margin=dict(l=50, r=50, t=80, b=100)  # Increased margin for whitespace
             )
 
             fig.update_xaxes(showgrid=False)
             fig.update_yaxes(showgrid=True, gridcolor='lightgrey')
 
-            # Add caption with filter conditions
+            # Add filter conditions annotation
             if filter_conditions:
                 filter_conditions_str = ', '.join([f"{cond['field']} {cond['operator']} {cond['value']}" for cond in filter_conditions])
             else:
@@ -313,14 +380,16 @@ def generate_time_series_chart(
             fig.add_annotation(
                 text=f"Filter Conditions: {filter_conditions_str}",
                 xref="paper", yref="paper",
-                x=0.0, y=-0.5,  # Adjusted to bottom left
+                x=0.0, y=-0.5,
                 showarrow=False,
                 font=dict(size=10, family='Arial', color='black'),
-                xanchor='left'  # Adjusted to left justify
+                xanchor='left'
             )
+
             fig.write_image(image_path, engine="kaleido")
             logging.info("Chart saved successfully at %s", image_path)
             relative_path = os.path.relpath(image_path, start=script_dir)
+            
             # Convert datetime columns to date only
             date_columns = aggregated_df.select_dtypes(include=['datetime64[ns]']).columns
             for col in date_columns:
@@ -329,34 +398,27 @@ def generate_time_series_chart(
             # Convert dataframe to JSON
             json_data = aggregated_df.to_json(orient='records', date_format='date')
             
-            # Check if JSON data is too long (>1000 tokens)
-            if len(json_data) > 4000:  # Approximate 1000 tokens
-                # Truncate the dataframe and convert again
-                truncated_df = aggregated_df.head(20)  # Take first 20 rows
+            # Truncate if too long
+            if len(json_data) > 4000:
+                truncated_df = aggregated_df.head(20)
                 json_data = truncated_df.to_json(orient='records', date_format='iso')
                 json_data += "\n... [truncated]"
+            
+            # Create markdown content
+            markdown_content = f""" 
+{context_variables.get("chart_title", "Time Series Chart")}
+![Chart]({relative_path.replace(os.sep, '/')})
+Caption:{caption}
 
-            # Generate a short unique ID for the chart (6 characters should be sufficient)
-            chart_id = uuid.uuid4().hex[:6]
-
-            # Create markdown content with chart and JSON data
-            markdown_content = f"""![Chart]({relative_path.replace(os.sep, '/')})
-
-                {caption}
-
-                <!-- chart:{chart_id} -->
-
-                ### Data
-                ```json
-                {json_data}
-                ```"""
-
-            # Add the chart ID to the HTML output as well
-            html_content = f'<div id="chart_{chart_id}">\n{fig.to_html(full_html=False)}\n</div>'
+```json
+{json_data}
+```"""
+            html_content = f'<div style="width=100%" id="chart_{chart_id}">\n{fig.to_html(full_html=False)}\n</div>'
 
             logging.debug("Markdown content created with chart ID: %s", chart_id)
 
             return markdown_content, html_content
+
 
         except Exception as e:
             logging.error("Failed to generate or save chart: %s", e)
