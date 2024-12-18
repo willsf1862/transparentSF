@@ -1,9 +1,0 @@
-
-Police misconduct complaints by month, type, and status
-Tool Call: set_dataset
-Arguments: {
-  "endpoint": "b4we-97wx.json",
-  "query": "SELECT date_trunc_ym(complaint_received_date) AS Date, allegation_type, status, COUNT(*) as complaint_count WHERE complaint_received_date >= '2023-09-01' AND complaint_received_date <= '2024-10-31' GROUP BY date_trunc_ym(complaint_received_date), allegation_type, status ORDER BY date_trunc_ym(complaint_received_date)"
-}
-
-
