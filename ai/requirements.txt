@@ -11,4 +11,6 @@ beautifulsoup4
 selenium
 kaleido
 tiktoken
+webdriver-manager
 git+https://github.com/openai/swarm.git
+

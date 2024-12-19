@@ -43,112 +43,77 @@ def format_columns(columns):
         formatted += f"- {col['fieldName']} ({col['dataTypeName']}): {col['description']}\n"
     return formatted
 
-
-# ------------------------------
-# Main Processing
-# ------------------------------
-
-def main():
-    # Paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_folder = os.path.join(script_dir, 'data')
-    datasets_folder = os.path.join(data_folder, 'datasets')
-    output_folder = os.path.join(data_folder, 'analysis_map')
-    error_log_path = os.path.join(output_folder, 'error_log.json')  # Path for error log
-
-    # Ensure the output directory exists
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Verify that the datasets directory exists
-    if not os.path.isdir(datasets_folder):
-        print(f"Datasets directory not found at {datasets_folder}")
-        return
-
-    # List all JSON files in the datasets directory
-    article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
-    if not article_list:
-        print(f"No JSON files found in {datasets_folder}")
-        return
-    print(f"Found {len(article_list)} JSON files to process:")
-    for idx, filename in enumerate(article_list):
-        print(f"{idx}. {filename}")
-    # Create a single output file for all results
-    output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    output_path = os.path.join(output_folder, output_filename)
-
-    # Initialize error log
-    error_log = []
-
-    # Define the threshold date (make it offset-aware)
-    threshold_date = datetime(2024, 9, 1, tzinfo=pytz.UTC)
-
-    # Create a directory for individual results
+def process_single_file(filename, datasets_folder, output_folder, threshold_date, error_log):
+    """
+    Process a single file from the datasets folder.
+    """
     individual_results_dir = os.path.join(output_folder, 'individual_results')
     os.makedirs(individual_results_dir, exist_ok=True)
 
-    # Process each file individually
-    for idx, filename in enumerate(article_list[373:374]):  
-        article_path = os.path.join(datasets_folder, filename)
-        print(f"\nProcessing file {idx}/{len(article_list)}: {filename}")
+    article_path = os.path.join(datasets_folder, filename)
+    print(f"\nProcessing file: {filename}")
 
-        # At the start of processing loop, check if already processed
-        result_filename = f"result_{sanitize_filename(filename)}"
-        result_path = os.path.join(individual_results_dir, result_filename)
-        
-        if os.path.exists(result_path):
-            print(f"Skipping already processed file: {filename}")
-            continue
+    result_filename = f"result_{sanitize_filename(filename)}"
+    result_path = os.path.join(individual_results_dir, result_filename)
 
-        try:
-            with open(article_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"JSON decode error in file {filename}: {e}")
-            continue
-        except Exception as e:
-            print(f"Error reading file {filename}: {e}")
-            continue
+    if os.path.exists(result_path):
+        print(f"Skipping already processed file: {filename}")
+        return
 
-        # Check if "rows_updated_at" exists and is later than the threshold date
-        rows_updated_at = data.get("rows_updated_at", None)
-        if not rows_updated_at:
-            print(f"File '{filename}' skipped: 'rows_updated_at' not found.")
-            continue
+    try:
+        with open(article_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"JSON decode error in file {filename}: {e}")
+        error_log.append({'filename': filename, 'error': str(e)})
+        return
+    except Exception as e:
+        print(f"Error reading file {filename}: {e}")
+        error_log.append({'filename': filename, 'error': str(e)})
+        return
 
-        try:
-            # Parse the updated_at_date and make it offset-aware
-            updated_at_date = parse_date(rows_updated_at)
-            if updated_at_date.tzinfo is None:
-                # If the date is offset-naive, make it UTC
-                updated_at_date = updated_at_date.replace(tzinfo=pytz.UTC)
+    # Check 'rows_updated_at' and threshold
+    rows_updated_at = data.get("rows_updated_at", None)
+    if not rows_updated_at:
+        print(f"File '{filename}' skipped: 'rows_updated_at' not found.")
+        return
 
-            # Compare the dates
-            if updated_at_date <= threshold_date:
-                print(f"File '{filename}' skipped: 'rows_updated_at' is not after {threshold_date}.")
-                continue
-        except Exception as e:
-            print(f"Error parsing 'rows_updated_at' for file '{filename}': {e}")
-            continue
+    try:
+        updated_at_date = parse_date(rows_updated_at)
+        if updated_at_date.tzinfo is None:
+            updated_at_date = updated_at_date.replace(tzinfo=pytz.UTC)
 
-        # Extract relevant fields
-        title = data.get('title', 'Untitled')
-        description = data.get('description', '')
-        page_text = data.get('page_text', '')
-        columns = data.get('columns', [])
-        # Extract just fieldName and description from columns
-        columns = [{
-            'fieldName': col['fieldName'],
-            'description': col.get('description', ''),
-            'dataTypeName': col.get('dataTypeName', '')
-        } for col in columns if 'fieldName' in col]
-        url = data.get('url', '')
-        endpoint = data.get('endpoint', '')
+        if updated_at_date <= threshold_date:
+            print(f"File '{filename}' skipped: 'rows_updated_at' is not after {threshold_date}.")
+            return
+    except Exception as e:
+        print(f"Error parsing 'rows_updated_at' for file '{filename}': {e}")
+        error_log.append({'filename': filename, 'error': str(e)})
+        return
 
-        # Format columns
-        columns_formatted = format_columns(columns)
+    # Extract dataset details
+    title = data.get('title', 'Untitled')
+    description = data.get('description', '')
+    columns = [{
+        'fieldName': col['fieldName'],
+        'description': col.get('description', ''),
+        'dataTypeName': col.get('dataTypeName', '')
+    } for col in data.get('columns', []) if 'fieldName' in col]
+    columns_formatted = format_columns(columns)
+    endpoint = data.get('endpoint', '')
 
-        # Construct the prompt
-        system_message = """
+    # Prepare AI prompt
+    user_message = f"""
+    Here is the dataset information:
+    Title: {title}
+    Endpoint: {endpoint}
+    Description:
+    {description}
+    Columns:
+    {columns_formatted}
+    """
+# Construct the prompt
+    system_message = """
           You are an AI assistant that generates working API queries and categorizes datasets for analysis.  We are looking to find anomalous trends within the dataset.  Trends are spoting by comparing sums or averages over time by category.  So we are looking for data that updates reugularrly, has at least one time series variable and at least one numeric variable.  Often with city datasets, the numeric variable we need is actually just a count of the number of items by month (like for police or fire reports).
 
             Your task is:
@@ -261,24 +226,8 @@ def main():
                 },
             }
             Ensure the output is strictly formatted as valid JSON.  No operators or additioonal characters, Do not include any additional text or explanations outside the JSON block.
-            """
-
-        user_message = f"""
-        Here is the dataset information:
-
-        Title: {title}
-
-        Endpoint: {endpoint}
-        Description:
-        {description}
-
-        Columns:
-        {columns_formatted}
-
-        
         """
-
-        user_message = f"""
+    user_message = f"""
         Here is the dataset information:
         Title: {title}
         Endpoint: {endpoint}
@@ -287,190 +236,76 @@ def main():
         Columns:
         {columns_formatted}
         """
+    # Define the analyst agent
+    analyst_agent = Agent(
+        model=GPT_MODEL,
+        name="Analyst",
+        instructions=system_message,
+        functions=[],
+        debug=True,
+    )
 
-        # Define the anomaly finder agent   
-        analyst_agent = Agent(
-            model=GPT_MODEL,
-            name="Analyst",
-            instructions=system_message,
-            functions=[],
-            debug=True,
-        )
+    messages = [{"role": "user", "content": user_message}]
+    response = client.run(agent=analyst_agent, messages=messages)
+    assistant_reply = response.messages[-1]["content"]
 
-        # Call the OpenAI API
-        messages = [{"role": "user", "content": user_message}]
-        response = client.run(agent=analyst_agent, messages=messages)
-        assistant_reply = response.messages[-1]["content"]
+    # Extract and validate JSON
+    json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
+    if not json_match:
+        print(f"No JSON content found in the assistant's reply for '{title}'.")
+        error_log.append({
+            'filename': filename,
+            'title': title,
+            'error': "No JSON content found in the assistant's reply.",
+            'assistant_reply': assistant_reply
+        })
+        return
 
-        # Extract JSON part
-        json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
-        if not json_match:
-            print(f"No JSON content found in the assistant's reply for '{title}'.")
-            error_log.append({
-                'filename': filename,
-                'title': title,
-                'error': "No JSON content found in the assistant's reply.",
-                'assistant_reply': assistant_reply
-            })
-            continue
-
+    try:
         json_content = json_match.group()
-        try:
-            result = json.loads(json_content)
-            # Add the filename and title to the result
-            result['filename'] = filename
-            result['title'] = title
-            endpoint = result.get('endpoint', endpoint)
-            query = result.get('query', '')
-            datefields = result.get('DateFields', [])
-            print(f"DateFields: {datefields}")
+        result = json.loads(json_content)
+        result['filename'] = filename
+        result['title'] = title
 
-            # Attempt validation up to 3 times
-            attempt_errors = []
-            for attempt in range(3):
-                try:
-                    test_query = query + " LIMIT 1"
-                    data_result = set_dataset({}, endpoint=endpoint, query=test_query)
-                    if data_result is None:
-                        # If we got None, let's set it to an empty dict so we can safely call .get()
-                        data_result = {}
-                    data = data_result.get('error') if 'error' in data_result else data_result.get('status')
-                    
-                    queryURL = data_result.get('queryURL')
+        with open(result_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=4)
 
-                    if data == 'success' and not data_result.get('error'):
-                        # Data is valid
-                        print(f"Data validated: {data}")
-                        result['data_validated'] = True
-                        with open(result_path, 'w', encoding='utf-8') as f:
-                            json.dump(result, f, indent=4)
-                        print(f"Successfully processed and saved '{title}'")
-                        print(result)
-                        break
-                    else:
-                        # No data or error
-                        if isinstance(data, dict) and 'error' in data:
-                            error_msg = data['error']
-                        else:
-                            error_msg = data if isinstance(data, str) else "Query returned no data"
-                        print(f"Attempt {attempt + 1}: {error_msg}")
-                        print(f"Endpoint: {endpoint}")
-                        print(f"Query: {test_query}")
-                        print(f"Query URL: {queryURL}")
+        print(f"Successfully processed and saved '{title}'")
+    except Exception as e:
+        print(f"Error processing file '{filename}': {e}")
+        error_log.append({'filename': filename, 'error': str(e)})
 
-                        attempt_errors.append({
-                            'attempt': attempt + 1,
-                            'endpoint': endpoint,
-                            'query': test_query,
-                            'queryURL': queryURL,
-                            'error': error_msg
-                        })
-                        
-                        # Request a revised query
-                        result['data_validated'] = False
-                        result['error'] = error_msg
-                        messages.append({"role": "user", 
-                                         "content": f"The query returned no data. Please revise the query. Error: {error_msg}"})
-                        response = client.run(agent=analyst_agent, messages=messages)
-                        assistant_reply = response.messages[-1]["content"]
-                        json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
-                        if json_match:
-                            updated_result = json.loads(json_match.group())
-                            result.update(updated_result)
-                            query = updated_result['query']
 
-                except Exception as e:
-                    error_msg = str(e)
-                    print(f"Attempt {attempt + 1} failed with error: {error_msg}")
-                    # Log attempt details without accessing data_result if it's not defined
-                    attempt_errors.append({
-                        'attempt': attempt + 1,
-                        'endpoint': endpoint,
-                        'query': test_query,
-                        'queryURL': queryURL if 'queryURL' in locals() else None,
-                        'error': error_msg
-                    })
+def main(filename=None):
+    # Paths
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_folder = os.path.join(script_dir, 'data')
+    datasets_folder = os.path.join(data_folder, 'datasets')
+    output_folder = os.path.join(data_folder, 'analysis_map')
+    error_log_path = os.path.join(output_folder, 'error_log.json')
+    os.makedirs(output_folder, exist_ok=True)
 
-                    result['data_validated'] = False 
-                    result['error'] = error_msg
-                    messages.append({"role": "user",
-                                     "content": f"The query failed. Please revise the query. Error: {error_msg}"})
-                    response = client.run(agent=analyst_agent, messages=messages)
-                    assistant_reply = response.messages[-1]["content"]
-                    json_match = re.search(r'\{.*\}', assistant_reply, re.DOTALL)
-                    if json_match:
-                        updated_result = json.loads(json_match.group())
-                        result.update(updated_result)  
-                        query = updated_result['query']
-            else:
-                # If we exit the loop without break, validation failed
-                print(f"Failed to validate query for '{title}'.")
-                print(result)
-                # Add attempt details to error log entry
-                error_entry = {
-                    'filename': filename,
-                    'title': title,
-                    'error': "Failed to validate query after 3 attempts",
-                    'attempt_details': attempt_errors,
-                    'assistant_reply': assistant_reply
-                }
-                error_log.append(error_entry)
+    # Initialize error log
+    error_log = []
 
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse assistant's reply as JSON for file '{filename}': {e}")
-            print("Assistant's reply:")
-            print(assistant_reply)
-            # Add the error information to error_log
-            error_log.append({
-                'filename': filename,
-                'title': title,
-                'error': str(e),
-                'assistant_reply': assistant_reply
-            })
-        except Exception as e:
-            print(f"Error processing file '{filename}': {e}")
-            # Add the error information to error_log
-            error_log.append({
-                'filename': filename,
-                'title': title,
-                'error': str(e)
-            })
+    # Threshold date
+    threshold_date = datetime(2024, 9, 1, tzinfo=pytz.UTC)
 
-        # Combine all individual results at the end
-    all_results = []
-    for result_file in os.listdir(individual_results_dir):
-        if result_file.startswith('result_'):
-            with open(os.path.join(individual_results_dir, result_file), 'r', encoding='utf-8') as f:
-                try:
-                    result = json.load(f)
-                    all_results.append(result)
-                except Exception as e:
-                    print(f"Error reading {result_file}: {e}")
+    if filename:
+        process_single_file(filename, datasets_folder, output_folder, threshold_date, error_log)
+    else:
+        # Process all files if no specific filename is provided
+        article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
+        for idx, filename in enumerate(article_list):
+            process_single_file(filename, datasets_folder, output_folder, threshold_date, error_log)
 
-    # Write combined results
-    with open(output_path, 'w', encoding='utf-8') as out_f:
-        json.dump(all_results, out_f, indent=4)
-
-    # Append to existing error log instead of overwriting
-    existing_errors = []
-    if os.path.exists(error_log_path):
-        with open(error_log_path, 'r', encoding='utf-8') as err_f:
-            try:
-                existing_errors = json.load(err_f)
-            except Exception as e:
-                print(f"Error reading existing error log: {e}")
-                existing_errors = []
-
-    existing_errors.extend(error_log)
-
+    # Write error log
     with open(error_log_path, 'w', encoding='utf-8') as err_f:
-        json.dump(existing_errors, err_f, indent=4)
-
-    print(f"\nProcessing completed. Individual results saved in '{individual_results_dir}'")
-    print(f"Combined results saved to '{output_filename}'")
-    print(f"Errors logged to '{error_log_path}'")
-
+        json.dump(error_log, err_f, indent=4)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    # Check for a filename argument
+    filename_arg = sys.argv[1] if len(sys.argv) > 1 else None
+    main(filename_arg)

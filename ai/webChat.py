@@ -16,6 +16,7 @@ from tools.data_fetcher import set_dataset
 from tools.vector_query import query_docs  #
 from tools.genChart import generate_time_series_chart
 from tools.retirementdata import read_csv_with_encoding
+from tools.genGhostPost import generate_ghost_post
 from pathlib import Path
 # Import FastAPI and related modules
 from fastapi import FastAPI, Request, Cookie, Depends
@@ -613,15 +614,90 @@ journalist_agent = Agent(
     model=AGENT_MODEL,
     name="Journalist",
      instructions="""
-       You are a data journalist covering the city of San Francisco. 
-       Your team has prepared an extensive analysis of trends in the city.  They have also prepared some notes highlighting areas they think are interesting.
-       - Use `get_notes()` to get the notes of the analysis of a range of  tables in the city database with a beief description about what is there.
-       - Use `query_docs(context_variables, "2024-11", query)` to search for data that isn't available in your notes. The `query` parameter is a string describing the data the user is interested in.  Pass no other arguments to this function.
-       - Use `transfer_to_analyst_agent()` to transfer to the analyst agent if the user has a question about the data that is available in your notes or docs.
-       Be breif and concise.
-       Whenever possible, support your analysis with charts.
+       You are a data journalist covering the city of San Francisco. Your team has prepared an extensive analysis of trends in the city, supported by notes and data. Follow these guidelines to create accurate, structured, and functional content for the Ghost publishing platform:
+
+Gather Notes and Data:
+
+Use get_notes() to retrieve key insights and descriptions of tables in the city database.
+Use query_docs(context_variables, "2024-11", query) for data not found in your notes. Pass only the query string describing the required data.
+use generate_ghost_post(context_variables, mobiledoc, title) to generate a ghost post.  It accepts a title and mobiledoc content.
+
+    Here is more on mobileDocs:
+    1. Top-Level Structure:
+        Your Mobiledoc should be a JSON object with the following properties:
+
+        json
+        Copy code
+        {
+        "version": "0.3.1",
+        "atoms": [],
+        "cards": [],
+        "markups": [],
+        "sections": []
+        }
+        2. Version:
+
+        Always include "version": "0.3.1".
+        3. Atoms, Cards, and Markups:
+
+        atoms: An array of defined atoms. If you have none, keep it empty.
+        cards: An array of cards, each defined as [cardName, cardPayload].
+        markups: An array of markups used by text markers. If none, keep it empty.
+        4. Sections:
+
+        sections is an array of section arrays. Each section defines a block of content.
+
+        5. Markers:
+        Each marker array has the form:
+
+        [<markerType>, <openMarkupsArray>, <textOrAtomIndex>]
+
+        6. Example Mobiledoc:
+
+        
+        {
+        "version": "0.3.1",
+        "atoms": [],
+        "cards": [],
+        "markups": [],
+        "sections": [
+            [1, "h1", [
+            [0, [], 0, "Surprising Crime Statistics for November 2024"]
+            ]],
+            [1, "p", [
+            [0, [], 0, "In a surprising development, November 2024 saw a significant reduction in crime rates across San Francisco. This shift marks a pivotal moment for the city with several key data points highlighting notable decreases in various crime categories."]
+            ]],
+            [1, "p", [
+            [0, [], 0, "- Overall crime incidents have dropped to 7,988, a 24.1% decrease from the historical average of 10,525.\n"],
+            [0, [], 0, "- Property Crimes reduced by 34.2%, possibly due to increased security measures and community awareness initiatives.\n"],
+            [0, [], 0, "- Violent Crimes saw a 13.16% fall, reflecting the effectiveness of local policing strategies and community programs aimed at violence prevention.\n"],
+            [0, [], 0, "- Drug-related crimes decreased by 12.42%, indicating progress in efforts to combat illegal drug activities."]
+            ]]
+        ]
+        }
+
+        7. Validate Your Structure:
+
+    Header Section: Always include a primary header for organizing content.
+    Charts Section: Use descriptive captions to accompany each chart.
+    Paragraphs: Provide concise, clear explanations in paragraphs to support your analysis. Use logical flow to connect sections.
+    Ensure Valid mobiledoc Format
+
+    For every image or chart, ensure the src is correct and accessible.
+
+Best Practices:
+
+Transfer to Analyst Agent:
+
+Use transfer_to_analyst_agent() when users ask about specific data details that are available in your notes or through query_docs().
+Publishing:
+
+Call generate_ghost_post(context_variables, mobiledoc,title) only after ensuring the mobiledoc is complete, concise, and properly formatted.  MAke it a very simple mobiledoc with no more than 1 cart and 2 sections.
+Make sure it follows the 0.3.1 version specification.
+
+
         """,
-    functions=[get_notes, query_docs, transfer_to_analyst_agent],  
+    functions=[get_notes, query_docs, transfer_to_analyst_agent, generate_ghost_post],  
     context_variables=context_variables,
     debug=False,
 )

@@ -1,7 +1,7 @@
 
 # TransparentSF
 
-A data analysis and visualization platform for San Francisco city data, focusing on crime statistics and governmental transparency.
+A data analysis and visualization platform for San Francisco city data, focusing on public data and governmental transparency.
 
 ## Overview
 
@@ -59,7 +59,7 @@ TransparentSF is a web-based application that provides interactive visualization
 
 2. **Install Python dependencies:**
    ```bash
-   cd swarm
+   cd ai
    pip install -r requirements.txt
    cd ..
    ```
@@ -84,7 +84,7 @@ TransparentSF is a web-based application that provides interactive visualization
 ## Project Structure
 
 - `/manual`: Core analysis and generation scripts
-- `/swarm`: Python-based data processing and analysis
+- `/ai`: Python-based data processing and analysis
 - `/templates`: HTML templates for report generation
 - `/output`: Generated reports and visualizations
 
@@ -101,7 +101,7 @@ TransparentSF is a web-based application that provides interactive visualization
 
 3. **Fetch Dataset URLs:**
    ```bash
-   cd swarm
+   cd ai
    python fetch_dataset_urls.py
    cd ..
    ```
@@ -111,7 +111,7 @@ TransparentSF is a web-based application that provides interactive visualization
 
 4. **Fetch Metadata:**
    ```bash
-   cd swarm
+   cd ai
    python fetch_metadata.py
    cd ..
    ```
@@ -122,7 +122,7 @@ TransparentSF is a web-based application that provides interactive visualization
 
 5. **Prepare Data for Vector Database:**
    ```bash
-   cd swarm
+   cd ai
    python prep_data.py
    cd ..
    ```
@@ -153,7 +153,7 @@ This project is licensed under the ISC License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-- San Francisco Police Department for providing the incident report dataset
+- San Francisco's DataSF efforts and all the departments that publish data and keep the government transparent
 - OpenAI for AI capabilities
 - Mapbox for geographical visualization support
 
