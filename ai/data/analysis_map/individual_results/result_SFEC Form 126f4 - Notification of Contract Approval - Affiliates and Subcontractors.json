@@ -1,0 +1,40 @@
+{
+    "endpoint": "czjm-dat8.json",
+    "query": "SELECT partytype, contractorname, contractdescription, date_trunc_ym(contractdate) AS month, COUNT(*) AS count WHERE contractdate >= '2022-09-01' GROUP BY partytype, contractorname, contractdescription, month ORDER BY month, partytype, contractorname",
+    "report_category": "Economy",
+    "usefulness": 2,
+    "column_metadata": {
+        "partytype": {
+            "type": "text",
+            "description": "Type of affiliate or subcontractor"
+        },
+        "contractorname": {
+            "type": "text",
+            "description": "Name of the contractor awarded the contract"
+        },
+        "contractdescription": {
+            "type": "text",
+            "description": "Short description of the nature of the contract"
+        },
+        "contractdate": {
+            "type": "calendar_date",
+            "description": "Date of the contract"
+        }
+    },
+    "table_metadata": {
+        "title": "SFEC Form 126f4 - Notification of Contract Approval - Affiliates and Subcontractors",
+        "description": "This dataset includes information about the approval of contracts valued at $100,000 or more by City elective officers.",
+        "endpoint": "czjm-dat8",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "contract approval record",
+        "whom_it_may_interest": "Economists, policy makers, compliance officers"
+    },
+    "periodic": "yes",
+    "item_noun": "contract approval record",
+    "district_level": false,
+    "whom_it_may_interest": "Economists, policy makers, compliance officers",
+    "filename": "SFEC Form 126f4 - Notification of Contract Approval - Affiliates and Subcontractors.json",
+    "title": "SFEC Form 126f4 - Notification of Contract Approval - Affiliates and Subcontractors",
+    "data_validated": true
+}

@@ -1,0 +1,75 @@
+{
+    "DateFields": [
+        "Published_Month",
+        "Effective_Month",
+        "Retire_Month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "name",
+        "geography_type",
+        "created_user",
+        "last_edited_user"
+    ],
+    "endpoint": "h5q5-vfti.json",
+    "query": "SELECT date_trunc_ym(published_date) AS Published_Month, date_trunc_ym(effective_date) AS Effective_Month, date_trunc_ym(retire_date) AS Retire_Month, name, geography_type, created_user, last_edited_user, COUNT(*) AS item_count WHERE published_date >= '2022-09-01' GROUP BY Published_Month, Effective_Month, Retire_Month, name, geography_type, created_user, last_edited_user ORDER BY Published_Month, Effective_Month, Retire_Month",
+    "report_category": "Other",
+    "usefulness": 1,
+    "column_metadata": [
+        {
+            "fieldName": "Published_Month",
+            "description": "Month when the geography was published",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "Effective_Month",
+            "description": "Month when the geography went into effect",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "Retire_Month",
+            "description": "Month when the geography stopped being in effect",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "name",
+            "description": "Name of the geography",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "geography_type",
+            "description": "Type of the geography",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "created_user",
+            "description": "User who created the geography",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "last_edited_user",
+            "description": "User who last edited the geography",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of the geography data",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "SFMTA - Mobility Data Specification",
+        "description": "The dataset contains data by SFMTA for use according to the Mobility Data Specification (MDS) Geography API with information on geographies used by shared micromobility services",
+        "category": "Transportation",
+        "endpoint": "h5q5-vfti.json"
+    },
+    "periodic": false,
+    "item_noun": "Geographical Area",
+    "district_level": false,
+    "whom_it_may_interest": "This data would mainly be useful to analyst or entities interested in understanding the geographies related to SFMTA's shared micromobility services in San Francisco. It allows to track changes in these geographies through time.",
+    "filename": "SFMTA - Mobility Data Specification.json",
+    "title": "SFMTA - Mobility Data Specification",
+    "data_validated": true
+}

@@ -1,0 +1,44 @@
+{
+    "endpoint": "xtj2-daw9.json",
+    "query": "SELECT date_trunc_ym(permit_approval_date) AS month, COUNT(*) AS count, permit_status, permit_zipcode, applicant GROUP BY permit_status, permit_zipcode, applicant, month ORDER BY month, permit_status, permit_zipcode, applicant",
+    "report_category": "Economy",
+    "usefulness": 2,
+    "column_metadata": {
+        "month": {
+            "type": "date",
+            "description": "Month and year of permit approval"
+        },
+        "count": {
+            "type": "number",
+            "description": "Count of permits approved"
+        },
+        "permit_status": {
+            "type": "text",
+            "description": "Current status of the permit (Approved, Requested)"
+        },
+        "permit_zipcode": {
+            "type": "number",
+            "description": "Zip Code of Permit"
+        },
+        "applicant": {
+            "type": "text",
+            "description": "Name of person or company to which the permit is issued"
+        }
+    },
+    "table_metadata": {
+        "title": "Wireless Service Facility Permits",
+        "description": "All active and closed wireless service facility permits issued by Public Works.",
+        "endpoint": "xtj2-daw9",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "permit",
+        "whom_it_may_interest": "Commercial mobile service companies, telecommunications policymakers, city planners"
+    },
+    "periodic": "yes",
+    "item_noun": "permit",
+    "district_level": false,
+    "whom_it_may_interest": "Commercial mobile service companies, telecommunications policymakers, city planners",
+    "filename": "Wireless Service Facility Permits.json",
+    "title": "Wireless Service Facility Permits",
+    "data_validated": true
+}

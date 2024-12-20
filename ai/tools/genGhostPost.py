@@ -39,26 +39,8 @@ if __name__ == "__main__":
     context_variables = {
         "doc_title": "Surprising Crime Statistics for November 2024"
     }
-    content = {
-        "version": "0.3.1",
-        "atoms": [],
-        "cards": [],
-        "markups": [],
-        "sections": [
-            [1, "h1", [
-            [0, [], 0, "Surprising Crime Statistics for November 2024"]
-            ]],
-            [1, "p", [
-            [0, [], 0, "In a surprising development, November 2024 saw a significant reduction in crime rates across San Francisco. This shift marks a pivotal moment for the city with several key data points highlighting notable decreases in various crime categories."]
-            ]],
-            [1, "p", [
-            [0, [], 0, "- Overall crime incidents have dropped to 7,988, a 24.1% decrease from the historical average of 10,525.\n"],
-            [0, [], 0, "- Property Crimes reduced by 34.2%, possibly due to increased security measures and community awareness initiatives.\n"],
-            [0, [], 0, "- Violent Crimes saw a 13.16% fall, reflecting the effectiveness of local policing strategies and community programs aimed at violence prevention.\n"],
-            [0, [], 0, "- Drug-related crimes decreased by 12.42%, indicating progress in efforts to combat illegal drug activities."]
-            ]]
-        ]
-    }
+    content = "<p><img src='../static/chart_89b60b30.png' alt='Incident Count by Category for November 2024 compared to historical averages.' /><br>In a surprising development, November 2024 saw a significant reduction in crime rates across San Francisco. This shift marks a pivotal moment for the city with several key data points highlighting notable decreases in various crime categories.</p>"
+
 
 
     title = "Surprising Crime Statistics for November 2024"

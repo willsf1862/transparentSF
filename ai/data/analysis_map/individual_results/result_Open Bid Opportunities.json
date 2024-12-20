@@ -1,0 +1,44 @@
+{
+    "endpoint": "eshn-8t3a.json",
+    "query": "SELECT department, category, type, date_trunc_ym(open_date) AS month, COUNT(*) AS count WHERE open_date >= '2022-09-01' GROUP BY department, category, type, month ORDER BY month, department, category, type",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": {
+        "department": {
+            "type": "text",
+            "description": "The department soliciting bids for a procurement event"
+        },
+        "category": {
+            "type": "text",
+            "description": "The category of the product being procured"
+        },
+        "type": {
+            "type": "text",
+            "description": "The type of bidding event"
+        },
+        "open_date": {
+            "type": "calendar_date",
+            "description": "The date on which bidding opened for the event"
+        },
+        "count": {
+            "type": "numeric",
+            "description": "The count of bid opportunities opened per month, by department, category, and type"
+        }
+    },
+    "table_metadata": {
+        "title": "Open Bid Opportunities",
+        "description": "The San Francisco Controller's Office maintains a database of open bid opportunities sourced from it's citywide financial system.",
+        "endpoint": "eshn-8t3a.json",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "bidding event",
+        "whom_it_may_interest": "economists, market analysts, procurement offices, government transparency advocates"
+    },
+    "periodic": "yes",
+    "item_noun": "bidding event",
+    "district_level": "false",
+    "whom_it_may_interest": "economists, market analysts, procurement offices, government transparency advocates",
+    "filename": "Open Bid Opportunities.json",
+    "title": "Open Bid Opportunities",
+    "data_validated": true
+}

@@ -1,0 +1,45 @@
+{
+    "endpoint": "smdf-6c45.json",
+    "query": "SELECT utility_type, utility_contractor, permit_reason, date_trunc_ym(effective_date) AS month, COUNT(*) AS count WHERE effective_date >= '2022-09-01' GROUP BY utility_type, utility_contractor, permit_reason, month ORDER BY month, utility_type, utility_contractor",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": {
+        "utility_type": {
+            "description": "Type of utility on which work will be done",
+            "type": "text"
+        },
+        "utility_contractor": {
+            "description": "Name of company to which permit is issued",
+            "type": "text"
+        },
+        "permit_reason": {
+            "description": "Type of work to be done on utility",
+            "type": "text"
+        },
+        "effective_date": {
+            "description": "Start date of permit",
+            "type": "calendar_date",
+            "aggregated_by": "month"
+        },
+        "count": {
+            "type": "number",
+            "aggregation": "count"
+        }
+    },
+    "table_metadata": {
+        "title": "Utility Excavation Permits",
+        "description": "Excavation permits issued by SF Public Works whose status is active or approved and not past their end date. This is a subset of Street-Use Permits dataset.",
+        "endpoint": "smdf-6c45",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "permit",
+        "whom_it_may_interest": "City planners, construction companies, utilities management"
+    },
+    "periodic": "yes",
+    "item_noun": "permit",
+    "district_level": "false",
+    "whom_it_may_interest": "Urban planners, construction companies, infrastructure analysts",
+    "filename": "Utility Excavation Permits.json",
+    "title": "Utility Excavation Permits",
+    "data_validated": true
+}

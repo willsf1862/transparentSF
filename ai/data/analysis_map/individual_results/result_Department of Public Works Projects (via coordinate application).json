@@ -1,0 +1,45 @@
+{
+    "endpoint": "btxj-k9uh.json",
+    "query": "SELECT agency_name, project_status, project_phase, date_trunc_ym(start_date) AS month, COUNT(*) AS project_count WHERE start_date >= '2022-09-01' GROUP BY agency_name, project_status, project_phase, month ORDER BY month, agency_name, project_status, project_phase",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": {
+        "agency_name": {
+            "type": "text",
+            "description": "Agency responsible for coordinating the project"
+        },
+        "project_status": {
+            "type": "text",
+            "description": "Status of project"
+        },
+        "project_phase": {
+            "type": "text",
+            "description": "Phase of project"
+        },
+        "start_date": {
+            "type": "calendar_date",
+            "description": "Start date of the project"
+        },
+        "count": {
+            "type": "numeric",
+            "description": "Count of projects"
+        }
+    },
+    "table_metadata": {
+        "title": "Department of Public Works Projects (via coordinate application)",
+        "description": "This dataset contains Public Works coordinated projects with other city agencies and utilities companies.",
+        "endpoint": "btxj-k9uh",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "public work project",
+        "whom_it_may_interest": "City planners, public works officials, regulatory bodies, general public"
+    },
+    "periodic": "yes",
+    "item_noun": "public work project",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, public works officials, regulatory bodies, general public",
+    "filename": "Department of Public Works Projects (via coordinate application).json",
+    "title": "Department of Public Works Projects (via coordinate application)",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT agency_name, project_status, project_phase, date_trunc_ym(start_date) AS month, COUNT(*) AS project_count FROM btxj-k9uh WHERE start_date >= '2022-09-01' GROUP BY agency_name, project_status, project_phase, month ORDER BY month, agency_name, project_status, project_phase LIMIT 1\" at line 1 character 119: Expected a table identifier, but got `btxj'"
+}

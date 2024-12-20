@@ -1,0 +1,29 @@
+{
+    "endpoint": "9itm-3rmi.json",
+    "query": "SELECT permit_type, analysis_neighborhood, date_trunc_ym(permit_creation_date) AS month, COUNT(*) AS count WHERE permit_creation_date >= '2022-09-01' GROUP BY permit_type, analysis_neighborhood, month ORDER BY month, permit_type, analysis_neighborhood",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": {
+        "permit_type": "Type of permit (i.e. Permit Application Form number)",
+        "analysis_neighborhood": "Analysis neighborhood the permit falls within",
+        "permit_creation_date": "Date that application is created in permit tracking system",
+        "count": "Number of permits"
+    },
+    "table_metadata": {
+        "title": "Building Permits with Permit Contacts",
+        "description": "This dataset includes information on building permits and their contacts, where each permit can have one or more associated contacts.",
+        "endpoint": "9itm-3rmi",
+        "category": "Housing",
+        "district_level": true,
+        "item_noun": "building permit",
+        "whom_it_may_interest": "Urban planners, housing developers, government officials"
+    },
+    "periodic": "yes",
+    "item_noun": "building permit",
+    "district_level": true,
+    "whom_it_may_interest": "Urban planners, housing developers, government officials",
+    "filename": "Building Permits with Permit Contacts.json",
+    "title": "Building Permits with Permit Contacts",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT permit_type, analysis_neighborhood, date_trunc_ym(permit_creation_date) AS month, COUNT(*) AS count FROM WHERE permit_creation_date >= '2022-09-01' GROUP BY permit_type, analysis_neighborhood, month ORDER BY month, permit_type, analysis_neighborhood LIMIT 1\" at line 1 character 113: Expected a table identifier, but got `WHERE'"
+}

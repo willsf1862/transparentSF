@@ -1,0 +1,40 @@
+{
+    "endpoint": "ite2-5y3b.json",
+    "query": "SELECT date_trunc_ym(contractdate) AS month, count(*) AS number_of_filings, electiveofficeroffice, filingtype, boardname WHERE contractdate >= '2022-09-01' GROUP BY month, electiveofficeroffice, filingtype, boardname ORDER BY month, electiveofficeroffice, filingtype, boardname",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": {
+        "contractdate": {
+            "type": "calendar_date",
+            "description": "Date of the contract"
+        },
+        "electiveofficeroffice": {
+            "type": "text",
+            "description": "Office of elected officer"
+        },
+        "filingtype": {
+            "type": "text",
+            "description": "Is the Filing Original, Amendment, or Supplemental?"
+        },
+        "boardname": {
+            "type": "text",
+            "description": "Name of the board on which the City Elective Officer(s) serves"
+        }
+    },
+    "table_metadata": {
+        "title": "SFEC Form 126f4 - Notification of Contract Approval - Filings",
+        "description": "Dataset of contracts approved by City elective officers with a value of $100,000 or more, detailing the filing and approval process.",
+        "endpoint": "ite2-5y3b",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "contract approval filing",
+        "whom_it_may_interest": "policy analysts, government officials, economic researchers"
+    },
+    "periodic": "yes",
+    "item_noun": "a contract approval filing",
+    "district_level": false,
+    "whom_it_may_interest": "Government officials, researchers in government finance and contracting, business analysts",
+    "filename": "SFEC Form 126f4 - Notification of Contract Approval - Filings.json",
+    "title": "SFEC Form 126f4 - Notification of Contract Approval - Filings",
+    "data_validated": true
+}

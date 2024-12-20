@@ -1,0 +1,45 @@
+{
+    "endpoint": "aqb8-9r2r.json",
+    "query": "SELECT date_trunc_ym(month_start_date) AS month, airline, SUM(number_of_power_run_ups) AS total_run_ups, COUNT(*) AS records_count WHERE month_start_date >= '2022-09-01' GROUP BY month, airline ORDER BY month, airline",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month and year of the operation, aggregated by month.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "airline",
+            "description": "Name of the aircraft operating agency.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "total_run_ups",
+            "description": "Total number of power run-ups in the month for the airline.",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "records_count",
+            "description": "Count of records or entries in the given month for the airline.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Nighttime High Power Run-ups",
+        "description": "This dataset shows the amount of nighttime engine high power run-ups from 10:00 p.m. to 7:00 a.m. by air carrier operations using jet and regional jet aircraft.",
+        "endpoint": "aqb8-9r2r",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "high power run-up operation",
+        "whom_it_may_interest": "Airport operations managers, noise abatement offices, and environmental agencies"
+    },
+    "periodic": "yes",
+    "item_noun": "high power run-up operation",
+    "district_level": false,
+    "whom_it_may_interest": "Airport operations managers, noise abatement offices, and environmental agencies involved in monitoring and managing aircraft noise.",
+    "filename": "Nighttime High Power Run-ups.json",
+    "title": "Nighttime High Power Run-ups",
+    "data_validated": true,
+    "error": "Invalid SoQL query"
+}

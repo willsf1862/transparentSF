@@ -1,0 +1,50 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "category",
+        "department_name"
+    ],
+    "endpoint": "gtnh-hgvs.json",
+    "query": "SELECT date_trunc_ym(data_loaded_at) AS month, count(*) as item_count, category, department_name WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, category, department_name",
+    "report_category": "Housing",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month when the record was last updated in the data portal, grouped by month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of city land records updated",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "category",
+            "description": "Category of department managing the land",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "department_name",
+            "description": "Name of Department with jurisdiction over the land",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "City Lands",
+        "description": "This dataset represents the boundaries of City-owned lands, including properties managed by various San Francisco agencies.",
+        "endpoint": "gtnh-hgvs.json",
+        "category": "Housing",
+        "periodic": true,
+        "item_noun": "City Land Record",
+        "whom_it_may_interest": "Urban planners, real estate developers, housing policy advocates, city departments, and academics studying urban development and land management."
+    },
+    "filename": "City Lands.json",
+    "title": "City Lands",
+    "data_validated": true
+}

@@ -1,0 +1,57 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "supdist",
+        "supname",
+        "nhood"
+    ],
+    "endpoint": "ramy-di5m.json",
+    "query": "SELECT supdist, supname, nhood, date_trunc_ym(data_loaded_at) AS month, COUNT(*) AS item_count WHERE data_loaded_at >='2022-09-01T00:00:00' GROUP BY  supdist, supname, nhood, month ORDER BY  supdist, supname, nhood, month",
+    "report_category": "Housing",
+    "usefulness": 0,
+    "column_metadata": [
+        {
+            "fieldName": "supdist",
+            "description": "Full name of Supervisorial District.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supname",
+            "description": "Last name of current Supervisor of District.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "nhood",
+            "description": "San Francisco Neighborhood for analysis, per DataSF.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "The month the data was loaded to the open data portal.",
+            "dataTypeName": "date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of records for each combination of Supervisor district, Supervisor name, and neigborhood",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Addresses with Units - Enterprise Addressing System",
+        "description": "All active addresses from the City's Enterprise Addressing System (EAS), including sub-addresses, such as units. Includes references to parcel and street centerline data (Note: not all addresses are associated with parcels). Updated nightly. See EAS Base Addresses for base addresses not including units.",
+        "endpoint": "ramy-di5m.json",
+        "category": "Housing"
+    },
+    "periodic": true,
+    "item_noun": "Address record",
+    "district_level": true,
+    "whom_it_may_interest": "City planners, Real estate developers, Supervisors, Rent control advocates, Neighborhood community leaders",
+    "filename": "Addresses with Units - Enterprise Addressing System.json",
+    "title": "Addresses with Units - Enterprise Addressing System",
+    "data_validated": true
+}

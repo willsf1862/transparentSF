@@ -1,0 +1,36 @@
+{
+    "endpoint": "vw6y-z8j6.json",
+    "query": "SELECT supervisor_district, service_name, date_trunc_ym(requested_datetime) AS month, COUNT(*) AS count WHERE requested_datetime >= '2022-09-01' GROUP BY supervisor_district, service_name, month ORDER BY month, supervisor_district, service_name",
+    "report_category": "Other",
+    "usefulness": 3,
+    "column_metadata": {
+        "supervisor_district": {
+            "type": "number",
+            "description": "San Francisco Supervisor District as defined in 'Supervisor Districts as of 2022'"
+        },
+        "service_name": {
+            "type": "text",
+            "description": "The human readable name of the service request type"
+        },
+        "requested_datetime": {
+            "type": "calendar_date",
+            "description": "The date and time when the service request was made"
+        }
+    },
+    "table_metadata": {
+        "title": "311 Cases",
+        "description": "Dataset contains SF311 cases created since 7/1/2008 with location information.",
+        "endpoint": "vw6y-z8j6",
+        "category": "Other",
+        "district_level": true,
+        "item_noun": "service request",
+        "whom_it_may_interest": "City officials, public policy makers, researchers, citizens interested in local government service responses"
+    },
+    "periodic": "yes",
+    "item_noun": "service request",
+    "district_level": true,
+    "whom_it_may_interest": "City officials, public policy makers, researchers, citizens interested in local government service responses",
+    "filename": "311 Cases.json",
+    "title": "311 Cases",
+    "data_validated": true
+}

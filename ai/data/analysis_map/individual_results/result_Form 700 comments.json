@@ -1,0 +1,54 @@
+{
+    "endpoint": "2ycd-bb2c.json",
+    "query": "SELECT departmentname, positionname, offices, transactiontype, date_trunc_ym(filingdate) AS month, COUNT(*) AS count WHERE filingdate>='2022-09-01' GROUP BY departmentname, positionname, offices, transactiontype, month ORDER BY month, departmentname, positionname, offices, transactiontype",
+    "report_category": "Other",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "departmentname",
+            "description": "Department name of the filer",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "positionname",
+            "description": "Filer's position",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "offices",
+            "description": "Offices held by the filer",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "transactiontype",
+            "description": "The schedule this comment is attached to",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Month of the filing aggregated by year and month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "count",
+            "description": "Count of comments",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Form 700 comments",
+        "description": "This dataset contains records from the comments sections across electronic Form 700 filings.",
+        "endpoint": "2ycd-bb2c",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "comment",
+        "whom_it_may_interest": "Researchers studying political transparency, affairs workers, ethics commission"
+    },
+    "periodic": "yes",
+    "item_noun": "comment",
+    "district_level": false,
+    "whom_it_may_interest": "Researchers studying political transparency, affairs workers, ethics commission",
+    "filename": "Form 700 comments.json",
+    "title": "Form 700 comments",
+    "data_validated": true
+}

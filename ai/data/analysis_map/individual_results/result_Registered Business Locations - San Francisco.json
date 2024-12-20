@@ -1,0 +1,77 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "ownership_name",
+        "dba_name",
+        "naic_code_description"
+    ],
+    "LocationFields": [
+        "neighborhoods_analysis_boundaries",
+        "supervisor_district"
+    ],
+    "endpoint": "g8m3-pdis",
+    "query": "SELECT date_trunc_ym(location_start_date) AS month, count(*) AS item_count, ownership_name, dba_name, naic_code_description, neighborhoods_analysis_boundaries, supervisor_district WHERE location_start_date >= '2022-09-01T00:00:00.000' GROUP BY month, ownership_name, dba_name, naic_code_description, neighborhoods_analysis_boundaries, supervisor_district",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Start date at the business location, grouped by month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Number of registered business locations",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "ownership_name",
+            "description": "Business owner(s) name",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "dba_name",
+            "description": "Doing Business As Name or Location Name",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "naic_code_description",
+            "description": "Business Activity the NAICS code maps on to",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "neighborhoods_analysis_boundaries",
+            "description": "The Analysis Neighborhood in which the business location falls",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supervisor_district",
+            "description": "The Supervisor District in which the business location falls",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Registered Business Locations - San Francisco",
+        "description": "This dataset includes the locations of businesses that pay taxes to the City and County of San Francisco. Each registered business may have multiple locations and each location is a single row.",
+        "endpoint": "g8m3-pdis",
+        "category": "Economy",
+        "periodic": true,
+        "item_noun": "Business Location",
+        "district_level": true,
+        "whom_it_may_interest": "Business owners, city planners, tax officers, policymakers, and economic researchers interested in tracking the business landscape progression in San Francisco",
+        "filename": "Registered Business Locations - San Francisco.json",
+        "data_validated": true,
+        "usefulness": 3
+    },
+    "periodic": true,
+    "item_noun": "Business Location",
+    "whom_it_may_interest": "Tax officers, tax planning agencies, economic analysts, and business owners interested in the business dynamics and distribution concerning statues and locations in San Francisco.",
+    "filename": "Registered Business Locations - San Francisco.json",
+    "title": "Registered Business Locations - San Francisco",
+    "data_validated": true
+}

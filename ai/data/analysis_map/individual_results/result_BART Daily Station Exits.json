@@ -1,0 +1,44 @@
+{
+    "endpoint": "m2xz-p7ja.json",
+    "query": "SELECT date_trunc_ym(data_as_of) AS month, SUM(total) AS total_exits, fy, qtr, day_of_week WHERE data_as_of >= '2022-09-01' GROUP BY month, fy, qtr, day_of_week ORDER BY month, fy, qtr, day_of_week",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "data_as_of": {
+            "description": "The date on which the data was last updated.",
+            "type": "calendar_date"
+        },
+        "total": {
+            "description": "Total exits across all stations on the given date.",
+            "type": "number"
+        },
+        "fy": {
+            "description": "Fiscal year, running from July 1 to June 30.",
+            "type": "text"
+        },
+        "qtr": {
+            "description": "Fiscal year quarter.",
+            "type": "text"
+        },
+        "day_of_week": {
+            "description": "Day of the week (i.e. 'w' = weekday, 'sa' = Saturday, 'su' = Sunday, 'hol' = BART holiday).",
+            "type": "text"
+        }
+    },
+    "table_metadata": {
+        "title": "BART Daily Station Exits",
+        "description": "This dataset contains the number of station exits from Bay Area Rapid Transit (BART) stations by day starting from January 1, 1998. Data updates monthly.",
+        "endpoint": "m2xz-p7ja",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "daily station exit record",
+        "whom_it_may_interest": "Urban planners, public transport authorities, researchers studying urban mobility patterns."
+    },
+    "periodic": "yes",
+    "item_noun": "daily station exit record",
+    "district_level": "false",
+    "whom_it_may_interest": "Urban planners, public transport authorities, researchers studying urban mobility patterns.",
+    "filename": "BART Daily Station Exits.json",
+    "title": "BART Daily Station Exits",
+    "data_validated": true
+}

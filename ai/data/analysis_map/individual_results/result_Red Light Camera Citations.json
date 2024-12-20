@@ -1,0 +1,50 @@
+{
+    "endpoint": "uzmr-g2uc.json",
+    "query": "SELECT supervisor_district, analysis_neighborhood, violation_type, date_trunc_ym(month) AS month, SUM(count) AS total_citations WHERE month >= '2022-09-01' GROUP BY supervisor_district, analysis_neighborhood, violation_type, month ORDER BY month, supervisor_district, analysis_neighborhood, violation_type",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "supervisor_district",
+            "description": "Supervisor district of the enforced intersection.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "Analysis neighborhood of the enforced intersection.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "violation_type",
+            "description": "Type of vehicle code violation.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "month",
+            "description": "Month in which the citations were issued.",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_citations",
+            "description": "Total count of citations issued.",
+            "dataTypeName": "number"
+        }
+    ],
+    "table_metadata": {
+        "title": "Red Light Camera Citations",
+        "description": "Monthly aggregation of issued citations by intersection and direction using the SFMTA's automated cameras.",
+        "endpoint": "uzmr-g2uc",
+        "category": "Transportation",
+        "district_level": true,
+        "item_noun": "citation",
+        "whom_it_may_interest": "Traffic management authorities, Urban planners, Public safety officials"
+    },
+    "periodic": "yes",
+    "item_noun": "citation",
+    "district_level": "true",
+    "whom_it_may_interest": "Traffic management authorities, urban planners, city safety researchers and officials",
+    "filename": "Red Light Camera Citations.json",
+    "title": "Red Light Camera Citations",
+    "data_validated": true,
+    "error": "Expecting value: line 3 column 14 (char 49)"
+}

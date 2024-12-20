@@ -1,0 +1,53 @@
+{
+    "endpoint": "855n-xpnm.json",
+    "query": "SELECT airline, airport_id, operator_category, ac_category, route_name, date_trunc_ym(actual_date_time) AS month, COUNT(*) AS flights_count WHERE actual_date_time >= '2022-09-01' GROUP BY airline, airport_id, operator_category, ac_category, route_name, month ORDER BY month, airline, airport_id, operator_category, ac_category, route_name",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "airline": {
+            "description": "The aircraft operating company's 3-letter International Civil Aviation Organization designator.",
+            "type": "text"
+        },
+        "airport_id": {
+            "description": "International Air Transport Association (IATA) 3-letter location identifier for the airport the flight originated from.",
+            "type": "text"
+        },
+        "operator_category": {
+            "description": "Operators categorized by letter into the following categories: A=Airline, C=Cargo, F=Fractional, G=General Aviation, L=Lifeflight, M=Military, O=Other, T=Air Taxi, U=Unknown.",
+            "type": "text"
+        },
+        "ac_category": {
+            "description": "Aircraft categorized by letter into the following categories: B=Business Jet, H=Helicopter, J=Commercial Jet, R=Regional Jet, T=Turboprop Aircraft",
+            "type": "text"
+        },
+        "route_name": {
+            "description": "Assigned route name based on which analysis gate the flight track penetrates.",
+            "type": "text"
+        },
+        "month": {
+            "description": "The month and year of the flight operation, aggregated from actual_date_time.",
+            "type": "calendar_date"
+        },
+        "flights_count": {
+            "description": "Count of flights aggregated monthly.",
+            "type": "numeric"
+        }
+    },
+    "table_metadata": {
+        "title": "Late Night Aircraft Departures",
+        "description": "This dataset consists of late-night flights departing between 1:00 a.m. and 5:00 a.m. It serves to quantify, measure, and report on how well airlines use over-water routing established by the Federal Aviation Administration and reduce aircraft overflying the San Francisco Peninsula to help mitigate noise.",
+        "endpoint": "855n-xpnm",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "flight operation",
+        "whom_it_may_interest": "Airport operations staff, noise abatement groups, transportation policy makers, environmental researchers"
+    },
+    "periodic": "yes",
+    "item_noun": "flight operation",
+    "district_level": false,
+    "whom_it_may_interest": "Airport operations staff, noise abatement groups, transportation policy makers, environmental researchers",
+    "filename": "Late Night Aircraft Departures.json",
+    "title": "Late Night Aircraft Departures",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT airline, airport_id, operator_category, ac_category, route_name, date_trunc_ym(actual_date_time) AS month, COUNT(*) AS flights_count FROM WHERE actual_date_time >= '2022-09-01' GROUP BY airline, airport_id, operator_category, ac_category, route_name, month ORDER BY month, airline, airport_id, operator_category, ac_category, route_name LIMIT 1\" at line 1 character 146: Expected a table identifier, but got `WHERE'"
+}

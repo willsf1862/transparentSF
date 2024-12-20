@@ -12,9 +12,17 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 def load_and_sort_json():
-    datasets_dir = os.path.join(os.path.dirname(__file__), 'datasets')
+   
     datasets = []
-
+     # Get the absolute path to the directory where this script is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Construct the path to 'data/datasets/' relative to the script's directory
+    datasets_dir = os.path.join(current_dir, 'data', 'datasets')
+    
+    # Verify the constructed path (optional, for debugging)
+    print(f"Looking for datasets in: {datasets_dir}")
+   
     for filename in os.listdir(datasets_dir):
         if filename.endswith('.json'):
             file_path = os.path.join(datasets_dir, filename)
@@ -49,7 +57,7 @@ async def backend(request: Request):
 
 @app.get("/run_autorun/{filename}")
 async def run_autorun(filename: str):
-    datasets_folder = os.path.join(os.path.dirname(__file__), 'datasets')
+    datasets_folder = os.path.join(os.path.dirname(__file__), 'data/datasets')
     output_folder = os.path.join(os.path.dirname(__file__), 'analysis_map')
     threshold_date = datetime(2024, 9, 1, tzinfo=pytz.UTC)
     error_log = []

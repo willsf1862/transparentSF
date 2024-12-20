@@ -1,0 +1,70 @@
+{
+    "DateFields": [
+        "date_as_of"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "department_name",
+        "department_group_name",
+        "division_name",
+        "section_name",
+        "unit_name",
+        "sub_unit_name"
+    ],
+    "endpoint": "j2hz-23ps.json",
+    "query": "SELECT department_name, department_group_name, division_name, section_name, unit_name, sub_unit_name, date_trunc_ym(data_as_of) AS date_as_of, count(*) as item_count WHERE date_as_of >= '2022-09-01T00:00:00' GROUP BY department_name, department_group_name, division_name, section_name, unit_name, sub_unit_name, date_as_of",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "department_name",
+            "description": "The name for the department code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "department_group_name",
+            "description": "The name associated with the department group code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "division_name",
+            "description": "The name for the division code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "section_name",
+            "description": "The name for the section code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "unit_name",
+            "description": "The name for the unit code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "sub_unit_name",
+            "description": "The name for the sub-unit code.",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "date_as_of",
+            "description": "Timestamp the data was updated in the source system.",
+            "dataTypeName": "calendar_date"
+        }
+    ],
+    "table_metadata": {
+        "title": "Reference: Department Code List",
+        "description": "These department codes are maintained in the City's financial system of record. Department Groups, Divisions, Sections, Units, Sub Units and Departments are nested in the dataset from left to right. Each nested unit has both a code and an associated name.",
+        "endpoint": "j2hz-23ps",
+        "category": "Other"
+    },
+    "periodic": true,
+    "item_noun": "Department Code Entry",
+    "district_level": false,
+    "whom_it_may_interest": "This data can be of interest to city officials, researchers who are studying the structure and changes in city departments, or anybody who is interested in analyzing city department trends.",
+    "filename": "Reference Department Code List.json",
+    "title": "Reference: Department Code List",
+    "data_validated": true
+}

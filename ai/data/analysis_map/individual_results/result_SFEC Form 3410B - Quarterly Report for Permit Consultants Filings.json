@@ -1,0 +1,40 @@
+{
+    "endpoint": "k2rm-926a.json",
+    "query": "SELECT date_trunc_ym(periodstartdate) AS month, COUNT(*) AS filings_count, filingtype, periodyear, filing WHERE periodstartdate >= '2022-09-01' GROUP BY month, filingtype, periodyear, filing ORDER BY month, filingtype, periodyear",
+    "report_category": "Economy",
+    "usefulness": 2,
+    "column_metadata": {
+        "periodstartdate": {
+            "type": "calendar_date",
+            "description": "Report period start date in date format"
+        },
+        "filingtype": {
+            "type": "text",
+            "description": "Indicates if the filing is an original filing or an amendment."
+        },
+        "periodyear": {
+            "type": "text",
+            "description": "Year of this report"
+        },
+        "filing": {
+            "type": "text",
+            "description": "URL to download a PDF copy of the filing."
+        }
+    },
+    "table_metadata": {
+        "title": "SFEC Form 3410B - Quarterly Report for Permit Consultants Filings",
+        "description": "An individual who qualifies as a permit consultant under San Francisco law must register and file quarterly reports with the Ethics Commission.",
+        "endpoint": "k2rm-926a",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "permit consultant report",
+        "whom_it_may_interest": "economic researchers, policy makers, compliance departments"
+    },
+    "periodic": "yes",
+    "item_noun": "permit consultant report",
+    "district_level": false,
+    "whom_it_may_interest": "economic researchers, policy makers, compliance departments",
+    "filename": "SFEC Form 3410B - Quarterly Report for Permit Consultants Filings.json",
+    "title": "SFEC Form 3410B - Quarterly Report for Permit Consultants Filings",
+    "data_validated": true
+}

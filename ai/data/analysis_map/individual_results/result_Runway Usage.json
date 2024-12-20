@@ -1,0 +1,40 @@
+{
+    "endpoint": "2gdm-7nym.json",
+    "query": "SELECT runway_name, date_trunc_ym(month_start_date) AS month, SUM(total_departure_percent_utilization) AS total_departure_utilization, SUM(total_arrival_percent_utilization) AS total_arrival_utilization, COUNT(*) AS total_transactions WHERE month_start_date >= '2022-09-01' GROUP BY runway_name, month ORDER BY month, runway_name",
+    "report_category": "Transportation",
+    "usefulness": 3,
+    "column_metadata": {
+        "runway_name": {
+            "description": "Name of Runway (i.e. 28R)",
+            "data_type": "text"
+        },
+        "month_start_date": {
+            "description": "The date the month began",
+            "data_type": "calendar_date"
+        },
+        "total_departure_percent_utilization": {
+            "description": "Percentage of monthly departure on specified runway",
+            "data_type": "number"
+        },
+        "total_arrival_percent_utilization": {
+            "description": "Percentage of monthly arrival on specified runway",
+            "data_type": "number"
+        }
+    },
+    "table_metadata": {
+        "title": "Runway Usage",
+        "description": "This dataset details SFO\u2019s Nighttime Preferential Runway Use program and tracks air carrier operations using jet and regional aircraft focusing on noise reduction.",
+        "endpoint": "2gdm-7nym",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "runway usage record",
+        "whom_it_may_interest": "Airport authorities, Noise abatement communities, Aviation industry stakeholders"
+    },
+    "periodic": "yes",
+    "item_noun": "runway usage record",
+    "district_level": false,
+    "whom_it_may_interest": "Transport planners and regulators at the San Francisco Airport Commission, airline operators, and researchers in aviation management and noise pollution.",
+    "filename": "Runway Usage.json",
+    "title": "Runway Usage",
+    "data_validated": true
+}

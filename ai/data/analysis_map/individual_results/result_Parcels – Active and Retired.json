@@ -1,0 +1,58 @@
+{
+    "DateFields": [
+        "month_added",
+        "month_dropped"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "zoning_district",
+        "supervisor_district",
+        "analysis_neighborhood"
+    ],
+    "endpoint": "https://data.sfgov.org/resource/acdm-wktn.json",
+    "query": "SELECT date_trunc_ym(date_rec_add) AS month_added, date_trunc_ym(date_rec_drop) AS month_dropped, zoning_district, supervisor_district, analysis_neighborhood, COUNT(*) AS item_count WHERE date_rec_add >= '2022-09-01' OR date_rec_drop >= '2022-09-01' GROUP BY month_added, month_dropped, zoning_district, supervisor_district, analysis_neighborhood",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "date_rec_add",
+            "description": "The date that the documents related to the addition of the parcel were recorded",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "date_rec_drop",
+            "description": "The date that the documents related the to dropping/retiring of the parcel were recorded",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "zoning_district",
+            "description": "Zoning District Name - based on City Planning data",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supervisor_district",
+            "description": "Supervisor District Number",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "San Francisco Neighborhood for analysis, per DataSF",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Parcels \u2013 Active and Retired",
+        "description": "Recorded parcel geography, both active and retired, with date recorded parcel was added or dropped/retired. Contains geography created since the inception of the basemap in 1995, with some exceptions. Zoning District columns reflect current zoning.",
+        "endpoint": "acdm-wktn",
+        "category": "Real Property"
+    },
+    "periodic": true,
+    "item_noun": "Parcel Record",
+    "district_level": true,
+    "whom_it_may_interest": "This data may be of interest to Real Estate developers, city planners, researchers studying urban development and change, and residents interested in changes in their neighborhood.",
+    "filename": "Parcels \u2013 Active and Retired.json",
+    "title": "Parcels \u2013 Active and Retired",
+    "data_validated": true
+}

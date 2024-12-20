@@ -1,0 +1,33 @@
+{
+    "endpoint": "jjew-r69b.json",
+    "query": "SELECT location, date_trunc_ym(addr_date_modified) AS month, COUNT(*) AS count WHERE addr_date_modified>='2022-09-01' GROUP BY location, month ORDER BY month, count",
+    "report_category": "Economy",
+    "usefulness": 2,
+    "column_metadata": {
+        "location": {
+            "type": "text",
+            "description": "Address or blocklot (parcel) number of location"
+        },
+        "addr_date_modified": {
+            "type": "calendar_date",
+            "description": "Date schedule record modified"
+        }
+    },
+    "table_metadata": {
+        "title": "Mobile Food Schedule",
+        "description": "A child data set of --Mobile Food Facility Permit-- includes day of week, start / end time, location and a description of type of food sold by vendor.",
+        "endpoint": "jjew-r69b",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "food truck schedule",
+        "whom_it_may_interest": "Food truck owners, city planners, local businesses, and economic analysts"
+    },
+    "periodic": "yes",
+    "item_noun": "food truck schedule",
+    "district_level": false,
+    "whom_it_may_interest": "Food truck owners, city planners, local businesses, and economic analysts",
+    "filename": "Mobile Food Schedule.json",
+    "title": "Mobile Food Schedule",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT location, date_trunc_ym(addr_date_modified) AS month, COUNT(*) AS count FROM WHERE addr_date_modified>='2022-09-01' GROUP BY location, month ORDER BY month, count LIMIT 1\" at line 1 character 85: Expected a table identifier, but got `WHERE'"
+}

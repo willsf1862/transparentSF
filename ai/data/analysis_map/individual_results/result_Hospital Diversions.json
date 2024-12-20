@@ -1,0 +1,41 @@
+{
+    "endpoint": "t4sf-777q.json",
+    "query": "SELECT hospital_full, diversion_category, date_trunc_ym(started) AS month, SUM(duration_in_minutes) AS total_diversion_minutes WHERE started>='2022-09-01' GROUP BY hospital_full, diversion_category, month ORDER BY month, hospital_full, diversion_category",
+    "report_category": "Health",
+    "usefulness": 3,
+    "column_metadata": {
+        "hospital_full": {
+            "type": "text",
+            "description": "Full hospital name"
+        },
+        "diversion_category": {
+            "type": "text",
+            "description": "The type of diversion: ED (emergency department) or trauma override"
+        },
+        "started": {
+            "type": "calendar_date",
+            "description": "Date and time the diversion status started"
+        },
+        "duration_in_minutes": {
+            "type": "number",
+            "description": "The duration the facility was on diversion, in minutes"
+        }
+    },
+    "table_metadata": {
+        "title": "Hospital Diversions",
+        "description": "This dataset includes hospital diversion events declared by San Francisco hospitals. It contains records of diversion status including start and end times, and duration.",
+        "endpoint": "t4sf-777q",
+        "category": "Health",
+        "district_level": false,
+        "item_noun": "hospital diversion event",
+        "whom_it_may_interest": "Health policymakers, hospital administration, emergency services"
+    },
+    "periodic": "yes",
+    "item_noun": "hospital diversion event",
+    "district_level": "false",
+    "whom_it_may_interest": "Healthcare officials, emergency management coordinators, hospital administrators",
+    "filename": "Hospital Diversions.json",
+    "title": "Hospital Diversions",
+    "data_validated": true,
+    "error": "Expecting value: line 3 column 14 (char 49)"
+}

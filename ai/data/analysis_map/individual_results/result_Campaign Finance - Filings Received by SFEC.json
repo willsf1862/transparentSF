@@ -1,0 +1,48 @@
+{
+    "endpoint": "qizs-bwft.json",
+    "query": "SELECT form_type, filer_name, filing_type, date_trunc_ym(filing_date) AS month, COUNT(*) AS count WHERE filing_date>='2022-09-01' GROUP BY form_type, filer_name, filing_type, month ORDER BY month, form_type, filer_name, filing_type",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": {
+        "form_type": {
+            "type": "text",
+            "description": "Type of FPPC form this filing represents"
+        },
+        "filer_name": {
+            "type": "text",
+            "description": "Committee name at time of filing"
+        },
+        "filing_type": {
+            "type": "text",
+            "description": "Type of filing (Original, Amendment, Correction, Attachment Added)"
+        },
+        "filing_date": {
+            "type": "calendar_date",
+            "description": "Date the filing was submitted"
+        },
+        "month": {
+            "type": "calendar_date",
+            "description": "Month of the filing date"
+        },
+        "count": {
+            "type": "number",
+            "description": "Count of filings aggregated by month, form type, and filing type"
+        }
+    },
+    "table_metadata": {
+        "title": "Campaign Finance - Filings Received by SFEC",
+        "description": "This dataset lists the current campaign filings received by the SF Ethics Commission. It includes various types of filings such as FPPC forms and SFEC forms, representing various campaign disclosure statements.",
+        "endpoint": "qizs-bwft",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "filing",
+        "whom_it_may_interest": "Political analysts, researchers, journalists, public watchdog groups, and anyone interested in campaign finance and political campaign activities"
+    },
+    "periodic": "yes",
+    "item_noun": "filing",
+    "district_level": false,
+    "whom_it_may_interest": "Political analysts, campaigners, policymakers",
+    "filename": "Campaign Finance - Filings Received by SFEC.json",
+    "title": "Campaign Finance - Filings Received by SFEC",
+    "data_validated": true
+}

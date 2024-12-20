@@ -1,0 +1,43 @@
+{
+    "DateFields": [
+        "occurence_month"
+    ],
+    "NumericFields": [
+        "total_number_of_victims",
+        "total_number_of_suspects"
+    ],
+    "CategoryFields": [
+        "most_serious_ucr",
+        "most_serious_bias",
+        "suspects_race_as_a_group"
+    ],
+    "endpoint": "https://data.sfgov.org/resource/huqr-9p9x.json",
+    "query": "SELECT date_trunc_ym(`occurence_month`) AS `occurence_month`, sum(`total_number_of_victims`) AS `total_number_of_victims`, sum(`total_number_of_suspects`) AS `total_number_of_suspects`, `most_serious_ucr`, `most_serious_bias`, `suspects_race_as_a_group` WHERE `occurence_month` >= '2022-09-01' GROUP BY `occurence_month`, `most_serious_ucr`, `most_serious_bias`, `suspects_race_as_a_group`",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": {
+        "occurence_month": "calendar_date: The year and month in which the hate crime incident took place or was identified.",
+        "total_number_of_victims": "number: The count of victims who were affected by the hate crime incident.",
+        "total_number_of_suspects": "number: The count of identified suspects involved in the hate crime incident.",
+        "most_serious_ucr": "text: The most serious crime (offense) committed in the hate crime incident.",
+        "most_serious_bias": "text: The explicit bias motivation behind the most serious crime committed for the hate crime incident.",
+        "suspects_race_as_a_group": "text: The race of the suspects as a group."
+    },
+    "table_metadata": {
+        "title": "Police Department Investigated Hate Crimes",
+        "description": "These data represent hate crimes reported by the SFPD to the California Department of Justice.",
+        "endpoint": "huqr-9p9x",
+        "category": "Safety",
+        "district_level": false,
+        "item_noun": "hate crime incident",
+        "whom_it_may_interest": "Researchers, policy makers, law enforcement agencies, and community organizations interested in understanding and preventing hate crimes."
+    },
+    "periodic": "yes",
+    "item_noun": "hate crime incident",
+    "district_level": false,
+    "whom_it_may_interest": "Researchers, policy makers, law enforcement agencies, and community organizations interested in understanding and preventing hate crimes.",
+    "filename": "Police Department Investigated Hate Crimes.json",
+    "title": "Police Department Investigated Hate Crimes",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.no-such-column; No such column: occurrence_month; position: Map(row -> 1, column -> 22, line -> \"SELECT date_trunc_ym(`occurrence_month`) AS `occurrence_month`, sum(`total_number_of_victims`) AS `total_number_of_victims`, sum(`total_number_of_suspects`) AS `total_number_of_suspects`, `most_serious_ucr`, `most_serious_bias`, `suspects_race_as_a_group` WHERE `occurrence_month` >= \\\"2022-09-01\\\" GROUP BY `occurrence_month`, `most_serious_ucr`, `most_serious_bias`, `suspects_race_as_a_group` LIMIT 1\\n                     ^\")"
+}

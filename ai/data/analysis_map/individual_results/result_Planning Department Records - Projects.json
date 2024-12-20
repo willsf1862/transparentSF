@@ -1,0 +1,50 @@
+{
+    "endpoint": "qvu5-m3a2.json",
+    "query": "SELECT date_trunc_ym(open_date) AS month, COUNT(*) AS total_projects, record_status, record_type, project_decision WHERE open_date >= '2022-09-01' GROUP BY month, record_status, record_type, project_decision ORDER BY month",
+    "report_category": "Housing",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month and Year when the record was opened",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_projects",
+            "description": "Total number of projects opened in each month",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "record_status",
+            "description": "Status of the project record",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "record_type",
+            "description": "Type of the project record",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "project_decision",
+            "description": "Decision made on the project",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Planning Department Records - Projects",
+        "description": "List of projects and project data captured by PRJ records from the Planning Department's Accela database.",
+        "endpoint": "qvu5-m3a2.json",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "project record",
+        "whom_it_may_interest": "City planners, developers, housing policy analysts, researchers studying urban development patterns"
+    },
+    "periodic": "yes",
+    "item_noun": "project record",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, developers, and researchers interested in housing and urban planning.",
+    "filename": "Planning Department Records - Projects.json",
+    "title": "Planning Department Records - Projects",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(open_date) AS month, count(*) AS total_projects, record_status, record_type, project_decision FROM qvu5-m3a2 WHERE open_date >= '2022-09-01' GROUP BY month, record_status, record_type, project_decision ORDER BY month LIMIT 1\" at line 1 character 121: Expected a table identifier, but got `qvu5'"
+}

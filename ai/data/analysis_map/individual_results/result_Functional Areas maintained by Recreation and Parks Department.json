@@ -1,0 +1,49 @@
+{
+    "endpoint": "38b7-6db3.json",
+    "query": "SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS count, functional_area_type, functional_area_subtype, facility_name WHERE data_as_of>='2022-09-01' GROUP BY functional_area_type, functional_area_subtype, facility_name, month ORDER BY functional_area_type, functional_area_subtype, facility_name, month",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month and year of the data record",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "count",
+            "description": "Count of functional areas",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "functional_area_type",
+            "description": "Type of functional area within the facility",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "functional_area_subtype",
+            "description": "Subtype of the functional area",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "facility_name",
+            "description": "Name of the facility where the functional area is located",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Functional Areas maintained by Recreation and Parks Department",
+        "description": "Functional areas maintained by the Recreation and Parks Department, which are physical areas within a facility designated for specific purposes, including recreation and non-recreation facilities.",
+        "endpoint": "38b7-6db3",
+        "category": "Other",
+        "district_level": false,
+        "item_noun": "functional area",
+        "whom_it_may_interest": "City planners, Recreational facility managers, Residents"
+    },
+    "periodic": "yes",
+    "item_noun": "functional area",
+    "district_level": false,
+    "whom_it_may_interest": "City planners, recreational facility managers, and residents",
+    "filename": "Functional Areas maintained by Recreation and Parks Department.json",
+    "title": "Functional Areas maintained by Recreation and Parks Department",
+    "data_validated": true
+}

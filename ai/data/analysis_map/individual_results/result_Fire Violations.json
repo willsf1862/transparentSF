@@ -1,0 +1,41 @@
+{
+    "endpoint": "4zuq-2cbe.json",
+    "query": "SELECT supervisor_district, violation_item, date_trunc_ym(violation_date) AS month, COUNT(*) AS count WHERE violation_date >= '2022-09-01' GROUP BY supervisor_district, violation_item, month ORDER BY month ASC NULL LAST, supervisor_district ASC NULL LAST, violation_item ASC NULL LAST",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": {
+        "supervisor_district": {
+            "description": "Supervisor district where the violation was recorded.",
+            "data_type": "text"
+        },
+        "violation_item": {
+            "description": "Specific item or code violated.",
+            "data_type": "text"
+        },
+        "violation_date": {
+            "description": "Date when the violation was recorded.",
+            "data_type": "calendar_date"
+        },
+        "count": {
+            "description": "Count of violations",
+            "data_type": "number"
+        }
+    },
+    "table_metadata": {
+        "title": "Fire Violations",
+        "description": "Information on Fire Violations issued by the Fire Department for a particular location.",
+        "endpoint": "4zuq-2cbe",
+        "category": "Safety",
+        "district_level": true,
+        "item_noun": "violation",
+        "whom_it_may_interest": "Public safety officials, property owners, neighborhood associations"
+    },
+    "periodic": "yes",
+    "item_noun": "violation",
+    "district_level": "true",
+    "whom_it_may_interest": "Public safety officials, property owners, and neighborhood associations",
+    "filename": "Fire Violations.json",
+    "title": "Fire Violations",
+    "data_validated": true,
+    "error": "Query coordinator error: query.soql.no-such-column; No such column: violation_type; position: Map(row -> 1, column -> 31, line -> \"SELECT `supervisor_district`, `violation_type`, date_trunc_ym(`violation_date`) AS `month`, COUNT(*) AS `count` WHERE `violation_date` >= \\\"2022-09-01\\\" GROUP BY `supervisor_district`, `violation_type`, `month` ORDER BY `month` ASC NULL LAST, `supervisor_district` ASC NULL LAST, `violation_type` ASC NULL LAST LIMIT 1\\n                              ^\")"
+}

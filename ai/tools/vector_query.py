@@ -4,7 +4,7 @@ import re
 
 qdrant = qdrant_client.QdrantClient(host="localhost", port=6333)
 
-def query_qdrant(query, collection_name, top_k=4):
+def query_qdrant(query, collection_name, top_k=3):
     try:
         embedded_query = get_embedding(query)
         if not embedded_query:

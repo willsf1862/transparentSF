@@ -1,0 +1,40 @@
+{
+    "endpoint": "2zdj-bwza.json",
+    "query": "SELECT supervisor_district, call_type_final, call_type_final_desc, date_trunc_ym(close_datetime) AS month, COUNT(*) AS count WHERE close_datetime >= '2022-09-01' GROUP BY supervisor_district, call_type_final, call_type_final_desc, month ORDER BY month, supervisor_district, call_type_final",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": {
+        "supervisor_district": {
+            "type": "text",
+            "description": "Supervisor District based on anonymized intersection coordinates"
+        },
+        "call_type_final": {
+            "type": "text",
+            "description": "Final call type code as coded/selected by dispatcher. For closed calls this is the last call type code."
+        },
+        "call_type_final_desc": {
+            "type": "text",
+            "description": "Standard description of final call type"
+        },
+        "close_datetime": {
+            "type": "calendar_date",
+            "description": "Date and time when the last unit responding closes the call"
+        }
+    },
+    "table_metadata": {
+        "title": "Law Enforcement Dispatched Calls for Service: Closed",
+        "description": "Includes all closed calls for service which generate a record in the Department of Emergency Management's Computer Aided Dispatch (CAD) System, updated every 24 hours.",
+        "endpoint": "2zdj-bwza",
+        "category": "Safety",
+        "district_level": true,
+        "item_noun": "closed call",
+        "whom_it_may_interest": "law enforcement agencies, policy makers, researchers studying public safety trends"
+    },
+    "periodic": "yes",
+    "item_noun": "closed dispatched call for service",
+    "district_level": true,
+    "whom_it_may_interest": "public safety officials, policymakers, crime analysts, community safety programs",
+    "filename": "Law Enforcement Dispatched Calls for Service Closed.json",
+    "title": "Law Enforcement Dispatched Calls for Service: Closed",
+    "data_validated": true
+}

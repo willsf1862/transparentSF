@@ -1,0 +1,37 @@
+{
+    "DateFields": [
+        "activity_month"
+    ],
+    "NumericFields": [
+        "total_activities",
+        "total_amount"
+    ],
+    "CategoryFields": [
+        "activity_type",
+        "lobbyist_type"
+    ],
+    "endpoint": "s4ub-8j3t",
+    "query": "SELECT date_trunc_ym(date) AS activity_month, count(*) AS total_activities, sum(amount) AS total_amount, type AS activity_type, lobbyisttype AS lobbyist_type WHERE date >= '2022-09-01' GROUP BY activity_month, activity_type, lobbyist_type",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": {
+        "activity_month": "Month and year of the activity",
+        "total_activities": "Number of activities recorded",
+        "total_amount": "Total monetary amount reported in activities",
+        "activity_type": "Type of lobbyist activity",
+        "lobbyist_type": "Type of lobbyist, either contact or expenditure"
+    },
+    "table_metadata": {
+        "title": "Lobbyist Activity Directory",
+        "description": "Dataset shows monthly reported activities by registered lobbyists.",
+        "endpoint": "s4ub-8j3t",
+        "category": "Economy",
+        "district_level": false,
+        "item_noun": "lobbyist activity",
+        "whom_it_may_interest": "Policy makers, economic researchers, regulatory bodies, and public oversight committees"
+    },
+    "periodic": "yes",
+    "filename": "Lobbyist Activity Directory.json",
+    "title": "Lobbyist Activity Directory",
+    "data_validated": true
+}

@@ -1,0 +1,45 @@
+{
+    "endpoint": "ynuv-fyni.json",
+    "query": "SELECT mblr, sf16_bldgid, area_id, date_trunc_ym(data_as_of) AS month, COUNT(*) AS building_count WHERE data_as_of >= '2022-09-01' GROUP BY mblr, sf16_bldgid, area_id, month ORDER BY month, mblr, sf16_bldgid, area_id",
+    "report_category": "Housing",
+    "usefulness": 2,
+    "column_metadata": {
+        "mblr": {
+            "description": "San Francisco property key: Assessor's Map-Block-Lot of land parcel, plus Right-of-way area identifier derived from street Centerline Node Network (CNN)",
+            "type": "text"
+        },
+        "sf16_bldgid": {
+            "description": "San Francisco Building ID using criteria of 2016-09",
+            "type": "text"
+        },
+        "area_id": {
+            "description": "Epoch 2010.06 Shape_Area sort of 177,023 building polygons",
+            "type": "text"
+        },
+        "data_as_of": {
+            "description": "Timestamp the data was updated in the source system",
+            "type": "calendar_date"
+        },
+        "building_count": {
+            "description": "Count of building footprints",
+            "type": "numeric"
+        }
+    },
+    "table_metadata": {
+        "title": "Building Footprints",
+        "description": "Footprint extents refined from a 3D building model provided by Pictometry of 2010. Building masses were manually split with reference to parcel lines.",
+        "endpoint": "ynuv-fyni",
+        "category": "Housing",
+        "district_level": false,
+        "item_noun": "building footprint",
+        "whom_it_may_interest": "urban planners, architects, GIS analysts"
+    },
+    "periodic": "yes",
+    "item_noun": "building footprint",
+    "district_level": false,
+    "whom_it_may_interest": "urban planners, architects, GIS analysts",
+    "filename": "Building Footprints.json",
+    "title": "Building Footprints",
+    "data_validated": true,
+    "error": "Could not parse SoQL query \"SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS building_count, mblr, sf16_bldgid, area_id FROM 'ynuv-fyni' WHERE data_as_of >= '2022-09-01' GROUP BY month, mblr, sf16_bldgid, area_id ORDER BY month, mblr, sf16_bldgid, area_id LIMIT 1\" at line 1 character 104: Expected a table identifier, but got `ynuv-fyni'"
+}

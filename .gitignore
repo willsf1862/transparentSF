@@ -4,10 +4,10 @@ swarm-main
 ai/data/climate
 static
 manual/output
+manual
 ai/data/datasets
 ai/data/policeHistory
 ai/data/anomaly_charts
-ai/data/analysis_map/individual_results
 ai/output
 ai/logs
 .env

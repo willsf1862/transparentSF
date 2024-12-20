@@ -1,0 +1,44 @@
+{
+    "endpoint": "evfs-dvkf.json",
+    "query": "SELECT supervisordistrict, projecttype, supervisorname, date_trunc_ym(data_as_of) AS month, COUNT(*) AS count WHERE data_as_of>='2022-09-01' GROUP BY supervisordistrict, projecttype, supervisorname, month ORDER BY month, supervisordistrict, projecttype, supervisorname",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": [
+        {
+            "fieldName": "supervisordistrict",
+            "description": "Auto-populated field with the number of the supervisorial district(s) based on project extent",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "projecttype",
+            "description": "Auto-populated field that grabs Project Type/Mode info from SFMTA.com project page",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supervisorname",
+            "description": "Auto-populated field with the name of the district supervisor(s) based on project extent",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "data_as_of",
+            "description": "Timestamp the data was last updated in the source system, aggregated by month",
+            "dataTypeName": "calendar_date"
+        }
+    ],
+    "table_metadata": {
+        "title": "SFMTA Projects - Lines",
+        "description": "This dataset gathers spatial data for agency projects that have project pages on SFMTA.com and CIP projects.",
+        "endpoint": "evfs-dvkf",
+        "category": "Transportation",
+        "district_level": true,
+        "item_noun": "project",
+        "whom_it_may_interest": "Project managers, policy makers, public transportation analysts, and city planners"
+    },
+    "periodic": "yes",
+    "item_noun": "project",
+    "district_level": true,
+    "whom_it_may_interest": "Project managers, policy makers, public transportation analysts, and city planners",
+    "filename": "SFMTA Projects - Lines.json",
+    "title": "SFMTA Projects - Lines",
+    "data_validated": true
+}

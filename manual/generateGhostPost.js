@@ -218,10 +218,7 @@ export const generateGhostPost = async (anomalies, metadata, ghostConfig) => {
                         version: "0.3.1",
                         atoms: [],
                         cards: [
-                            ["image", {
-                                "src": imageUrl,
-                                "caption": chartTitle
-                            }]
+                            ["image", { src: "../static/chart_89b60b30.png", caption: "test" }]
                         ],
                         markups: [],
                         sections: [

@@ -1,0 +1,44 @@
+{
+    "endpoint": "gtr9-ntp6.json",
+    "query": "SELECT propertytype, supdist, analysis_neighborhood, date_trunc_ym(data_as_of) AS month, COUNT(*) AS count WHERE data_as_of >= '2022-09-01' GROUP BY propertytype, supdist, analysis_neighborhood, month ORDER BY month, propertytype, supdist, analysis_neighborhood",
+    "report_category": "Other",
+    "usefulness": 2,
+    "column_metadata": {
+        "propertytype": {
+            "type": "text",
+            "description": "Type of the property such as park, golf course, campground, etc."
+        },
+        "supdist": {
+            "type": "text",
+            "description": "Supervisor district in which the property is located."
+        },
+        "analysis_neighborhood": {
+            "type": "text",
+            "description": "Neighborhood as analyzed by city planning or other relevant entities."
+        },
+        "month": {
+            "type": "date",
+            "description": "Month when the data was recorded or updated."
+        },
+        "count": {
+            "type": "number",
+            "description": "Count of properties aggregated by category and date."
+        }
+    },
+    "table_metadata": {
+        "title": "Recreation and Parks Properties",
+        "description": "Land owned and/or maintained by the Recreation and Parks Department. Properties are modeled within the Department's Facility Asset Management Software, TMA. Inclusive of parks, golf courses, campgrounds, etc.",
+        "endpoint": "gtr9-ntp6",
+        "category": "Other",
+        "district_level": true,
+        "item_noun": "property",
+        "whom_it_may_interest": "City planning departments, real estate developers, local government officials, public interested in land use and park facilities."
+    },
+    "periodic": "yes",
+    "item_noun": "property",
+    "district_level": true,
+    "whom_it_may_interest": "City planning departments, real estate developers, local government officials, public interested in land use and park facilities.",
+    "filename": "Recreation and Parks Properties.json",
+    "title": "Recreation and Parks Properties",
+    "data_validated": true
+}

@@ -197,7 +197,11 @@
             position: relative;
             overflow: hidden;
         }
-
+        .canvas-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
         /* Footer and Header (if any) can be styled here */
         header, footer {
             background-color: #f1f1f1;
@@ -230,10 +234,11 @@
             </div>
         </div>
         <div class="divider"></div>
-        <div class="canvas-container" id="canvasTarget">
-            <!-- Canvas content will load here -->
+        <div class="canvas-container">
+            <iframe name="canvasTarget"></iframe>
         </div>
     </div>
+
 
     <!-- Include Marked.js library -->
     <script src="https://cdn.jsdelivr.net/npm/marked@4.2.12/marked.min.js"></script>

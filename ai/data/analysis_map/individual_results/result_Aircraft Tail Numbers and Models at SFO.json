@@ -1,0 +1,40 @@
+{
+    "endpoint": "u7dr-xm3v.json",
+    "query": "SELECT airline, aircraft_model, date_trunc_ym(creation_date) AS month, COUNT(*) AS count WHERE creation_date >= '2022-09-01' GROUP BY airline, aircraft_model, month ORDER BY month, airline, aircraft_model",
+    "report_category": "Transportation",
+    "usefulness": 2,
+    "column_metadata": {
+        "airline": {
+            "type": "text",
+            "description": "The name of the airline."
+        },
+        "aircraft_model": {
+            "type": "text",
+            "description": "The model of the aircraft."
+        },
+        "month": {
+            "type": "date",
+            "description": "The month of the creation date, aggregated by year-month."
+        },
+        "count": {
+            "type": "number",
+            "description": "Count of records, representing the number of aircraft registrations."
+        }
+    },
+    "table_metadata": {
+        "title": "Aircraft Tail Numbers and Models at SFO",
+        "description": "Aircraft details including IDs, models, types, subtypes, and airlines",
+        "endpoint": "u7dr-xm3v",
+        "category": "Transportation",
+        "district_level": false,
+        "item_noun": "aircraft registration",
+        "whom_it_may_interest": "Aviation professionals, aircraft enthusiasts, government regulators"
+    },
+    "periodic": "yes",
+    "item_noun": "aircraft registration",
+    "district_level": false,
+    "whom_it_may_interest": "Aviation professionals, aircraft enthusiasts, government regulators",
+    "filename": "Aircraft Tail Numbers and Models at SFO.json",
+    "title": "Aircraft Tail Numbers and Models at SFO",
+    "data_validated": true
+}

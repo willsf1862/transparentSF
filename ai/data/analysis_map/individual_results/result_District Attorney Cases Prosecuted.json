@@ -1,0 +1,69 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "case_count"
+    ],
+    "CategoryFields": [
+        "filed_case_type",
+        "crime_type",
+        "dv_case",
+        "da_action_taken",
+        "case_status"
+    ],
+    "endpoint": "dcjk-vw8q.json",
+    "query": "SELECT date_trunc_ym(arrest_date) AS month, filed_case_type, crime_type, dv_case, da_action_taken, case_status, COUNT(*) AS case_count WHERE arrest_date >= '2022-09-01' GROUP BY month, filed_case_type, crime_type, dv_case, da_action_taken, case_status",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "arrest_date grouped by month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "case_count",
+            "description": "Number of cases",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "filed_case_type",
+            "description": "Abbreviation for the most serious case type among the charges filed by SFDA for a given court number",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "crime_type",
+            "description": "Abbreviation for the most serious crime type among the charges filed by SFDA",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "dv_case",
+            "description": "Indicator for domestic violence cases",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "da_action_taken",
+            "description": "Action taken by District Attorney\u2019s office",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "case_status",
+            "description": "Current status of the case at its current point in the criminal process",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "District Attorney Cases Prosecuted",
+        "description": "This dataset includes information on all cases presented to the District Attorney\u2019s Office in which the office has taken action to prosecute a case, either by filing new criminal charges or by filing a motion to revoke probation or parole (MTR).",
+        "endpoint": "dcjk-vw8q",
+        "category": "Safety"
+    },
+    "periodic": true,
+    "item_noun": "Case",
+    "district_level": false,
+    "whom_it_may_interest": "This data would be of interest to policy makers, law enforcement agencies, community organizations, crime analysts, and researchers studying trends in crime and prosecution in San Francisco.",
+    "filename": "District Attorney Cases Prosecuted.json",
+    "title": "District Attorney Cases Prosecuted",
+    "data_validated": true
+}

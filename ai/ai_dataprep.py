@@ -33,6 +33,53 @@ def sanitize_filename(filename):
     sanitized = sanitized.strip()
     return sanitized
 
+def create_analysis_map(datasets_folder, output_folder):
+        """
+        Re-creates the analysis map from individual result files.
+        
+        Args:
+            datasets_folder (str): Path to folder containing dataset files
+            output_folder (str): Path to output folder for analysis map
+            
+        Returns:
+            str: Path to created analysis map file
+        """
+        # List all JSON files in the datasets directory
+        article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
+        if not article_list:
+            print(f"No JSON files found in {datasets_folder}")
+            return None
+            
+        print(f"Found {len(article_list)} JSON files to process:")
+        for idx, filename in enumerate(article_list):
+            print(f"{idx}. {filename}")
+            
+        # Create output file for analysis map
+        output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        output_path = os.path.join(output_folder, output_filename)
+        # Initialize list to store all results
+        all_results = []
+        
+        # Load and combine individual result files
+        individual_results_dir = os.path.join(output_folder, 'individual_results')
+        if os.path.exists(individual_results_dir):
+            result_files = [f for f in os.listdir(individual_results_dir) if f.startswith('result_')]
+            for result_file in result_files:
+                result_path = os.path.join(individual_results_dir, result_file)
+                try:
+                    with open(result_path, 'r', encoding='utf-8') as f:
+                        result_data = json.load(f)
+                        all_results.append(result_data)
+                except Exception as e:
+                    print(f"Error reading result file {result_file}: {e}")
+                    continue
+        
+        # Write combined results to analysis map file
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(all_results, f, indent=4)
+            
+        print(f"Analysis map created with {len(all_results)} entries at: {output_path}")
+        return output_path
 
 def format_columns(columns):
     """Format the columns information into a readable string."""
@@ -74,18 +121,15 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
 
     # Check 'rows_updated_at' and threshold
     rows_updated_at = data.get("rows_updated_at", None)
-    if not rows_updated_at:
-        print(f"File '{filename}' skipped: 'rows_updated_at' not found.")
-        return
 
     try:
         updated_at_date = parse_date(rows_updated_at)
         if updated_at_date.tzinfo is None:
             updated_at_date = updated_at_date.replace(tzinfo=pytz.UTC)
 
-        if updated_at_date <= threshold_date:
-            print(f"File '{filename}' skipped: 'rows_updated_at' is not after {threshold_date}.")
-            return
+        # if updated_at_date <= threshold_date:
+        #     print(f"File '{filename}' skipped: 'rows_updated_at' is not after {threshold_date}.")
+        #     return
     except Exception as e:
         print(f"Error parsing 'rows_updated_at' for file '{filename}': {e}")
         error_log.append({'filename': filename, 'error': str(e)})
@@ -306,6 +350,11 @@ def main(filename=None):
 
 if __name__ == "__main__":
     import sys
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_folder = os.path.join(script_dir, 'data')
+    datasets_folder = os.path.join(data_folder, 'datasets')
+    output_folder = os.path.join(data_folder, 'analysis_map')
     # Check for a filename argument
     filename_arg = sys.argv[1] if len(sys.argv) > 1 else None
-    main(filename_arg)
+    # main(filename_arg)
+    create_analysis_map(datasets_folder, output_folder)     
