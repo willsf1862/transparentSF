@@ -1,0 +1,44 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "booking_count"
+    ],
+    "CategoryFields": [
+        "gender"
+    ],
+    "LocationFields": [],
+    "endpoint": "2hgk-5bf6.json",
+    "query": "SELECT date_trunc_ym(month_and_year_of_booking) AS month, sum(count) AS booking_count, male_female AS gender WHERE month_and_year_of_booking >= '2022-09-01T00:00:00.000' GROUP BY month, gender ORDER BY month",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "The month and year of the booking, truncated to the first day of the month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "booking_count",
+            "description": "Total count of bookings for each month and gender",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "gender",
+            "description": "Gender of the individual booked, categorized as Male or Female",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Sheriff Jail Bookings by Male/Female",
+        "description": "Summary information on individuals booked into the San Francisco City and County Jail since 2012, categorized by Male/Female. Provides a breakdown of bookings by month and gender.",
+        "endpoint": "2hgk-5bf6.json",
+        "category": "Safety",
+        "periodic": true,
+        "item_noun": "Jail Booking",
+        "whom_it_may_interest": "This data might interest criminal justice researchers, policy makers, social workers, and journalists seeking to understand trends and patterns in the incarceration rates within the context of gender."
+    },
+    "filename": "Sheriff Jail Bookings by MaleFemale.json",
+    "title": "Sheriff Jail Bookings by Male/Female"
+}

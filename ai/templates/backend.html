@@ -2,38 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datasets List</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 10px; 
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 2px; 
+            text-align: left; 
         }
-        th {
-            background-color: #f4f4f4;
+        th { 
+            background-color: #f4f4f4; 
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        tr:nth-child(even) { 
+            background-color: #f9f9f9; 
         }
-        tr:hover {
-            background-color: #f1f1f1;
+        tr:hover { 
+            background-color: #f1f1f1; 
         }
-        .action-buttons a {
+        .actions button { 
+            margin-right: 10px; 
+            padding: 6px 6px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            position: relative; 
+            transition: background-color 0.3s ease;
+        }
+        .prep-btn { 
+            background-color: #007BFF; 
+            color: white; 
+        }
+        .run-btn { 
+            background-color: #28A745; 
+            color: white; 
+        }
+        .prep-btn:hover { 
+            background-color: #0056b3; 
+        }
+        .run-btn:hover { 
+            background-color: #1e7e34; 
+        }
+        .button-disabled { 
+            background-color: #6c757d !important; 
+            cursor: not-allowed; 
+        }
+        .button-error { 
+            background-color: #dc3545 !important; 
+        }
+        .spinner {
+            border: 2px solid #f3f3f3; /* Light grey */
+            border-top: 2px solid #555555; /* Dark grey */
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: -7px 0 0 -7px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Style for output links */
+        .output-links a {
+            margin-right: 10px;
             text-decoration: none;
             color: #007BFF;
-            margin-right: 10px;
         }
-        .action-buttons a:hover {
+        .output-links a:hover {
             text-decoration: underline;
         }
     </style>
@@ -47,20 +93,131 @@
                 <th>Filename</th>
                 <th>Last Updated</th>
                 <th>Actions</th>
+                <th>Outputs</th> <!-- New column for output links -->
             </tr>
         </thead>
         <tbody>
             {% for dataset in datasets %}
             <tr>
-                <td>{{ dataset.category if dataset.category else 'N/A' }}</td>
+                <td>{{ dataset.category or 'N/A' }}</td>
                 <td>{{ dataset.filename }}</td>
                 <td>{{ dataset.rows_updated_at if dataset.rows_updated_at != 'N/A' else 'N/A' }}</td>
-                <td class="action-buttons">
-                    <a href="/run_autorun/{{ dataset.filename }}">Run Autorun</a>
+                <td class="actions">
+                    <button 
+                        class="prep-btn" 
+                        data-action="prep-data" 
+                        data-filename="{{ dataset.filename }}"
+                    >
+                        Prep Data
+                    </button>
+                    <button 
+                        class="run-btn" 
+                        data-action="run_analysis" 
+                        data-endpoint="{{ dataset.endpoint }}"
+                    >
+                        Run Analysis
+                    </button>
+                </td>
+                <td class="output-links">
+                    {% if dataset.output_links %}
+                        {% if dataset.output_links.html %}
+                            <a href="{{ dataset.output_links.html }}" target="_blank">HTML</a>
+                        {% endif %}
+                        {% if dataset.output_links.md %}
+                            <a href="{{ dataset.output_links.md }}" target="_blank">Markdown</a>
+                        {% endif %}
+                        {% if dataset.output_links.txt %}
+                            <a href="{{ dataset.output_links.txt }}" target="_blank">Log</a>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to create a spinner element
+            function createSpinner() {
+                const spinner = document.createElement('div');
+                spinner.classList.add('spinner');
+                return spinner;
+            }
+
+            // Function to handle button states
+            async function handleButtonClick(event) {
+                const button = event.currentTarget;
+                const action = button.getAttribute('data-action');
+                const filename = button.getAttribute('data-filename');
+                const endpoint = button.getAttribute('data-endpoint');
+                let url = '';
+                let payload = {};
+
+                if (action === 'prep-data') {
+                    url = `/prep-data/${encodeURIComponent(filename)}`;
+                } else if (action === 'run_analysis') {
+                    url = `/run_analysis/${encodeURIComponent(endpoint)}`;
+                } else {
+                    console.error('Unknown action:', action);
+                    return;
+                }
+
+                // Disable the button and show spinner
+                button.disabled = true;
+                button.classList.add('button-disabled');
+                const spinner = createSpinner();
+                button.appendChild(spinner);
+
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    // Remove spinner
+                    button.removeChild(spinner);
+
+                    if (response.ok) {
+                        if (data.status === 'success') {
+                            // Success: Grey out the button
+                            button.classList.add('button-disabled');
+                            button.classList.remove('button-error');
+                            button.textContent = action === 'prep-data' ? 'Prep Data ✅' : 'Run Analysis ✅';
+                        } else if (data.status === 'warning') {
+                            // Warning: Indicate success with warnings
+                            button.classList.add('button-disabled');
+                            button.classList.remove('button-error');
+                            button.textContent = action === 'prep-data' ? 'Prep Data ⚠️' : 'Run Analysis ⚠️';
+                            alert(`Warning: ${data.message}\nErrors: ${data.errors ? data.errors.join(', ') : 'None'}`);
+                        } else {
+                            // Unknown status
+                            throw new Error('Unknown response status');
+                        }
+                    } else {
+                        // Error response from server
+                        button.classList.add('button-error');
+                        button.textContent = action === 'prep-data' ? 'Prep Data ❌' : 'Run Analysis ❌';
+                        alert(`Error: ${data.message}`);
+                    }
+                } catch (error) {
+                    // Network or other errors
+                    // Remove spinner if present
+                    if (button.contains(spinner)) {
+                        button.removeChild(spinner);
+                    }
+                    button.classList.add('button-error');
+                    button.textContent = action === 'prep-data' ? 'Prep Data ❌' : 'Run Analysis ❌';
+                    alert(`An error occurred: ${error.message}`);
+                }
+            }
+
+            // Attach event listeners to all action buttons
+            const actionButtons = document.querySelectorAll('.actions button');
+            actionButtons.forEach(button => {
+                button.addEventListener('click', handleButtonClick);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ ai/data/climate
 static
 manual/output
 manual
+ai/climate
 ai/data/datasets
 ai/data/policeHistory
 ai/data/anomaly_charts

@@ -34,52 +34,53 @@ def sanitize_filename(filename):
     return sanitized
 
 def create_analysis_map(datasets_folder, output_folder):
-        """
-        Re-creates the analysis map from individual result files.
+    """
+    Re-creates the analysis map from individual result files.
+    
+    Args:
+        datasets_folder (str): Path to folder containing dataset files
+        output_folder (str): Path to output folder for analysis map
         
-        Args:
-            datasets_folder (str): Path to folder containing dataset files
-            output_folder (str): Path to output folder for analysis map
-            
-        Returns:
-            str: Path to created analysis map file
-        """
-        # List all JSON files in the datasets directory
-        article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
-        if not article_list:
-            print(f"No JSON files found in {datasets_folder}")
-            return None
-            
-        print(f"Found {len(article_list)} JSON files to process:")
-        for idx, filename in enumerate(article_list):
-            print(f"{idx}. {filename}")
-            
-        # Create output file for analysis map
-        output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        output_path = os.path.join(output_folder, output_filename)
-        # Initialize list to store all results
-        all_results = []
+    Returns:
+        str: Path to created analysis map file
+    """
+    # List all JSON files in the datasets directory
+    article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
+    if not article_list:
+        print(f"No JSON files found in {datasets_folder}")
+        return None
         
-        # Load and combine individual result files
-        individual_results_dir = os.path.join(output_folder, 'individual_results')
-        if os.path.exists(individual_results_dir):
-            result_files = [f for f in os.listdir(individual_results_dir) if f.startswith('result_')]
-            for result_file in result_files:
-                result_path = os.path.join(individual_results_dir, result_file)
-                try:
-                    with open(result_path, 'r', encoding='utf-8') as f:
-                        result_data = json.load(f)
-                        all_results.append(result_data)
-                except Exception as e:
-                    print(f"Error reading result file {result_file}: {e}")
-                    continue
+    print(f"Found {len(article_list)} JSON files to process:")
+    for idx, filename in enumerate(article_list):
+        print(f"{idx}. {filename}")
         
-        # Write combined results to analysis map file
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(all_results, f, indent=4)
-            
-        print(f"Analysis map created with {len(all_results)} entries at: {output_path}")
-        return output_path
+    # Create output file for analysis map
+    # output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    output_filename = f"analysis_map.json"
+    output_path = os.path.join(output_folder, output_filename)
+    # Initialize list to store all results
+    all_results = []
+    
+    # Load and combine individual result files
+    individual_results_dir = os.path.join(output_folder, 'individual_results')
+    if os.path.exists(individual_results_dir):
+        result_files = [f for f in os.listdir(individual_results_dir) if f.endswith('.json')]
+        for result_file in result_files:
+            result_path = os.path.join(individual_results_dir, result_file)
+            try:
+                with open(result_path, 'r', encoding='utf-8') as f:
+                    result_data = json.load(f)
+                    all_results.append(result_data)
+            except Exception as e:
+                print(f"Error reading result file {result_file}: {e}")
+                continue
+    
+    # Write combined results to analysis map file
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(all_results, f, indent=4)
+        
+    print(f"Analysis map created with {len(all_results)} entries at: {output_path}")
+    return output_path
 
 def format_columns(columns):
     """Format the columns information into a readable string."""
@@ -100,13 +101,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
     article_path = os.path.join(datasets_folder, filename)
     print(f"\nProcessing file: {filename}")
 
-    result_filename = f"result_{sanitize_filename(filename)}"
-    result_path = os.path.join(individual_results_dir, result_filename)
-
-    if os.path.exists(result_path):
-        print(f"Skipping already processed file: {filename}")
-        return
-
+    # Load JSON data to extract 'endpoint' before determining the result filename
     try:
         with open(article_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -119,6 +114,29 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
         error_log.append({'filename': filename, 'error': str(e)})
         return
 
+    # Extract 'endpoint' field
+    endpoint = data.get('endpoint', None)
+    if not endpoint:
+        print(f"'endpoint' field missing in file {filename}. Skipping file.")
+        error_log.append({'filename': filename, 'error': "'endpoint' field missing."})
+        return
+
+    # Sanitize the 'endpoint' to create a safe filename
+    sanitized_endpoint = sanitize_filename(endpoint)
+    if not sanitized_endpoint:
+        print(f"Sanitized 'endpoint' is empty for file {filename}. Skipping file.")
+        error_log.append({'filename': filename, 'error': "Sanitized 'endpoint' is empty."})
+        return
+
+    # Define the result filename based on the sanitized 'endpoint'
+    result_filename = f"result_{sanitized_endpoint}.json"
+    result_path = os.path.join(individual_results_dir, result_filename)
+
+    if os.path.exists(result_path):
+        print(f"Skipping already processed file: {filename}")
+        return
+
+    # Continue processing the file as before
     # Check 'rows_updated_at' and threshold
     rows_updated_at = data.get("rows_updated_at", None)
 
@@ -144,7 +162,6 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
         'dataTypeName': col.get('dataTypeName', '')
     } for col in data.get('columns', []) if 'fieldName' in col]
     columns_formatted = format_columns(columns)
-    endpoint = data.get('endpoint', '')
 
     # Prepare AI prompt
     user_message = f"""
@@ -156,7 +173,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
     Columns:
     {columns_formatted}
     """
-# Construct the prompt
+    # Construct the prompt
     system_message = """
           You are an AI assistant that generates working API queries and categorizes datasets for analysis.  We are looking to find anomalous trends within the dataset.  Trends are spoting by comparing sums or averages over time by category.  So we are looking for data that updates reugularrly, has at least one time series variable and at least one numeric variable.  Often with city datasets, the numeric variable we need is actually just a count of the number of items by month (like for police or fire reports).
 
@@ -357,4 +374,4 @@ if __name__ == "__main__":
     # Check for a filename argument
     filename_arg = sys.argv[1] if len(sys.argv) > 1 else None
     # main(filename_arg)
-    create_analysis_map(datasets_folder, output_folder)     
+    create_analysis_map(datasets_folder, output_folder)
