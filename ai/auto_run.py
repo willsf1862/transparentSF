@@ -84,7 +84,7 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
     date_fields = data_entry.get('DateFields', [])
     numeric_fields = data_entry.get('NumericFields', [])
     category_field = data_entry.get('CategoryFields', [])
-    usefulness = data_entry.get('usefulness', 0)
+    usefulness = data_entry.get('usefulness', data_entry.get('table_metadata', {}).get('usefulness', 0))
 
     # Check usefulness
     if usefulness == 0:
@@ -99,10 +99,6 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
     # Extract table and column metadata
     table_metadata = data_entry.get('table_metadata', {})
     column_metadata = data_entry.get('column_metadata', [])
-
-    # Create a subfolder for the category in the output folder
-    category_folder = os.path.join(output_folder, category)
-    os.makedirs(category_folder, exist_ok=True)
 
     # Set up anomaly detection parameters
     recent_period = {
@@ -148,6 +144,9 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
                 # Update chart title for this combination
                 context_variables['chart_title'] = (
                     f"{noun} <br> {numeric_field} by {date_field}"
+                )
+                context_variables['noun'] = (
+                    f"{noun}"
                 )
                 # Generate the chart
                 chart_result = generate_time_series_chart(
@@ -229,6 +228,11 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
                 log_file.write(f"{index}: {title} - Error detecting anomalies: {str(e)}\n")
                 continue
 
+          # Add query URL information
+        base_url = "https://data.sfgov.org/resource/"
+        params = "$query=" + query
+        query_url = f"{base_url}{endpoint}?{params}"
+
         processed_html_contents = []
         for content in all_html_contents:
             if content is None:
@@ -244,7 +248,8 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
         combined_html = "\n\n".join(processed_html_contents)
 
         # Prepare metadata for HTML
-        metadata_html = f"<head><title>November {noun}s</title></head><body><h1>November update for {noun}s</h1>\n"
+        metadata_html = f"<head><title>{noun}</title></head><body><h1>November update for {noun}</h1>\n"
+        metadata_html += f"<p><strong>Query URL:</strong> {query_url}</p>\n"
         for key, value in table_metadata.items():
             metadata_html += f"<p><strong>{key.capitalize()}:</strong> {value}</p>"
 
@@ -270,7 +275,10 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
         sanitized_title = endpoint if endpoint.endswith('.json') else endpoint + '.json'
 
         # Save combined HTML content
-        html_filename = os.path.join( f"{sanitized_title}_{index}_combined_charts.html")
+        html_filename = os.path.join(output_folder, f"{sanitized_title}.html")
+# Delete existing file if it exists
+        if os.path.exists(html_filename):
+            os.remove(html_filename)
         with open(html_filename, 'w', encoding='utf-8') as f:
             f.write(full_html_content)
 
@@ -290,7 +298,10 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
         combined_markdown = "\n\n".join(processed_markdown_contents)
 
         # Prepare Markdown metadata
-        metadata_md = f"# November update for {table_metadata.get('item_noun', 'Item')}s\n\n# Table Metadata\n"
+        metadata_md = f"# {table_metadata.get('item_noun', 'Item')}\n\n# Table Metadata\n"
+      
+        metadata_md += f"**Query URL:** {query_url}\n\n"
+
         for key, value in table_metadata.items():
             metadata_md += f"**{key.capitalize()}:** {value}\n\n"
 
@@ -306,11 +317,16 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
 
         # Prepend metadata to combined_markdown
         full_markdown_content = metadata_md + "\n\n" + combined_markdown
+        # Save markdown file to output folder
+        markdown_filename = os.path.join(output_folder, f"{sanitized_title}.md")
 
-        markdown_filename = os.path.join(f"{sanitized_title}_{index}_combined_charts.md")
+        # Delete existing file if it exists
+        if os.path.exists(markdown_filename):
+            os.remove(markdown_filename)
         with open(markdown_filename, 'w', encoding='utf-8') as f:
             f.write(full_markdown_content)
 
+        
         # Construct the prompt
         system_message = """
             Role & Objective:
@@ -365,7 +381,7 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
 
         response = client.run(agent=analyst_agent, messages=messages)
         assistant_reply = response.messages[-1]["content"]
-        assistant_reply_filename = os.path.join( f"{sanitized_title}_{index}_assistant_reply.txt")
+        assistant_reply_filename = os.path.join(output_folder, f"{sanitized_title}_{index}_assistant_reply.txt")
         with open(assistant_reply_filename, 'w', encoding='utf-8') as f:
             f.write(assistant_reply)
 

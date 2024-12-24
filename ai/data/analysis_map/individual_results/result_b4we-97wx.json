@@ -1,0 +1,93 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "case_type",
+        "ethnicity",
+        "gender",
+        "dpa_finding",
+        "status",
+        "sub_status"
+    ],
+    "LocationFields": [
+        "district",
+        "analysis_neighborhood",
+        "supervisor_district"
+    ],
+    "endpoint": "b4we-97wx.json",
+    "query": "SELECT date_trunc_ym(complaint_received_date) AS month, count(*) as item_count, case_type, ethnicity, gender, dpa_finding, status, sub_status, district, analysis_neighborhood, supervisor_district WHERE complaint_received_date >= '2022-09-01T00:00:00.000' GROUP BY month, case_type, ethnicity, gender, dpa_finding, status, sub_status, district, analysis_neighborhood, supervisor_district",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month when the complaint was received",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of misconduct cases received in each month",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "case_type",
+            "description": "Type of misconduct case",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "ethnicity",
+            "description": "Complainant ethnicity",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "gender",
+            "description": "Complainant gender",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "dpa_finding",
+            "description": "Legal Findings associated with an Allegation",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "status",
+            "description": "Stage of the case investigation",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "sub_status",
+            "description": "Sub-status of the case",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "district",
+            "description": "Police district involved",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "Neighborhood where the incident occurred",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supervisor_district",
+            "description": "Supervisor District where the incident occurred",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Police Accountability Misconduct Cases and Allegations",
+        "description": "A dataset containing detailed public information on police misconduct cases. It aims to provide transparency and accountability in reported police misconduct incidents.",
+        "endpoint": "b4we-97wx.json",
+        "category": "Safety",
+        "periodic": true,
+        "item_noun": "Police Misconduct Case",
+        "whom_it_may_interest": "Researchers, policymakers, journalists, advocacy groups, and San Francisco residents interested in police accountability, the outcomes of misconduct allegations, and their distributions across demographics and districts in San Francisco."
+    },
+    "filename": "Police Accountability Misconduct Cases and Allegations.json",
+    "title": "Police Accountability Misconduct Cases and Allegations"
+}

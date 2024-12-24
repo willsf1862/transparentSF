@@ -127,7 +127,7 @@ def main():
         print(f"No month provided. Using last completed month: {month_str}")
 
     # Month directory
-    month_dir = os.path.join(output_folder, month_str)
+    month_dir = os.path.join(output_folder)
     if not os.path.isdir(month_dir):
         print(f"Month directory not found: {month_dir}")
         sys.exit(1)

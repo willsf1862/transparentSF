@@ -1,0 +1,56 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "total_emergency_calls",
+        "total_non_emergency_calls"
+    ],
+    "CategoryFields": [
+        "station_id",
+        "call_type"
+    ],
+    "LocationFields": [],
+    "endpoint": "pnbj-y63g.json",
+    "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(total_emergency_calls) AS total_emergency_calls, sum(total_non_emergency_calls) AS total_non_emergency_calls, station_id, call_type WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, station_id, call_type",
+    "report_category": "Safety",
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month when the data was last loaded into the Open Data Portal, grouped by year and month",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "total_emergency_calls",
+            "description": "Number of emergency calls requiring immediate response",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "total_non_emergency_calls",
+            "description": "Number of non-emergency calls not requiring immediate response",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "station_id",
+            "description": "Station area associated with the address where the incidents happened",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "call_type",
+            "description": "Type of call: Emergencies (Code 3) and non-emergencies (Code 2)",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Fire Department 30 day calls",
+        "description": "This dataset includes summary data for Fire Department calls over the last 30 days, provided with a daily update frequency.",
+        "endpoint": "pnbj-y63g.json",
+        "category": "Safety",
+        "periodic": true,
+        "item_noun": "Fire Department Call Record",
+        "whom_it_may_interest": "Fire Department management and personnel, public safety officials, city planners, researchers studying emergency response utilization and effectiveness.",
+        "usefulness": 3
+    },
+    "filename": "Fire Department 30 day calls.json",
+    "title": "Fire Department 30 day calls"
+}

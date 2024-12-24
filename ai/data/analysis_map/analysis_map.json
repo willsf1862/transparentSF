@@ -272,48 +272,60 @@
         "data_validated": true
     },
     {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "total_penalty_amount"
+        ],
+        "CategoryFields": [
+            "respondents",
+            "violation_s",
+            "disposition"
+        ],
+        "LocationFields": [],
         "endpoint": "yre9-mzkb.json",
-        "query": "SELECT date_trunc_ym(date) AS month, violation_s, disposition, COUNT(*) AS count, SUM(penalty_amount) AS total_penalty WHERE date>='2022-09-01' GROUP BY month, violation_s, disposition ORDER BY month, violation_s, disposition",
+        "query": "SELECT date_trunc_ym(date) AS month, sum(penalty_amount) as total_penalty_amount, respondents, violation_s, disposition WHERE date >= '2022-09-01T00:00:00.000' GROUP BY month, respondents, violation_s, disposition",
         "report_category": "Other",
         "usefulness": 2,
-        "column_metadata": {
-            "month": {
-                "data_type": "date",
-                "description": "Month and year of the record, aggregated from the 'date' field."
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the penalty was issued",
+                "dataTypeName": "calendar_date"
             },
-            "violation_s": {
-                "data_type": "text",
-                "description": "Type of violation committed, as stated in the dataset."
+            {
+                "fieldName": "total_penalty_amount",
+                "description": "Total penalty amount issued in the month",
+                "dataTypeName": "number"
             },
-            "disposition": {
-                "data_type": "text",
-                "description": "Outcome of the ethics investigation or judgment."
+            {
+                "fieldName": "respondents",
+                "description": "Individuals or entities to whom penalties were issued",
+                "dataTypeName": "text"
             },
-            "count": {
-                "data_type": "number",
-                "description": "Count of records for the given month, violation type, and disposition."
+            {
+                "fieldName": "violation_s",
+                "description": "Types of violations committed by the respondents",
+                "dataTypeName": "text"
             },
-            "total_penalty": {
-                "data_type": "number",
-                "description": "Sum of penalties assessed for the records in the specific group (month, violation type, disposition)."
+            {
+                "fieldName": "disposition",
+                "description": "Outcome or ruling of the enforcement case",
+                "dataTypeName": "text"
             }
-        },
+        ],
         "table_metadata": {
             "title": "Ethics Commission Enforcement Penalties Issued",
-            "description": "Completed investigations by the Ethics Commission on which a final decision and penalty have been issued.",
-            "endpoint": "yre9-mzkb",
+            "description": "The Ethics Commission releases publicly available information related to completed investigations for which the Commission has made a final decision on the merits and assessed a penalty, whether by stipulation or after a hearing. The Ethics Commission will take no further action on the matters listed.",
+            "endpoint": "yre9-mzkb.json",
             "category": "Other",
-            "district_level": false,
-            "item_noun": "penalty record",
-            "whom_it_may_interest": "Ethics agencies, policy makers, legal professionals, and researchers in law or ethics."
+            "periodic": true,
+            "item_noun": "Enforcement Penalties",
+            "whom_it_may_interest": "Policy analysts, legal experts, journalists, social scientists, and citizens interested in ethical conduct and enforcement actions within city governance"
         },
-        "periodic": "yes",
-        "item_noun": "penalty record",
-        "district_level": "false",
-        "whom_it_may_interest": "Ethics agencies, policy makers, legal professionals, researchers in law or ethics.",
         "filename": "Ethics Commission Enforcement Penalties Issued.json",
-        "title": "Ethics Commission Enforcement Penalties Issued",
-        "data_validated": true
+        "title": "Ethics Commission Enforcement Penalties Issued"
     },
     {
         "endpoint": "eshn-8t3a.json",
@@ -406,16 +418,17 @@
             "item_count"
         ],
         "CategoryFields": [
-            "ownership_name",
-            "dba_name",
-            "naic_code_description"
+            "naic_code_description",
+            "supervisor_district",
+            "neighborhoods_analysis_boundaries"
         ],
         "LocationFields": [
-            "neighborhoods_analysis_boundaries",
-            "supervisor_district"
+            "business_zip",
+            "supervisor_district",
+            "neighborhoods_analysis_boundaries"
         ],
-        "endpoint": "g8m3-pdis",
-        "query": "SELECT date_trunc_ym(location_start_date) AS month, count(*) AS item_count, ownership_name, dba_name, naic_code_description, neighborhoods_analysis_boundaries, supervisor_district WHERE location_start_date >= '2022-09-01T00:00:00.000' GROUP BY month, ownership_name, dba_name, naic_code_description, neighborhoods_analysis_boundaries, supervisor_district",
+        "endpoint": "g8m3-pdis.json",
+        "query": "SELECT date_trunc_ym(location_start_date) AS month, count(*) as item_count, naic_code_description, supervisor_district, neighborhoods_analysis_boundaries WHERE location_start_date >= '2022-09-01T00:00:00.000' GROUP BY month, naic_code_description, supervisor_district, neighborhoods_analysis_boundaries",
         "report_category": "Economy",
         "usefulness": 3,
         "column_metadata": [
@@ -426,54 +439,39 @@
             },
             {
                 "fieldName": "item_count",
-                "description": "Number of registered business locations",
+                "description": "Count of business locations registered",
                 "dataTypeName": "number"
             },
             {
-                "fieldName": "ownership_name",
-                "description": "Business owner(s) name",
-                "dataTypeName": "text"
-            },
-            {
-                "fieldName": "dba_name",
-                "description": "Doing Business As Name or Location Name",
-                "dataTypeName": "text"
-            },
-            {
                 "fieldName": "naic_code_description",
-                "description": "Business Activity the NAICS code maps on to",
+                "description": "Description of the NAICS code representing the primary business activity",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "supervisor_district",
+                "description": "The Supervisor District in which the business location is recorded",
                 "dataTypeName": "text"
             },
             {
                 "fieldName": "neighborhoods_analysis_boundaries",
                 "description": "The Analysis Neighborhood in which the business location falls",
                 "dataTypeName": "text"
-            },
-            {
-                "fieldName": "supervisor_district",
-                "description": "The Supervisor District in which the business location falls",
-                "dataTypeName": "text"
             }
         ],
         "table_metadata": {
             "title": "Registered Business Locations - San Francisco",
-            "description": "This dataset includes the locations of businesses that pay taxes to the City and County of San Francisco. Each registered business may have multiple locations and each location is a single row.",
-            "endpoint": "g8m3-pdis",
+            "description": "This dataset includes locations of businesses in San Francisco that pay taxes to the City and County of San Francisco. Each registered business location is recorded and detailed.",
+            "endpoint": "g8m3-pdis.json",
             "category": "Economy",
             "periodic": true,
-            "item_noun": "Business Location",
-            "district_level": true,
-            "whom_it_may_interest": "Business owners, city planners, tax officers, policymakers, and economic researchers interested in tracking the business landscape progression in San Francisco",
-            "filename": "Registered Business Locations - San Francisco.json",
-            "data_validated": true,
-            "usefulness": 3
+            "item_noun": "Business Locations",
+            "whom_it_may_interest": "Economic researchers, city planners, tax authorities, local businesses, and policy makers interested in the distribution and types of businesses across San Francisco."
         },
         "periodic": true,
-        "item_noun": "Business Location",
-        "whom_it_may_interest": "Tax officers, tax planning agencies, economic analysts, and business owners interested in the business dynamics and distribution concerning statues and locations in San Francisco.",
+        "item_noun": "Business Locations",
+        "whom_it_may_interest": "This data appeals to city planners, local government officials, economic analysts, and researchers interested in urban development, business patterns, and regional economics concerning San Francisco.",
         "filename": "Registered Business Locations - San Francisco.json",
-        "title": "Registered Business Locations - San Francisco",
-        "data_validated": true
+        "title": "Registered Business Locations - San Francisco"
     },
     {
         "endpoint": "y8qm-zrwi.json",
@@ -518,6 +516,56 @@
         "filename": "SFEC Form 3209b - Notification of Recusal Filings.json",
         "title": "SFEC Form 3209b - Notification of Recusal Filings",
         "data_validated": true
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "over_pct_avg",
+            "item_count"
+        ],
+        "CategoryFields": [
+            "streetname"
+        ],
+        "LocationFields": [],
+        "endpoint": "wytw-dqq4.json",
+        "query": "SELECT date_trunc_ym(published_date) AS month, avg(over_pct) AS over_pct_avg, count(*) AS item_count, streetname WHERE published_date >= '2022-09-01T00:00:00.000' GROUP BY month, streetname ORDER BY month",
+        "report_category": "Transportation",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month of the data recorded, aggregated from the publication date",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "over_pct_avg",
+                "description": "Average percentage of drivers exceeding the speed limit by any margin",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of records aggregated by month and street",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "streetname",
+                "description": "Name of the street segment being analyzed",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "San Francisco Speed Limit Compliance",
+            "description": "Statistics on speeding rates and exceedance of speed limit along selected street segments throughout San Francisco from 2004 to 2009.",
+            "endpoint": "wytw-dqq4.json",
+            "category": "Transportation",
+            "periodic": true,
+            "item_noun": "Record",
+            "whom_it_may_interest": "Transport planners, law enforcement agencies, safety advocates, urban planners, researchers studying traffic behavior, and policy-makers."
+        },
+        "filename": "San Francisco Speed Limit Compliance.json",
+        "title": "San Francisco Speed Limit Compliance"
     },
     {
         "endpoint": "64rb-55bi.json",
@@ -1146,6 +1194,87 @@
             "month"
         ],
         "NumericFields": [
+            "number_killed",
+            "number_injured"
+        ],
+        "CategoryFields": [
+            "collision_severity",
+            "weather_1",
+            "type_of_collision"
+        ],
+        "LocationFields": [
+            "supervisor_district",
+            "police_district",
+            "analysis_neighborhood"
+        ],
+        "endpoint": "ubvf-ztfx.json",
+        "query": "SELECT date_trunc_ym(collision_datetime) AS month, sum(number_killed) as number_killed, sum(number_injured) as number_injured, collision_severity, weather_1, type_of_collision, supervisor_district, police_district, analysis_neighborhood WHERE collision_datetime >= '2022-09-01T00:00:00.000' GROUP BY month, collision_severity, weather_1, type_of_collision, supervisor_district, police_district, analysis_neighborhood",
+        "report_category": "Safety",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the crash occurred grouped by month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "number_killed",
+                "description": "Number of fatalities in the crash",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "number_injured",
+                "description": "Number of injuries in the crash spanning several degrees of severity",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "collision_severity",
+                "description": "The highest level of injury severity in the crash",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "weather_1",
+                "description": "Primary weather condition at the time of the crash",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "type_of_collision",
+                "description": "The type of collision that occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "supervisor_district",
+                "description": "Supervisor district where the crash occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "police_district",
+                "description": "Police district where the crash occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "analysis_neighborhood",
+                "description": "Neighborhood of San Francisco where the crash occurred as part of an analysis grouping",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Traffic Crashes Resulting in Injury",
+            "description": "This dataset contains all exchanges resulting in an injury in San Francisco, providing details on crash circumstances, severity, involved parties, and environmental conditions.",
+            "endpoint": "ubvf-ztfx.json",
+            "category": "Safety",
+            "periodic": true,
+            "item_noun": "Traffic Crash Report",
+            "whom_it_may_interest": "Law enforcement agencies, city planners, traffic engineers, policy makers, researchers in urban and transportation studies, and the general public interested in the safety of roadways."
+        },
+        "filename": "Traffic Crashes Resulting in Injury.json",
+        "title": "Traffic Crashes Resulting in Injury"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
             "permit_count",
             "estimated_cost_sum",
             "proposed_units",
@@ -1452,6 +1581,87 @@
             "item_count"
         ],
         "CategoryFields": [
+            "collision_type",
+            "street_type",
+            "sex",
+            "deceased"
+        ],
+        "LocationFields": [
+            "analysis_neighborhood",
+            "supervisor_district",
+            "police_district"
+        ],
+        "endpoint": "dau3-4s8f.json",
+        "query": "SELECT date_trunc_ym(collision_datetime) AS month, count(*) AS item_count, collision_type, street_type, sex, deceased, analysis_neighborhood, supervisor_district, police_district WHERE collision_datetime >= '2022-09-01T00:00:00.000' GROUP BY month, collision_type, street_type, sex, deceased, analysis_neighborhood, supervisor_district, police_district",
+        "report_category": "Safety",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the traffic crash occurred",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of fatality records",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "collision_type",
+                "description": "Type of crash",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "street_type",
+                "description": "Type of street where collision occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "sex",
+                "description": "Sex of deceased victim",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "deceased",
+                "description": "Mode of travel of deceased victim",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "analysis_neighborhood",
+                "description": "Neighborhood where the crash occurred according to city analysis",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "supervisor_district",
+                "description": "Supervisor district where the crash occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "police_district",
+                "description": "Police district where the crash occurred",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Traffic Crashes Resulting in Fatality",
+            "description": "All fatalities from traffic crashes in San Francisco correlating with data from various city departments.",
+            "endpoint": "dau3-4s8f.json",
+            "category": "Safety"
+        },
+        "periodic": true,
+        "item_noun": "Traffic Fatality Report",
+        "whom_it_may_interest": "This data can be valuable to traffic safety analysts, public health officials, city planners, police departments, and researchers focused on improving transportation safety and designing safer road infrastructure. It's particularly useful for those invested in the Vision Zero initiative to reduce traffic-related deaths.",
+        "filename": "Traffic Crashes Resulting in Fatality.json",
+        "title": "Traffic Crashes Resulting in Fatality"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
             "district_name"
         ],
         "endpoint": "5xmc-5bjj.json",
@@ -1675,6 +1885,63 @@
         "title": "Fire Violations",
         "data_validated": true,
         "error": "Query coordinator error: query.soql.no-such-column; No such column: violation_type; position: Map(row -> 1, column -> 31, line -> \"SELECT `supervisor_district`, `violation_type`, date_trunc_ym(`violation_date`) AS `month`, COUNT(*) AS `count` WHERE `violation_date` >= \\\"2022-09-01\\\" GROUP BY `supervisor_district`, `violation_type`, `month` ORDER BY `month` ASC NULL LAST, `supervisor_district` ASC NULL LAST, `violation_type` ASC NULL LAST LIMIT 1\\n                              ^\")"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
+            "department_name",
+            "strategic_goal",
+            "measure_title"
+        ],
+        "LocationFields": [],
+        "endpoint": "6dpt-7w23.json",
+        "query": "SELECT date_trunc_ym(fiscal_year) AS month, count(*) AS item_count, department_name, strategic_goal, measure_title WHERE fiscal_year >= '2022-09-01T00:00:00.000' GROUP BY month, department_name, strategic_goal, measure_title",
+        "report_category": "Economy",
+        "usefulness": 2,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "The fiscal year of the data aggregated by month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of performance metrics aggregated by month and categories",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "department_name",
+                "description": "The department responsible for the metric",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "strategic_goal",
+                "description": "The strategic goal associated with the metric",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "measure_title",
+                "description": "The descriptive title of the measure",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "San Francisco Citywide Performance Metrics",
+            "description": "This dataset reports key performance metrics for departments and programs in the City and County of San Francisco.",
+            "endpoint": "6dpt-7w23.json",
+            "category": "Economy",
+            "periodic": true,
+            "item_noun": "Performance Metric",
+            "district_level": false,
+            "whom_it_may_interest": "City planners, analysts, department heads, and those involved in municipal governance or public administration interested in evaluating department efficiency and impact on city goals."
+        },
+        "filename": "San Francisco Citywide Performance Metrics.json",
+        "title": "San Francisco Citywide Performance Metrics"
     },
     {
         "endpoint": "tiju-qyvs.json",
@@ -3269,6 +3536,136 @@
             "item_count"
         ],
         "CategoryFields": [
+            "department",
+            "goal",
+            "category_1",
+            "category_2",
+            "category_3",
+            "category_4"
+        ],
+        "LocationFields": [],
+        "endpoint": "kc49-udxn.json",
+        "query": "SELECT date_trunc_ym(data_loaded_at) AS month, count(*) as item_count, department, goal, category_1, category_2, category_3, category_4 WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, department, goal, category_1, category_2, category_3, category_4 ORDER BY month",
+        "report_category": "Health",
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "The date the data was uploaded to the open data portal, grouped by month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of performance measures reported in this month",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "department",
+                "description": "Department responsible for collecting and reporting the data",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "goal",
+                "description": "The goal within the department that the measure is associated with",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "category_1",
+                "description": "This field contains additional details about certain measures.",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "category_2",
+                "description": "This field contains additional details about certain measures.",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "category_3",
+                "description": "This field contains additional details about certain measures.",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "category_4",
+                "description": "This field contains additional details about certain measures.",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Scorecard Measures",
+            "description": "Departments collect and submit this data to the Controller's Office via the Budget and Performance Measurement System (BPMS). This data is collected to display on the City Performance Scorecard website, a site that provides timely performance information to the public and policy makers by major service area.",
+            "endpoint": "kc49-udxn.json",
+            "category": "Health",
+            "periodic": true,
+            "item_noun": "Performance Measure",
+            "whom_it_may_interest": "Policy makers, public officials, healthcare professionals, and citizens interested in municipal performance and strategic goal achievements across various departments",
+            "usefulness": 3
+        },
+        "filename": "Scorecard Measures.json",
+        "title": "Scorecard Measures"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "total_emergency_calls",
+            "total_non_emergency_calls"
+        ],
+        "CategoryFields": [
+            "station_id",
+            "call_type"
+        ],
+        "LocationFields": [],
+        "endpoint": "pnbj-y63g.json",
+        "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(total_emergency_calls) AS total_emergency_calls, sum(total_non_emergency_calls) AS total_non_emergency_calls, station_id, call_type WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, station_id, call_type",
+        "report_category": "Safety",
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the data was last loaded into the Open Data Portal, grouped by year and month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "total_emergency_calls",
+                "description": "Number of emergency calls requiring immediate response",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_non_emergency_calls",
+                "description": "Number of non-emergency calls not requiring immediate response",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "station_id",
+                "description": "Station area associated with the address where the incidents happened",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "call_type",
+                "description": "Type of call: Emergencies (Code 3) and non-emergencies (Code 2)",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Fire Department 30 day calls",
+            "description": "This dataset includes summary data for Fire Department calls over the last 30 days, provided with a daily update frequency.",
+            "endpoint": "pnbj-y63g.json",
+            "category": "Safety",
+            "periodic": true,
+            "item_noun": "Fire Department Call Record",
+            "whom_it_may_interest": "Fire Department management and personnel, public safety officials, city planners, researchers studying emergency response utilization and effectiveness.",
+            "usefulness": 3
+        },
+        "filename": "Fire Department 30 day calls.json",
+        "title": "Fire Department 30 day calls"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
             "status",
             "receiving_division",
             "assigned_division",
@@ -4195,6 +4592,81 @@
         "data_validated": true
     },
     {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
+            "most_serious_bias",
+            "most_serious_bias_type",
+            "most_serious_victim_type",
+            "offensive_act",
+            "weapon_type"
+        ],
+        "LocationFields": [
+            "most_serious_location"
+        ],
+        "endpoint": "huqr-9p9x.json",
+        "query": "SELECT date_trunc_ym(occurence_month) AS month, count(*) AS item_count, most_serious_bias, most_serious_bias_type, most_serious_victim_type, offensive_act, weapon_type, most_serious_location WHERE occurence_month >= '2022-09-01T00:00:00.000' GROUP BY month, most_serious_bias, most_serious_bias_type, most_serious_victim_type, offensive_act, weapon_type, most_serious_location",
+        "report_category": "Safety",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Year and month of the hate crime occurrence, grouped by month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Number of hate crime incidents reported",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "most_serious_bias",
+                "description": "Explicit bias motivation behind the most serious crime committed",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "most_serious_bias_type",
+                "description": "Classification of bias that spans the specific bias motivation for the hate crime incident",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "most_serious_victim_type",
+                "description": "Type of victim associated with the most serious crime committed",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "offensive_act",
+                "description": "Specific type of offensive act perpetrated in the hate crime incident",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "weapon_type",
+                "description": "The specific type of weapon used in the hate crime incident",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "most_serious_location",
+                "description": "Location associated with the most serious crime committed",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Police Department Investigated Hate Crimes",
+            "description": "These data represent hate crimes reported by the SFPD to the California Department of Justice. The dataset includes details on the hate crime offense, bias type, location/time, and the number of victims and suspects.",
+            "endpoint": "huqr-9p9x.json",
+            "category": "Safety",
+            "periodic": true,
+            "item_noun": "Hate Crime Incident",
+            "whom_it_may_interest": "This data may interest crime analysts, policy makers, advocacy groups, researchers focusing on social issues, public safety officials, and communities affected by hate crimes."
+        },
+        "filename": "Police Department Investigated Hate Crimes.json",
+        "title": "Police Department Investigated Hate Crimes"
+    },
+    {
         "endpoint": "wfq4-upmv.json",
         "query": "SELECT resource_type, supervisor_district, analysis_neighborhood, date_trunc_ym(data_as_of) AS month, COUNT(*) AS count WHERE data_as_of>='2022-09-01' GROUP BY resource_type, supervisor_district, analysis_neighborhood, month ORDER BY resource_type, supervisor_district, analysis_neighborhood, month",
         "report_category": "Health",
@@ -4269,6 +4741,63 @@
         "filename": "SFO Gate and Stand Assignment Information.json",
         "title": "SFO Gate and Stand Assignment Information",
         "data_validated": true
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "total_tests",
+            "total_positive",
+            "total_negative",
+            "total_indeterminate"
+        ],
+        "CategoryFields": [],
+        "LocationFields": [],
+        "endpoint": "nfpa-mg4g.json",
+        "query": "SELECT date_trunc_ym(specimen_collection_date) AS month, sum(tests) as total_tests, sum(pos) as total_positive, sum(neg) as total_negative, sum(indeterminate) as total_indeterminate WHERE specimen_collection_date >= '2022-09-01T00:00:00.000' GROUP BY month ORDER BY month ASC",
+        "report_category": "Health",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month of specimen collection aggregated from the specimen_collection_date",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "total_tests",
+                "description": "Total number of tests collected per month",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_positive",
+                "description": "Total number of positive tests collected per month",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_negative",
+                "description": "Total number of negative tests collected per month",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_indeterminate",
+                "description": "Total number of indeterminate tests collected per month",
+                "dataTypeName": "number"
+            }
+        ],
+        "table_metadata": {
+            "title": "COVID-19 Testing Over Time",
+            "description": "Data on COVID-19 Testing including daily count of positive, negative, and indeterminate results.",
+            "endpoint": "nfpa-mg4g.json",
+            "category": "Health",
+            "periodic": true,
+            "item_noun": "COVID-19 Test",
+            "whom_it_may_interest": "Health officials, researchers, policy makers, and the general public interested in the COVID-19 testing trends and their impact on public health.",
+            "filename": "COVID-19 Testing Over Time.json",
+            "data_validated": true
+        },
+        "filename": "COVID-19 Testing Over Time.json",
+        "title": "COVID-19 Testing Over Time"
     },
     {
         "endpoint": "btxj-k9uh.json",
@@ -4475,6 +5004,68 @@
         "filename": "Addresses with Units - Enterprise Addressing System.json",
         "title": "Addresses with Units - Enterprise Addressing System",
         "data_validated": true
+    },
+    {
+        "DateFields": [
+            "year"
+        ],
+        "NumericFields": [
+            "total_yes_votes",
+            "total_no_votes"
+        ],
+        "CategoryFields": [
+            "pass_or_fail",
+            "type_measure",
+            "by"
+        ],
+        "LocationFields": [],
+        "endpoint": "xzie-ixjw.json",
+        "query": "SELECT year, sum(yes_votes) AS total_yes_votes, sum(no_votes) AS total_no_votes, pass_or_fail, type_measure, by WHERE year >= 2022 GROUP BY year, pass_or_fail, type_measure, by",
+        "report_category": "Other",
+        "usefulness": 1,
+        "column_metadata": [
+            {
+                "fieldName": "year",
+                "description": "Year when the ballot measure was on the ballot",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_yes_votes",
+                "description": "Total number of yes votes for the measure, aggregated annually",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "total_no_votes",
+                "description": "Total number of no votes for the measure, aggregated annually",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "pass_or_fail",
+                "description": "Outcome of the ballot measure, whether it passed or failed",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "type_measure",
+                "description": "Type of legislation the ballot measure represents (e.g., Bond Issue, Charter Amendment)",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "by",
+                "description": "How the measure was placed on the ballot (e.g., Board of Supervisors, initiative petition)",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "List of Historical Ballot Measures",
+            "description": "This dataset contains historical data of ballot measures in San Francisco, detailing types of measures, how they were placed on the ballot, and their outcomes.",
+            "endpoint": "xzie-ixjw.json",
+            "category": "Other",
+            "periodic": false,
+            "item_noun": "Ballot Measures",
+            "whom_it_may_interest": "Historians, political scientists, students of public administration, campaigners, and generally anyone interested in the political climate and past voting outcomes of San Francisco."
+        },
+        "filename": "List of Historical Ballot Measures.json",
+        "title": "List of Historical Ballot Measures"
     },
     {
         "DateFields": [
@@ -5053,6 +5644,81 @@
             "month"
         ],
         "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
+            "purchasing_department",
+            "commodity_title",
+            "vendor_name"
+        ],
+        "LocationFields": [
+            "vendor_city",
+            "vendor_state",
+            "vendor_zip_code"
+        ],
+        "endpoint": "ebsh-uavg.json",
+        "query": "SELECT date_trunc_ym(data_loaded_at) AS month, count(*) AS item_count, purchasing_department, commodity_title, vendor_name, vendor_city, vendor_state, vendor_zip_code WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, purchasing_department, commodity_title, vendor_name, vendor_city, vendor_state, vendor_zip_code",
+        "report_category": "Economy",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month the data was loaded on the open data portal",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of purchase order lines",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "purchasing_department",
+                "description": "Purchasing department related to the purchase order",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "commodity_title",
+                "description": "Title of the commodity for the purchasing activity",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "vendor_name",
+                "description": "Name of the vendor providing goods or services",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "vendor_city",
+                "description": "City where the vendor is located",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "vendor_state",
+                "description": "State where the vendor is located",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "vendor_zip_code",
+                "description": "Zip code of the vendor location",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Purchasing Commodity Data",
+            "description": "Database of purchasing activity from fiscal year 2007 forward, showing detailed commodity-level data by purchase order for the City and County of San Francisco.",
+            "endpoint": "ebsh-uavg.json",
+            "category": "Economy",
+            "periodic": true,
+            "item_noun": "Purchase Order Line",
+            "whom_it_may_interest": "Economists, financial analysts, city officials, and other stakeholders interested in assessing financial transactions and purchasing behavior patterns in the City and County of San Francisco."
+        },
+        "filename": "Purchasing Commodity Data.json",
+        "title": "Purchasing Commodity Data"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
             "sum_vouchers_paid"
         ],
         "CategoryFields": [
@@ -5577,6 +6243,99 @@
         "title": "Meter Policies",
         "data_validated": true,
         "error": "Query coordinator error: query.soql.no-such-column; No such column: day_of_week; position: Map(row -> 1, column -> 31, line -> \"SELECT `PostID` AS `post_id`, `day_of_week`, `schedule_type`, `cap_color`, date_trunc_ym(`start_date`) AS `month`, SUM(`hourly_rate`) AS `total_hourly_rate`, AVG(`time_limit_minutes`) AS `average_time_limit` WHERE `start_date` >= \\\"2022-09-01\\\" GROUP BY `month`, `post_id`, `day_of_week`, `schedule_type`, `cap_color` LIMIT 1\\n                              ^\")"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
+            "case_type",
+            "ethnicity",
+            "gender",
+            "dpa_finding",
+            "status",
+            "sub_status"
+        ],
+        "LocationFields": [
+            "district",
+            "analysis_neighborhood",
+            "supervisor_district"
+        ],
+        "endpoint": "b4we-97wx.json",
+        "query": "SELECT date_trunc_ym(complaint_received_date) AS month, count(*) as item_count, case_type, ethnicity, gender, dpa_finding, status, sub_status, district, analysis_neighborhood, supervisor_district WHERE complaint_received_date >= '2022-09-01T00:00:00.000' GROUP BY month, case_type, ethnicity, gender, dpa_finding, status, sub_status, district, analysis_neighborhood, supervisor_district",
+        "report_category": "Safety",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the complaint was received",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "item_count",
+                "description": "Count of misconduct cases received in each month",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "case_type",
+                "description": "Type of misconduct case",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "ethnicity",
+                "description": "Complainant ethnicity",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "gender",
+                "description": "Complainant gender",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "dpa_finding",
+                "description": "Legal Findings associated with an Allegation",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "status",
+                "description": "Stage of the case investigation",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "sub_status",
+                "description": "Sub-status of the case",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "district",
+                "description": "Police district involved",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "analysis_neighborhood",
+                "description": "Neighborhood where the incident occurred",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "supervisor_district",
+                "description": "Supervisor District where the incident occurred",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Police Accountability Misconduct Cases and Allegations",
+            "description": "A dataset containing detailed public information on police misconduct cases. It aims to provide transparency and accountability in reported police misconduct incidents.",
+            "endpoint": "b4we-97wx.json",
+            "category": "Safety",
+            "periodic": true,
+            "item_noun": "Police Misconduct Case",
+            "whom_it_may_interest": "Researchers, policymakers, journalists, advocacy groups, and San Francisco residents interested in police accountability, the outcomes of misconduct allegations, and their distributions across demographics and districts in San Francisco."
+        },
+        "filename": "Police Accountability Misconduct Cases and Allegations.json",
+        "title": "Police Accountability Misconduct Cases and Allegations"
     },
     {
         "DateFields": [
@@ -6287,44 +7046,120 @@
         "error": "Expecting value: line 3 column 14 (char 49)"
     },
     {
-        "endpoint": "pyt2-uhqw.json",
-        "query": "SELECT date_trunc_ym(serviced_date) AS month, COUNT(*) AS count, SUM(blocks_applied) AS total_blocks_applied, SUM(blocks_consumed) AS total_blocks_consumed, bait_applied WHERE serviced_date >= '2022-09-01' GROUP BY month, bait_applied ORDER BY month, bait_applied",
-        "report_category": "Health",
-        "usefulness": 2,
-        "column_metadata": {
-            "serviced_date": {
-                "type": "calendar_date",
-                "description": "Date site was serviced and data recorded"
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "fte_count"
+        ],
+        "CategoryFields": [
+            "department",
+            "fund",
+            "job_family"
+        ],
+        "LocationFields": [],
+        "endpoint": "4zfx-f2ts.json",
+        "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(budget) AS fte_count, department, fund, job_family WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, department, fund, job_family ORDER BY month",
+        "report_category": "Economy",
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the data was loaded to the open data portal, grouped by month",
+                "dataTypeName": "calendar_date"
             },
-            "blocks_applied": {
-                "type": "number",
-                "description": "Number of new bait blocks added"
+            {
+                "fieldName": "fte_count",
+                "description": "Sum of Full-Time Equivalents (FTE) budget figures",
+                "dataTypeName": "number"
             },
-            "blocks_consumed": {
-                "type": "number",
-                "description": "Number of bait blocks consumed"
+            {
+                "fieldName": "department",
+                "description": "Department associated with the FTE budget entry",
+                "dataTypeName": "text"
             },
-            "bait_applied": {
-                "type": "text",
-                "description": "Product name for rodent bait applied"
+            {
+                "fieldName": "fund",
+                "description": "Fund associated with the FTE budget entry",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "job_family",
+                "description": "Job family category associated with the FTE budget",
+                "dataTypeName": "text"
             }
+        ],
+        "table_metadata": {
+            "title": "Budget - FTE",
+            "description": "The San Francisco Controller's Office maintains a database of budgetary staffing data that appears in summarized form in each Annual Salary Ordinance (ASO).",
+            "endpoint": "4zfx-f2ts.json",
+            "category": "Economy",
+            "periodic": true,
+            "item_noun": "FTE Entries",
+            "whom_it_may_interest": "Financial analysts, city planners, economists, and public officials interested in understanding the staffing and budget allocation trends within the city government.",
+            "usefulness": 3
         },
+        "filename": "Budget - FTE.json",
+        "title": "Budget - FTE"
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "blocks_applied_sum",
+            "blocks_consumed_sum"
+        ],
+        "CategoryFields": [
+            "bait_applied"
+        ],
+        "LocationFields": [
+            "point"
+        ],
+        "endpoint": "pyt2-uhqw.json",
+        "query": "SELECT date_trunc_ym(serviced_date) AS month, sum(blocks_applied) as blocks_applied_sum, sum(blocks_consumed) as blocks_consumed_sum, bait_applied, point WHERE serviced_date >= '2022-09-01T00:00:00.000' GROUP BY month, bait_applied, point",
+        "report_category": "Health",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Date when the service was provided, grouped by month",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "blocks_applied_sum",
+                "description": "Total number of new bait blocks added",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "blocks_consumed_sum",
+                "description": "Total number of bait blocks consumed",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "bait_applied",
+                "description": "Product name for rodent bait applied",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "point",
+                "description": "Location of CNN where the bait was applied",
+                "dataTypeName": "point"
+            }
+        ],
         "table_metadata": {
             "title": "Rodent control by citywide contractor",
-            "description": "This database lists records of rodent treatments primarily in the City's combined sewer system. The data is collected and submitted by the current holder of the Citywide Integrated Pest Management contract. ",
-            "endpoint": "pyt2-uhqw",
+            "description": "Rodent treatments in San Francisco's sewer system, submitted by the pest control contractor.",
+            "endpoint": "pyt2-uhqw.json",
             "category": "Health",
+            "periodic": true,
+            "item_noun": "Rodent Treatments",
             "district_level": false,
-            "item_noun": "rodent treatment record",
-            "whom_it_may_interest": "Public health officials, city planners, environmental researchers"
+            "filename": "Rodent control by citywide contractor.json",
+            "data_validated": true
         },
-        "periodic": "yes",
-        "item_noun": "rodent treatment record",
-        "district_level": false,
-        "whom_it_may_interest": "Public health officials, city planners, environmental researchers",
+        "whom_it_may_interest": "Public health officials, environmental scientists, the general public concerned about pest control and public health, and city authorities managing pest control and public health.",
         "filename": "Rodent control by citywide contractor.json",
-        "title": "Rodent control by citywide contractor",
-        "data_validated": true
+        "title": "Rodent control by citywide contractor"
     },
     {
         "DateFields": [
@@ -6837,53 +7672,63 @@
         "data_validated": true
     },
     {
-        "endpoint": "su99-qvi4",
-        "query": "SELECT department, access_type, asset_type, date_trunc_ym(event_time) AS month, COUNT(*) AS count WHERE event_time >= '2022-09-01' GROUP BY department, access_type, asset_type, month ORDER BY month, department, access_type, asset_type",
-        "report_category": "Economy",
-        "usefulness": 3,
-        "column_metadata": {
-            "event_time": {
-                "type": "calendar_date",
-                "description": "Day the dataset was accessed"
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "item_count"
+        ],
+        "CategoryFields": [
+            "access_type",
+            "asset_type",
+            "department"
+        ],
+        "LocationFields": [],
+        "endpoint": "su99-qvi4.json",
+        "query": "SELECT date_trunc_ym(event_time) AS month, count(*) AS item_count, access_type, asset_type, department WHERE event_time >= '2022-09-01T00:00:00.000' GROUP BY month, access_type, asset_type, department",
+        "report_category": "Other",
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "The month when the dataset was accessed, aggregated monthly",
+                "dataTypeName": "calendar_date"
             },
-            "access_count": {
-                "type": "text",
-                "description": "sum of interactions with the dataset"
+            {
+                "fieldName": "item_count",
+                "description": "The count of interactions with the dataset",
+                "dataTypeName": "number"
             },
-            "asset_uid": {
-                "type": "text",
-                "description": "4x4 ID associated with the dataset"
+            {
+                "fieldName": "access_type",
+                "description": "Type of access to the dataset (API Call, Download, Page view, etc)",
+                "dataTypeName": "text"
             },
-            "access_type": {
-                "type": "text",
-                "description": "API Call, Download, Page view, etc"
+            {
+                "fieldName": "asset_type",
+                "description": "Type of asset (dataset, map, filter, etc.)",
+                "dataTypeName": "text"
             },
-            "asset_type": {
-                "type": "text",
-                "description": "dataset, map, filter, etc."
-            },
-            "department": {
-                "type": "text",
-                "description": "department who owns the dataset"
+            {
+                "fieldName": "department",
+                "description": "Department who owns the dataset",
+                "dataTypeName": "text"
             }
-        },
+        ],
         "table_metadata": {
             "title": "Public Dataset Access and Usage",
-            "description": "This dataset is used to report on public dataset access and usage within the open data portal.",
-            "endpoint": "su99-qvi4",
-            "category": "Economy",
+            "description": "This dataset reports on public dataset access and usage within the open data portal, showing the amount of users by access type recorded each day.",
+            "endpoint": "su99-qvi4.json",
+            "category": "Other",
+            "periodic": true,
+            "item_noun": "Dataset Access Records",
             "district_level": false,
-            "item_noun": "daily access record",
-            "whom_it_may_interest": "Data analysts, department heads, data portal managers"
+            "whom_it_may_interest": "Public data portal administrators, data scientists interested in usage patterns, and those concerned with maximizing data transparency and utility",
+            "filename": "Public Dataset Access and Usage.json",
+            "data_validated": true,
+            "usefulness": 2
         },
-        "periodic": "yes",
-        "item_noun": "daily access record",
-        "district_level": "false",
-        "whom_it_may_interest": "Data analysts, department heads, data portal managers",
         "filename": "Public Dataset Access and Usage.json",
-        "title": "Public Dataset Access and Usage",
-        "data_validated": true,
-        "error": "Could not parse SoQL query \"SELECT department, access_type, asset_type, date_trunc_ym(event_time) AS month, COUNT(*) AS count FROM su99-qvi4 WHERE event_time >= '2022-09-01' GROUP BY department, access_type, asset_type, month ORDER BY month, department, access_type, asset_type LIMIT 1\" at line 1 character 104: Expected a table identifier, but got `su99'"
+        "title": "Public Dataset Access and Usage"
     },
     {
         "endpoint": "k2rm-926a.json",
@@ -7209,6 +8054,98 @@
         "filename": "SFMTA Projects - Lines.json",
         "title": "SFMTA Projects - Lines",
         "data_validated": true
+    },
+    {
+        "DateFields": [
+            "month"
+        ],
+        "NumericFields": [
+            "total_amount"
+        ],
+        "CategoryFields": [
+            "organization_group",
+            "department",
+            "program",
+            "character",
+            "object",
+            "fund_type",
+            "fund",
+            "fund_category",
+            "revenue_or_spending"
+        ],
+        "LocationFields": [],
+        "endpoint": "bpnb-jwfb.json",
+        "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(amount) AS total_amount, organization_group, department, program, character, object, fund_type, fund, fund_category, revenue_or_spending WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, organization_group, department, program, character, object, fund_type, fund, fund_category, revenue_or_spending",
+        "report_category": "Economy",
+        "usefulness": 3,
+        "column_metadata": [
+            {
+                "fieldName": "month",
+                "description": "Month when the data was loaded to the open data portal",
+                "dataTypeName": "calendar_date"
+            },
+            {
+                "fieldName": "total_amount",
+                "description": "Total amount of revenue or spending, aggregated monthly",
+                "dataTypeName": "number"
+            },
+            {
+                "fieldName": "organization_group",
+                "description": "Group of departments",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "department",
+                "description": "Primary organizational unit",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "program",
+                "description": "Services a department provides",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "character",
+                "description": "Type of expenditure or revenue source, high level",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "object",
+                "description": "Specific type of expenditure or revenue within a character",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "fund_type",
+                "description": "Highest level in the Fund hierarchy",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "fund",
+                "description": "Middle level in the Fund hierarchy",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "fund_category",
+                "description": "Lowest level in the Fund hierarchy, groups activity by characteristics",
+                "dataTypeName": "text"
+            },
+            {
+                "fieldName": "revenue_or_spending",
+                "description": "Indicator if the record is a revenue or spending",
+                "dataTypeName": "text"
+            }
+        ],
+        "table_metadata": {
+            "title": "Spending and Revenue",
+            "description": "Database of spending and revenue data maintained by the San Francisco Controller's Office.",
+            "endpoint": "bpnb-jwfb.json",
+            "category": "Economy",
+            "periodic": true,
+            "item_noun": "Financial Transaction",
+            "whom_it_may_interest": "City financial officers, economists, tax analysts, policy makers, journalists, and civic data enthusiasts interested in monitoring the city's financial health."
+        },
+        "filename": "Spending and Revenue.json",
+        "title": "Spending and Revenue"
     },
     {
         "endpoint": "pitq-e56w.json",

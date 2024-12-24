@@ -1,0 +1,81 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "collision_type",
+        "street_type",
+        "sex",
+        "deceased"
+    ],
+    "LocationFields": [
+        "analysis_neighborhood",
+        "supervisor_district",
+        "police_district"
+    ],
+    "endpoint": "dau3-4s8f.json",
+    "query": "SELECT date_trunc_ym(collision_datetime) AS month, count(*) AS item_count, collision_type, street_type, sex, deceased, analysis_neighborhood, supervisor_district, police_district WHERE collision_datetime >= '2022-09-01T00:00:00.000' GROUP BY month, collision_type, street_type, sex, deceased, analysis_neighborhood, supervisor_district, police_district",
+    "report_category": "Safety",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month when the traffic crash occurred",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of fatality records",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "collision_type",
+            "description": "Type of crash",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "street_type",
+            "description": "Type of street where collision occurred",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "sex",
+            "description": "Sex of deceased victim",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "deceased",
+            "description": "Mode of travel of deceased victim",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "analysis_neighborhood",
+            "description": "Neighborhood where the crash occurred according to city analysis",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "supervisor_district",
+            "description": "Supervisor district where the crash occurred",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "police_district",
+            "description": "Police district where the crash occurred",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Traffic Crashes Resulting in Fatality",
+        "description": "All fatalities from traffic crashes in San Francisco correlating with data from various city departments.",
+        "endpoint": "dau3-4s8f.json",
+        "category": "Safety"
+    },
+    "periodic": true,
+    "item_noun": "Traffic Fatality Report",
+    "whom_it_may_interest": "This data can be valuable to traffic safety analysts, public health officials, city planners, police departments, and researchers focused on improving transportation safety and designing safer road infrastructure. It's particularly useful for those invested in the Vision Zero initiative to reduce traffic-related deaths.",
+    "filename": "Traffic Crashes Resulting in Fatality.json",
+    "title": "Traffic Crashes Resulting in Fatality"
+}

@@ -1,0 +1,75 @@
+{
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "purchasing_department",
+        "commodity_title",
+        "vendor_name"
+    ],
+    "LocationFields": [
+        "vendor_city",
+        "vendor_state",
+        "vendor_zip_code"
+    ],
+    "endpoint": "ebsh-uavg.json",
+    "query": "SELECT date_trunc_ym(data_loaded_at) AS month, count(*) AS item_count, purchasing_department, commodity_title, vendor_name, vendor_city, vendor_state, vendor_zip_code WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, purchasing_department, commodity_title, vendor_name, vendor_city, vendor_state, vendor_zip_code",
+    "report_category": "Economy",
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Month the data was loaded on the open data portal",
+            "dataTypeName": "calendar_date"
+        },
+        {
+            "fieldName": "item_count",
+            "description": "Count of purchase order lines",
+            "dataTypeName": "number"
+        },
+        {
+            "fieldName": "purchasing_department",
+            "description": "Purchasing department related to the purchase order",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "commodity_title",
+            "description": "Title of the commodity for the purchasing activity",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "vendor_name",
+            "description": "Name of the vendor providing goods or services",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "vendor_city",
+            "description": "City where the vendor is located",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "vendor_state",
+            "description": "State where the vendor is located",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "vendor_zip_code",
+            "description": "Zip code of the vendor location",
+            "dataTypeName": "text"
+        }
+    ],
+    "table_metadata": {
+        "title": "Purchasing Commodity Data",
+        "description": "Database of purchasing activity from fiscal year 2007 forward, showing detailed commodity-level data by purchase order for the City and County of San Francisco.",
+        "endpoint": "ebsh-uavg.json",
+        "category": "Economy",
+        "periodic": true,
+        "item_noun": "Purchase Order Line",
+        "whom_it_may_interest": "Economists, financial analysts, city officials, and other stakeholders interested in assessing financial transactions and purchasing behavior patterns in the City and County of San Francisco."
+    },
+    "filename": "Purchasing Commodity Data.json",
+    "title": "Purchasing Commodity Data"
+}

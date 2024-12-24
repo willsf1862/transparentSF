@@ -38,7 +38,7 @@ def generate_time_series_chart(
         # Retrieve title and y_axis_label from context_variables
         chart_title = context_variables.get("chart_title", "Time Series Chart")
         y_axis_label = context_variables.get("y_axis_label", numeric_fields[0].capitalize())
-
+        noun = context_variables.get("noun",y_axis_label)
         # Create a copy of the dataset to avoid modifying the original data
         original_df = context_variables.get("dataset")
         if original_df is None or original_df.empty:
@@ -141,6 +141,7 @@ def generate_time_series_chart(
         # Compute values for the caption
         try:
             last_time_period = aggregated_df['time_period'].max()
+            earliest_time_period = aggregated_df['time_period'].min()
             last_month_name = last_time_period.strftime('%B')
             logging.debug(f"Last time period: {last_time_period}, Month name: {last_month_name}")
 
@@ -156,16 +157,15 @@ def generate_time_series_chart(
                 # Sum over groups to get total per time period
                 total_per_time_period = rest_periods.groupby('time_period')[numeric_fields[0]].sum()
                 average_of_rest = total_per_time_period.mean()
+                total_months = len(rest_periods['time_period'].unique())
             logging.debug(f"Average value of rest periods: {average_of_rest}")
 
             percentage_diff_total = ((total_latest_month - average_of_rest) / average_of_rest) * 100 if average_of_rest != 0 else 0
             above_below_total = 'above' if total_latest_month > average_of_rest else 'below'
             percentage_diff_total = abs(round(percentage_diff_total, 2))
-            total_months = len(rest_periods['time_period'].unique())
-            logging.debug(f"Percentage difference for total: {percentage_diff_total}%, {above_below_total} {total_months} month average.")
-
             y_axis_label_lower = y_axis_label.lower()
-            caption_total = f"In {last_month_name}, there were {total_latest_month} {y_axis_label_lower}, which is {percentage_diff_total}% {above_below_total} the average of {average_of_rest:.2f}."
+
+            caption_total = f"In {last_month_name}, there were {total_latest_month} {noun}, which is {percentage_diff_total}% {above_below_total} the {total_months} month average of {average_of_rest:.2f}."
             logging.info(f"Caption for total: {caption_total}")
 
             # Caption for charts with a group_field
@@ -181,25 +181,74 @@ def generate_time_series_chart(
                 logging.debug(f"Average values of prior periods by group: {average_of_prior}")
 
                 captions_group = []
-                for group, value in numeric_values.items():
-                    if group not in average_of_prior or average_of_prior[group] == 0:
+                for grp, value in numeric_values.items():
+                    if grp not in average_of_prior or average_of_prior[grp] == 0:
                         # If there's no prior data for this group or average is zero, skip calculation.
                         continue
-                    percentage_diff_group = ((value - average_of_prior[group]) / average_of_prior[group]) * 100
-                    above_below_group = 'above' if value > average_of_prior[group] else 'below'
+                    percentage_diff_group = ((value - average_of_prior[grp]) / average_of_prior[grp]) * 100
+                    above_below_group = 'above' if value > average_of_prior[grp] else 'below'
                     percentage_diff_group = abs(round(percentage_diff_group, 2))
-                    logging.debug(f"Percentage difference for group {group}: {percentage_diff_group}%, {above_below_group} the average.")
-                    captions_group.append(f"For {group}, in {last_month_name}, there were {value} {y_axis_label_lower}, which is {percentage_diff_group}% {above_below_group} the average of {average_of_prior[group]:.2f}.")
+                captions_group.append(f"For {grp}, in {last_month_name}, there were {value} {noun}, which is {percentage_diff_group}% {above_below_group} the {total_months} month average of {average_of_prior[grp]:.2f}.")
                 caption_group = " ".join(captions_group)
 
             if group_field:
                 caption = f"{caption_total}\n\n{caption_group}"
             else:
                 caption = caption_total
+
+            # ---------------------------------------------------------------------
+            #  NEW LOGIC FOR MORE THAN 2 YEARS OF DATA
+            # ---------------------------------------------------------------------
+            time_span_years = (last_time_period - earliest_time_period).days / 365
+            if time_span_years > 2:
+                try:
+                    last_year_num = last_time_period.year
+                    last_month_num = last_time_period.month
+                    prior_year_num = last_year_num - 1
+
+                    # Filter for current year, through last month in data
+                    mask_current_year = (
+                        aggregated_df['time_period'].dt.year == last_year_num
+                    ) & (
+                        aggregated_df['time_period'].dt.month <= last_month_num
+                    )
+                    current_year_df = aggregated_df[mask_current_year]
+                    current_year_sum = current_year_df[numeric_fields[0]].sum()
+
+                    # Filter for prior year, through the same last month
+                    mask_prior_year = (
+                        aggregated_df['time_period'].dt.year == prior_year_num
+                    ) & (
+                        aggregated_df['time_period'].dt.month <= last_month_num
+                    )
+                    prior_year_df = aggregated_df[mask_prior_year]
+                    prior_year_sum = prior_year_df[numeric_fields[0]].sum()
+
+                    if prior_year_sum != 0:
+                        ytd_diff_pct = ((current_year_sum - prior_year_sum) / prior_year_sum) * 100
+                        ytd_diff_pct = round(ytd_diff_pct, 2)
+                        above_below_ytd = 'above' if current_year_sum > prior_year_sum else 'below'
+
+                        ytd_caption = (
+                            f"As of the end of {last_month_name}, YTD {last_year_num} is {current_year_sum} {noun}, "
+                            f"which is {abs(ytd_diff_pct)}% {above_below_ytd} the YTD {prior_year_num} total of {prior_year_sum}."
+                        )
+                    else:
+                        ytd_caption = (
+                            f"As of the end of {last_month_name}, YTD {last_year_num} is {current_year_sum} {noun}. "
+                            f"No comparable YTD data for {prior_year_num}."
+                        )
+
+                    caption = f"{caption}\n\n{ytd_caption}"
+
+                except Exception as ytd_err:
+                    logging.warning(f"Failed to compute YTD comparison: {ytd_err}")
+
         except Exception as e:
             logging.error("Failed to compute caption values: %s", e)
             caption = ""
 
+        # Limit legend to top max_legend_items
         if group_field:
             group_totals = aggregated_df.groupby(group_field)[numeric_fields].sum().sum(axis=1)
             top_groups = group_totals.sort_values(ascending=False).head(max_legend_items).index.tolist()
@@ -218,7 +267,7 @@ def generate_time_series_chart(
         static_dir = os.path.join(script_dir, '..', 'static')
         os.makedirs(static_dir, exist_ok=True)
 
-       # Use a short unique ID for the filename
+        # Use a short unique ID for the filename
         chart_id = uuid.uuid4().hex[:6]
         image_filename = f"chart_{chart_id}.png"
         image_path = os.path.join(static_dir, image_filename)
@@ -255,7 +304,14 @@ def generate_time_series_chart(
                 fig.update_traces(
                     mode="lines+markers+text",
                     text=aggregated_df[numeric_fields[0]].apply(
-                        lambda x: f"{x}" if x < 1_000 else (f"{int(x / 1_000)}K" if x < 999_950 else (f"{int(x / 1_000_000)}M" if x < 999_950_000 else f"{int(x / 1_000_000_000)}B"))
+                        lambda x: f"{x}"
+                                  if x < 1_000 else (
+                                      f"{int(x / 1_000)}K"
+                                      if x < 999_950 else (
+                                          f"{int(x / 1_000_000)}M"
+                                          if x < 999_950_000 else f"{int(x / 1_000_000_000)}B"
+                                      )
+                                  )
                     ),
                     textposition="top center",
                     textfont=dict(size=10)  # Smaller font for labels
@@ -267,7 +323,13 @@ def generate_time_series_chart(
             # Add average line if show_average_line is True
             if show_average_line:
                 average_line = pd.Series(aggregated_df[numeric_fields[0]].mean(), index=aggregated_df['time_period'])
-                fig.add_scatter(x=average_line.index, y=average_line.values, mode='lines', name='Average', line=dict(width=2, color='blue'))
+                fig.add_scatter(
+                    x=average_line.index, 
+                    y=average_line.values, 
+                    mode='lines', 
+                    name='Average', 
+                    line=dict(width=2, color='blue')
+                )
 
             fig.update_layout(
                 legend=dict(
@@ -302,8 +364,9 @@ def generate_time_series_chart(
                 height=600,
                 margin=dict(l=50, r=50, t=80, b=100)  # Increased margin for whitespace
             )
-             # Highlight the last data point with a yellow circle and annotate it
-            if not group_field:
+
+            # Highlight the last data point (only if no group_field)
+            if not group_field and not aggregated_df.empty:
                 last_point = aggregated_df.iloc[-1]
                 last_x = last_point['time_period']
                 last_y = last_point[numeric_fields[0]]
@@ -335,8 +398,8 @@ def generate_time_series_chart(
                     bgcolor='rgba(255, 255, 0, 0.7)',
                     bordercolor='gold',
                     borderwidth=1,
-                    ax= -60,
-                    ay= -20,
+                    ax=-60,
+                    ay=-20,
                 )
 
             # Ensure Y-axis always starts at 0 after layout updates
@@ -426,12 +489,16 @@ Caption: {caption}
             html_content = f'''
 <div style="width:100%" id="chart_{chart_id}">
     {fig.to_html(full_html=False)}
+    <div> 
+        {caption}
+    </div>
     <p>
         <a href="javascript:void(0);" onclick="toggleDataTable('data_table_{chart_id}')">Show Data</a>
     </p>
     <div id="data_table_{chart_id}" style="display:none;">
         {html_table}
     </div>
+    
 </div>
 
 <script>

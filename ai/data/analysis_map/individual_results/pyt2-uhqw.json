@@ -1,40 +1,60 @@
 {
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "blocks_applied_sum",
+        "blocks_consumed_sum"
+    ],
+    "CategoryFields": [
+        "bait_applied"
+    ],
+    "LocationFields": [
+        "point"
+    ],
     "endpoint": "pyt2-uhqw.json",
-    "query": "SELECT date_trunc_ym(serviced_date) AS month, COUNT(*) AS count, SUM(blocks_applied) AS total_blocks_applied, SUM(blocks_consumed) AS total_blocks_consumed, bait_applied WHERE serviced_date >= '2022-09-01' GROUP BY month, bait_applied ORDER BY month, bait_applied",
+    "query": "SELECT date_trunc_ym(serviced_date) AS month, sum(blocks_applied) as blocks_applied_sum, sum(blocks_consumed) as blocks_consumed_sum, bait_applied, point WHERE serviced_date >= '2022-09-01T00:00:00.000' GROUP BY month, bait_applied, point",
     "report_category": "Health",
-    "usefulness": 2,
-    "column_metadata": {
-        "serviced_date": {
-            "type": "calendar_date",
-            "description": "Date site was serviced and data recorded"
+    "usefulness": 3,
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "Date when the service was provided, grouped by month",
+            "dataTypeName": "calendar_date"
         },
-        "blocks_applied": {
-            "type": "number",
-            "description": "Number of new bait blocks added"
+        {
+            "fieldName": "blocks_applied_sum",
+            "description": "Total number of new bait blocks added",
+            "dataTypeName": "number"
         },
-        "blocks_consumed": {
-            "type": "number",
-            "description": "Number of bait blocks consumed"
+        {
+            "fieldName": "blocks_consumed_sum",
+            "description": "Total number of bait blocks consumed",
+            "dataTypeName": "number"
         },
-        "bait_applied": {
-            "type": "text",
-            "description": "Product name for rodent bait applied"
+        {
+            "fieldName": "bait_applied",
+            "description": "Product name for rodent bait applied",
+            "dataTypeName": "text"
+        },
+        {
+            "fieldName": "point",
+            "description": "Location of CNN where the bait was applied",
+            "dataTypeName": "point"
         }
-    },
+    ],
     "table_metadata": {
         "title": "Rodent control by citywide contractor",
-        "description": "This database lists records of rodent treatments primarily in the City's combined sewer system. The data is collected and submitted by the current holder of the Citywide Integrated Pest Management contract. ",
-        "endpoint": "pyt2-uhqw",
+        "description": "Rodent treatments in San Francisco's sewer system, submitted by the pest control contractor.",
+        "endpoint": "pyt2-uhqw.json",
         "category": "Health",
+        "periodic": true,
+        "item_noun": "Rodent Treatments",
         "district_level": false,
-        "item_noun": "rodent treatment record",
-        "whom_it_may_interest": "Public health officials, city planners, environmental researchers"
+        "filename": "Rodent control by citywide contractor.json",
+        "data_validated": true
     },
-    "periodic": "yes",
-    "item_noun": "rodent treatment record",
-    "district_level": false,
-    "whom_it_may_interest": "Public health officials, city planners, environmental researchers",
+    "whom_it_may_interest": "Public health officials, environmental scientists, the general public concerned about pest control and public health, and city authorities managing pest control and public health.",
     "filename": "Rodent control by citywide contractor.json",
-    "title": "Rodent control by citywide contractor",
-    "data_validated": true
+    "title": "Rodent control by citywide contractor"
 }

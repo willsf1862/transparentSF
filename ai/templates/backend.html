@@ -73,7 +73,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Style for output links */
         .output-links a {
             margin-right: 10px;
             text-decoration: none;
@@ -82,24 +81,46 @@
         .output-links a:hover {
             text-decoration: underline;
         }
+        /* Extra style for the top button */
+        #analyze-checked-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        #analyze-checked-btn:hover {
+            background-color: #138496;
+        }
     </style>
 </head>
 <body>
     <h1>Datasets</h1>
+    <!-- Top-level button to analyze all checked datasets -->
+    <button id="analyze-checked-btn">Analyze Checked</button>
+
     <table>
         <thead>
             <tr>
+                <th>Check</th>
                 <th>Category</th>
+                <th>Periodic?</th>
                 <th>Filename</th>
                 <th>Last Updated</th>
                 <th>Actions</th>
-                <th>Outputs</th> <!-- New column for output links -->
+                <th>Outputs</th>
             </tr>
         </thead>
         <tbody>
             {% for dataset in datasets %}
-            <tr>
+            <tr data-endpoint="{{ dataset.endpoint }}" data-filename="{{ dataset.filename }}">
+                <td>
+                    <input type="checkbox" class="row-check"/>
+                </td>
                 <td>{{ dataset.category or 'N/A' }}</td>
+                <td>{{ dataset.periodic }}</td>
                 <td>{{ dataset.filename }}</td>
                 <td>{{ dataset.rows_updated_at if dataset.rows_updated_at != 'N/A' else 'N/A' }}</td>
                 <td class="actions">
@@ -140,22 +161,67 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Function to create a spinner element
+            // Create a spinner element
             function createSpinner() {
                 const spinner = document.createElement('div');
                 spinner.classList.add('spinner');
                 return spinner;
             }
 
-            // Function to handle button states
+            // Update a row's output links after an operation finishes
+            async function updateRowOutputLinks(row) {
+                const endpoint = row.getAttribute('data-endpoint');
+                try {
+                    const resp = await fetch(`/get-updated-links/${encodeURIComponent(endpoint)}`);
+                    if (!resp.ok) return; // Ignore if error
+                    const data = await resp.json();
+                    const links = data.links || {};
+                    
+                    // Rebuild the "Outputs" cell
+                    const outputCell = row.querySelector('.output-links');
+                    outputCell.innerHTML = '';  // Clear old links
+
+                    if (Object.keys(links).length === 0) {
+                        outputCell.textContent = 'N/A';
+                    } else {
+                        if (links.html) {
+                            const aHtml = document.createElement('a');
+                            aHtml.href = links.html;
+                            aHtml.target = '_blank';
+                            aHtml.textContent = 'HTML';
+                            outputCell.appendChild(aHtml);
+                            outputCell.appendChild(document.createTextNode(' '));
+                        }
+                        if (links.md) {
+                            const aMd = document.createElement('a');
+                            aMd.href = links.md;
+                            aMd.target = '_blank';
+                            aMd.textContent = 'Markdown';
+                            outputCell.appendChild(aMd);
+                            outputCell.appendChild(document.createTextNode(' '));
+                        }
+                        if (links.txt) {
+                            const aTxt = document.createElement('a');
+                            aTxt.href = links.txt;
+                            aTxt.target = '_blank';
+                            aTxt.textContent = 'Log';
+                            outputCell.appendChild(aTxt);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to update row output links:', err);
+                }
+            }
+
+            // Common handler to call either /prep-data or /run_analysis
             async function handleButtonClick(event) {
                 const button = event.currentTarget;
                 const action = button.getAttribute('data-action');
                 const filename = button.getAttribute('data-filename');
                 const endpoint = button.getAttribute('data-endpoint');
-                let url = '';
-                let payload = {};
+                const row = button.closest('tr');
 
+                let url = '';
                 if (action === 'prep-data') {
                     url = `/prep-data/${encodeURIComponent(filename)}`;
                 } else if (action === 'run_analysis') {
@@ -180,39 +246,76 @@
 
                     if (response.ok) {
                         if (data.status === 'success') {
-                            // Success: Grey out the button
-                            button.classList.add('button-disabled');
                             button.classList.remove('button-error');
-                            button.textContent = action === 'prep-data' ? 'Prep Data ✅' : 'Run Analysis ✅';
+                            button.textContent = (action === 'prep-data') ? 'Prep ✅' : 'Run ✅';
                         } else if (data.status === 'warning') {
-                            // Warning: Indicate success with warnings
-                            button.classList.add('button-disabled');
                             button.classList.remove('button-error');
-                            button.textContent = action === 'prep-data' ? 'Prep Data ⚠️' : 'Run Analysis ⚠️';
+                            button.textContent = (action === 'prep-data') ? 'Prep ⚠️' : 'Run ⚠️';
                             alert(`Warning: ${data.message}\nErrors: ${data.errors ? data.errors.join(', ') : 'None'}`);
                         } else {
                             // Unknown status
-                            throw new Error('Unknown response status');
+                            button.classList.add('button-error');
+                            button.textContent = (action === 'prep-data') ? 'Prep ❌' : 'Run ❌';
+                            alert(`Error: ${data.message}`);
                         }
                     } else {
-                        // Error response from server
+                        // HTTP error from server
                         button.classList.add('button-error');
-                        button.textContent = action === 'prep-data' ? 'Prep Data ❌' : 'Run Analysis ❌';
+                        button.textContent = (action === 'prep-data') ? 'Prep ❌' : 'Run ❌';
                         alert(`Error: ${data.message}`);
                     }
                 } catch (error) {
                     // Network or other errors
-                    // Remove spinner if present
                     if (button.contains(spinner)) {
                         button.removeChild(spinner);
                     }
                     button.classList.add('button-error');
-                    button.textContent = action === 'prep-data' ? 'Prep Data ❌' : 'Run Analysis ❌';
+                    button.textContent = (action === 'prep-data') ? 'Prep ❌' : 'Run ❌';
                     alert(`An error occurred: ${error.message}`);
+                } finally {
+                    // Re-enable the button (optional) or leave it disabled
+                    button.disabled = false;
+                    button.classList.remove('button-disabled');
+                    // Refresh the row outputs
+                    await updateRowOutputLinks(row);
                 }
             }
 
-            // Attach event listeners to all action buttons
+            // Analyze Checked button logic
+            const analyzeCheckedBtn = document.getElementById('analyze-checked-btn');
+            analyzeCheckedBtn.addEventListener('click', async () => {
+                // Gather all checked rows
+                const checkboxes = document.querySelectorAll('.row-check:checked');
+                if (checkboxes.length === 0) {
+                    alert('No rows selected.');
+                    return;
+                }
+
+                // For each checked row, run /run_analysis
+                for (let i = 0; i < checkboxes.length; i++) {
+                    const row = checkboxes[i].closest('tr');
+                    const endpoint = row.getAttribute('data-endpoint');
+                    const runBtn = row.querySelector('button[data-action="run_analysis"]');
+                    
+                    // If there's no runBtn or no endpoint, skip
+                    if (!runBtn || !endpoint) continue;
+
+                    // Simulate click on the "Run Analysis" button
+                    // to keep consistent spinner / error handling
+                    runBtn.click();
+
+                    // Wait a bit for that request to finish. We can't just
+                    // do an await on 'click()', so let's do a small delay
+                    // plus we wait for the fetch done in handleButtonClick
+                    // by hooking into a shared promise if needed.
+                    // 
+                    // For a robust approach, you might refactor handleButtonClick
+                    // to return a promise. But here's a quick workaround:
+                    await new Promise(res => setTimeout(res, 2000));
+                }
+            });
+
+            // Attach event listeners to all "Prep" and "Run" buttons
             const actionButtons = document.querySelectorAll('.actions button');
             actionButtons.forEach(button => {
                 button.addEventListener('click', handleButtonClick);

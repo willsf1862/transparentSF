@@ -1,49 +1,59 @@
 {
-    "endpoint": "su99-qvi4",
-    "query": "SELECT department, access_type, asset_type, date_trunc_ym(event_time) AS month, COUNT(*) AS count WHERE event_time >= '2022-09-01' GROUP BY department, access_type, asset_type, month ORDER BY month, department, access_type, asset_type",
-    "report_category": "Economy",
-    "usefulness": 3,
-    "column_metadata": {
-        "event_time": {
-            "type": "calendar_date",
-            "description": "Day the dataset was accessed"
+    "DateFields": [
+        "month"
+    ],
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "access_type",
+        "asset_type",
+        "department"
+    ],
+    "LocationFields": [],
+    "endpoint": "su99-qvi4.json",
+    "query": "SELECT date_trunc_ym(event_time) AS month, count(*) AS item_count, access_type, asset_type, department WHERE event_time >= '2022-09-01T00:00:00.000' GROUP BY month, access_type, asset_type, department",
+    "report_category": "Other",
+    "column_metadata": [
+        {
+            "fieldName": "month",
+            "description": "The month when the dataset was accessed, aggregated monthly",
+            "dataTypeName": "calendar_date"
         },
-        "access_count": {
-            "type": "text",
-            "description": "sum of interactions with the dataset"
+        {
+            "fieldName": "item_count",
+            "description": "The count of interactions with the dataset",
+            "dataTypeName": "number"
         },
-        "asset_uid": {
-            "type": "text",
-            "description": "4x4 ID associated with the dataset"
+        {
+            "fieldName": "access_type",
+            "description": "Type of access to the dataset (API Call, Download, Page view, etc)",
+            "dataTypeName": "text"
         },
-        "access_type": {
-            "type": "text",
-            "description": "API Call, Download, Page view, etc"
+        {
+            "fieldName": "asset_type",
+            "description": "Type of asset (dataset, map, filter, etc.)",
+            "dataTypeName": "text"
         },
-        "asset_type": {
-            "type": "text",
-            "description": "dataset, map, filter, etc."
-        },
-        "department": {
-            "type": "text",
-            "description": "department who owns the dataset"
+        {
+            "fieldName": "department",
+            "description": "Department who owns the dataset",
+            "dataTypeName": "text"
         }
-    },
+    ],
     "table_metadata": {
         "title": "Public Dataset Access and Usage",
-        "description": "This dataset is used to report on public dataset access and usage within the open data portal.",
-        "endpoint": "su99-qvi4",
-        "category": "Economy",
+        "description": "This dataset reports on public dataset access and usage within the open data portal, showing the amount of users by access type recorded each day.",
+        "endpoint": "su99-qvi4.json",
+        "category": "Other",
+        "periodic": true,
+        "item_noun": "Dataset Access Records",
         "district_level": false,
-        "item_noun": "daily access record",
-        "whom_it_may_interest": "Data analysts, department heads, data portal managers"
+        "whom_it_may_interest": "Public data portal administrators, data scientists interested in usage patterns, and those concerned with maximizing data transparency and utility",
+        "filename": "Public Dataset Access and Usage.json",
+        "data_validated": true,
+        "usefulness": 2
     },
-    "periodic": "yes",
-    "item_noun": "daily access record",
-    "district_level": "false",
-    "whom_it_may_interest": "Data analysts, department heads, data portal managers",
     "filename": "Public Dataset Access and Usage.json",
-    "title": "Public Dataset Access and Usage",
-    "data_validated": true,
-    "error": "Could not parse SoQL query \"SELECT department, access_type, asset_type, date_trunc_ym(event_time) AS month, COUNT(*) AS count FROM su99-qvi4 WHERE event_time >= '2022-09-01' GROUP BY department, access_type, asset_type, month ORDER BY month, department, access_type, asset_type LIMIT 1\" at line 1 character 104: Expected a table identifier, but got `su99'"
+    "title": "Public Dataset Access and Usage"
 }

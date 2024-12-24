@@ -51,8 +51,8 @@ def create_analysis_map(datasets_folder, output_folder):
         return None
         
     print(f"Found {len(article_list)} JSON files to process:")
-    for idx, filename in enumerate(article_list):
-        print(f"{idx}. {filename}")
+    # for idx, filename in enumerate(article_list):
+    #     print(f"{idx}. {filename}")
         
     # Create output file for analysis map
     # output_filename = f"analysis_map_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -129,7 +129,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
         return
 
     # Define the result filename based on the sanitized 'endpoint'
-    result_filename = f"result_{sanitized_endpoint}.json"
+    result_filename = f"{sanitized_endpoint}.json"
     result_path = os.path.join(individual_results_dir, result_filename)
 
     if os.path.exists(result_path):
@@ -207,7 +207,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
             - column_metadata: Include metadata about all of the fields in the dataset that you have selected including the field name, description, and dataTypeName.
             - table_metadata: Include metadata about the table including the title, description, endpoint and category.
             - periodic: Boolean: yes if this is the kind of data with constant new entries like police reports, or is it a lookup table like a list of departments or a rarely changing stock, like stop sign locations or wireless cariiers.  
-            - item_noun - A row in this tableis a what?  In the example above it is a Police Incident Report. 
+            - item_noun - Rows in this table are what?  In the example abovethey are Police Incident Reports. 
 
             Include a 'whom it may interest' section that explains who would be interested in this data and why.
 
@@ -278,7 +278,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
                     "endpoint": "n9pm-xkyq.json",
                     "category": "Economy",
                     "periodic": true,
-                    "item_noun": "Vendor Payment",
+                    "item_noun": "Vendor Payments",
                     "district_level": false,
                     "whom_it_may_interest": "Economists, Data Analysts, City and County controllers, vendors that work with the city, and citizens interested in the city's spending",
                     "filename": "Vendor Payments (Vouchers).json",
