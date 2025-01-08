@@ -72,8 +72,8 @@ TransparentSF is a web-based application that provides interactive visualization
 3. **Load Analysis Results to Vector Database:**
    Once the analysis is complete and the output folder is generated:
    ```bash
-   python load_analysis_2_vec.py
-   ```
+   python vector_loader.py
+   ```   
 
 4. **Set up Ghost Bridge (for publishing):**
    ```bash
