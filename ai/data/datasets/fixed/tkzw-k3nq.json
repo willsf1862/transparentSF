@@ -223,16 +223,34 @@
         }
     ],
     "publishing_department": "Public Works",
-    "rows_updated_at": "2024-12-18T16:14:56Z",
-    "item_noun": "tree planting",
-    "usefulness": 3,
-    "report_category": "Environment",
-    "periodic": "yes",
+    "rows_updated_at": "2024-12-25T16:11:13Z",
+    "usefulness": 1,
+    "report_category": "Other",
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "qspecies",
+        "qlegalstatus",
+        "planttype",
+        "qcaretaker"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "qaddress",
+        "latitude",
+        "longitude"
+    ],
+    "periodic": false,
     "district_level": false,
-    "whom_it_may_interest": "City planners, environmental researchers, urban developers",
+    "whom_it_may_interest": "Urban Planners, Environmental Researchers, Municipal Services and Residents interested in understanding city tree distribution and maintenance.",
     "data_validated": true,
+    "item_noun": "street trees",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(plantdate) AS month, COUNT(*) AS tree_count, qcaretaker, qspecies WHERE plantdate >= '2022-09-01' GROUP BY month, qcaretaker, qspecies ORDER BY month, qcaretaker, qspecies",
-        "Yearly": "SELECT date_trunc_y(plantdate) AS year, COUNT(*) AS tree_count, qcaretaker, qspecies WHERE plantdate >= '2022-09-01' GROUP BY year, qcaretaker, qspecies ORDER BY month, qcaretaker, qspecies"
-    }
+        "Monthly": "SELECT qspecies, qlegalstatus, planttype, qcaretaker, qaddress, latitude, longitude, date_trunc_ym(plantdate) AS month, COUNT(*) AS item_count WHERE plantdate >= start_date GROUP BY qspecies, qlegalstatus, planttype, qcaretaker, qaddress, latitude, longitude, month ORDER BY month",
+        "Yearly": "SELECT qspecies, qlegalstatus, planttype, qcaretaker, qaddress, latitude, longitude, date_trunc_y(plantdate) AS year, COUNT(*) AS item_count WHERE plantdate >= start_date GROUP BY qspecies, qlegalstatus, planttype, qcaretaker, qaddress, latitude, longitude, year ORDER BY year"
+    },
+    "filename": "tkzw-k3nq.json"
 }

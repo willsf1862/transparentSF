@@ -154,8 +154,21 @@ def generate_time_series_chart(
         try:
             last_time_period = aggregated_df['time_period'].max()
             earliest_time_period = aggregated_df['time_period'].min()
-            last_month_name = last_time_period.strftime('%B')
-            logging.debug(f"Last time period: {last_time_period}, Month name: {last_month_name}")
+
+            # Get the appropriate time period name based on aggregation_period
+            if aggregation_period == 'year':
+                period_name = last_time_period.strftime('%Y')
+            elif aggregation_period == 'month':
+                period_name = last_time_period.strftime('%B')
+            elif aggregation_period == 'quarter':
+                quarter = (last_time_period.month - 1) // 3 + 1
+                period_name = f"Q{quarter} {last_time_period.year}"
+            elif aggregation_period == 'week':
+                period_name = f"Week {last_time_period.strftime('%U')} of {last_time_period.year}"
+            else:  # day or any other period
+                period_name = last_time_period.strftime('%Y-%m-%d')
+
+            logging.debug(f"Last time period: {last_time_period}, Period name: {period_name}")
 
             # Format numbers for caption
             def format_number(num):
@@ -163,8 +176,8 @@ def generate_time_series_chart(
                     return f"{round(num):,}"
                 return f"{num:.2f}"
 
-            total_latest_month = format_number(aggregated_df[aggregated_df['time_period'] == last_time_period][numeric_fields[0]].sum())
-            logging.debug(f"Total value for last period: {total_latest_month}")
+            total_latest = format_number(aggregated_df[aggregated_df['time_period'] == last_time_period][numeric_fields[0]].sum())
+            logging.debug(f"Total value for last period: {total_latest}")
 
             # Exclude the last period for calculating the average of the rest across all groups
             rest_periods = aggregated_df[aggregated_df['time_period'] < last_time_period]
@@ -174,17 +187,17 @@ def generate_time_series_chart(
                 # Sum over groups to get total per time period
                 total_per_time_period = rest_periods.groupby('time_period')[numeric_fields[0]].sum()
                 average_of_rest = total_per_time_period.mean()
-                total_months = len(rest_periods['time_period'].unique())
+                total_periods = len(rest_periods['time_period'].unique())
 
             formatted_average = format_number(average_of_rest)
             logging.debug(f"Average value of rest periods: {formatted_average}")
 
-            percentage_diff_total = ((float(total_latest_month.replace(',', '')) - average_of_rest) / average_of_rest) * 100 if average_of_rest != 0 else 0
-            above_below_total = 'above' if float(total_latest_month.replace(',', '')) > average_of_rest else 'below'
+            percentage_diff_total = ((float(total_latest.replace(',', '')) - average_of_rest) / average_of_rest) * 100 if average_of_rest != 0 else 0
+            above_below_total = 'above' if float(total_latest.replace(',', '')) > average_of_rest else 'below'
             percentage_diff_total = abs(round(percentage_diff_total))
             y_axis_label_lower = y_axis_label.lower()
 
-            caption_total = f"In {last_month_name}, {y_axis_label_lower} was {total_latest_month}, which is {percentage_diff_total}% {above_below_total} the {total_months} period average of {formatted_average}."
+            caption_total = f"In {period_name}, {y_axis_label_lower} was {total_latest}, which is {percentage_diff_total}% {above_below_total} the {total_periods} {aggregation_period} average of {formatted_average}."
             logging.info(f"Caption for total: {caption_total}")
 
             # Caption for charts with a group_field
@@ -217,8 +230,8 @@ def generate_time_series_chart(
                         formatted_avg = format_number(average_of_prior[grp])
                         
                         captions_group.append(
-                            f"For {grp}, in {last_month_name}, there were {formatted_value} {y_axis_label_lower}, "
-                            f"which is {percentage_diff_group}% {above_below_group} the {total_months} period average "
+                            f"For {grp}, in {period_name}, there were {formatted_value} {y_axis_label_lower}, "
+                            f"which is {percentage_diff_group}% {above_below_group} the {total_periods} {aggregation_period} average "
                             f"of {formatted_avg}."
                         )
                     
@@ -289,7 +302,7 @@ def generate_time_series_chart(
                             )
                         else:
                             ytd_captions.append(
-                                f"As of the end of {last_month_name}, YTD {last_year_num}, total {y_axis_label_lower} is {format_number(current_year_sum)}, "
+                                f"As of the end of {period_name}, YTD {last_year_num}, total {y_axis_label_lower} is {format_number(current_year_sum)}, "
                                 f"which is {abs(ytd_diff_pct)}% {above_below_ytd} the YTD {prior_year_num} total of {format_number(prior_year_sum)}."
                             )
 
@@ -481,7 +494,7 @@ def generate_time_series_chart(
                 legend=dict(
                     orientation="h",    # Horizontal orientation
                     yanchor="bottom",
-                    y=-0.3,           # Places legend 25% below the plot
+                    y=-0.15,           # Places legend 25% below the plot
                     xanchor="center",
                     x=0.5,             # Centers the legend horizontally
                     font=dict(size=8),

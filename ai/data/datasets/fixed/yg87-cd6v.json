@@ -239,23 +239,24 @@
         "item_count"
     ],
     "CategoryFields": [
+        "facility_name",
         "facility_type",
-        "city",
-        "state",
-        "postal_code"
-    ],
-    "LocationFields": [
-        "city",
-        "state",
-        "postal_code"
+        "eligibility"
     ],
     "DateFields": [
         "month"
     ],
+    "LocationFields": [
+        "postal_code"
+    ],
     "periodic": false,
     "district_level": false,
+    "whom_it_may_interest": "San Francisco residents looking for flu vaccination locations, public health officials planning vaccination campaigns, healthcare efficiency analysts evaluating past vaccination availability",
+    "data_validated": false,
+    "item_noun": "flu shot locations",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(begin_date) AS month, count(*) as item_count, facility_type, city, state, postal_code WHERE begin_date >= start_date GROUP BY month, facility_type, city, state, postal_code",
-        "Yearly": "SELECT date_trunc_y(begin_date) AS year, count(*) as item_count, facility_type, city, state, postal_code WHERE begin_date >= start_date GROUP BY year, facility_type, city, state, postal_code"
-    }
+        "Monthly": "SELECT facility_name, facility_type, eligibility, postal_code, date_trunc_ym(begin_date) AS month, COUNT(*) AS item_count WHERE begin_date >= start_date GROUP BY facility_name, facility_type, eligibility, postal_code, month ORDER BY month",
+        "Yearly": "SELECT facility_name, facility_type, eligibility, postal_code, date_trunc_y(begin_date) AS year, COUNT(*) AS item_count WHERE begin_date >= start_date GROUP BY facility_name, facility_type, eligibility, postal_code, year ORDER BY year"
+    },
+    "filename": "yg87-cd6v.json"
 }

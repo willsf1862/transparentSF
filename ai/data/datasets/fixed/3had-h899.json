@@ -558,27 +558,31 @@
     "publishing_department": "Controller",
     "rows_updated_at": "2019-12-06T17:28:51Z",
     "usefulness": 2,
-    "report_category": "Health",
+    "report_category": "Safety",
     "NumericFields": [
-        "program_count"
+        "program_cost",
+        "program_relevance_rating",
+        "audience_relevance_rating"
     ],
     "CategoryFields": [
-        "contracted_or_direct_service",
+        "lead_department",
+        "targets_of_service",
+        "service_categories",
         "levels_of_prevention",
-        "lead_department"
+        "protective_factors"
     ],
     "DateFields": [
-        "year"
+        "fiscal_year"
     ],
     "LocationFields": [],
     "periodic": false,
     "district_level": false,
-    "item_noun": "child abuse prevention services",
-    "whom_it_may_interest": "Policy makers, health department officials, NGOs in child welfare, social workers, and academic researchers focusing on child welfare and abuse prevention.",
+    "whom_it_may_interest": "Social workers, policy makers, child welfare researchers, public health officials, and non-profit organizations focused on child welfare and abuse prevention",
     "data_validated": true,
+    "item_noun": "child abuse prevention programs",
     "queries": {
-        "Monthly": "SELECT contracted_or_direct_service, levels_of_prevention, lead_department, COUNT(*) AS program_count WHERE program_cost >= start_date GROUP BY contracted_or_direct_service, levels_of_prevention, lead_department ORDER BY program_count DESC",
-        "Yearly": "SELECT contracted_or_direct_service, levels_of_prevention, lead_department, COUNT(*) AS program_count WHERE program_cost >= start_date GROUP BY contracted_or_direct_service, levels_of_prevention, lead_department ORDER BY program_count DESC"
+        "Monthly": "SELECT lead_department, targets_of_service, service_categories, levels_of_prevention, protective_factors, date_trunc_ym('2018-01-01') AS fiscal_year, SUM(program_cost) AS total_program_cost, AVG(program_relevance_rating) AS avg_program_relevance_rating, AVG(audience_relevance_rating) AS avg_audience_relevance_rating WHERE date_trunc_ym('2018-01-01') >= start_date GROUP BY lead_department, targets_of_service, service_categories, levels_of_prevention, protective_factors ORDER BY fiscal_year",
+        "Yearly": "SELECT lead_department, targets_of_service, service_categories, levels_of_prevention, protective_factors, date_trunc_y('2018') AS fiscal_year, SUM(program_cost) AS total_program_cost, AVG(program_relevance_rating) AS avg_program_relevance_rating, AVG(audience_relevance_rating) AS avg_audience_relevance_rating WHERE date_trunc_y('2018') >= start_date GROUP BY lead_department, targets_of_service, service_categories, levels_of_prevention, protective_factors ORDER BY fiscal_year"
     },
     "filename": "3had-h899.json"
 }

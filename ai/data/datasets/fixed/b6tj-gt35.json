@@ -214,16 +214,31 @@
         }
     ],
     "publishing_department": "Public Works",
-    "rows_updated_at": "2024-12-20T16:20:05Z",
-    "item_noun": "permit",
-    "usefulness": 3,
+    "rows_updated_at": "2025-01-01T15:59:53Z",
+    "usefulness": 2,
     "report_category": "Transportation",
-    "periodic": "yes",
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "permit_type",
+        "status",
+        "permit_purpose"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "permit_zipcode"
+    ],
+    "periodic": true,
     "district_level": false,
-    "whom_it_may_interest": "Urban planners, city administrators, construction companies, and civil engineers",
+    "whom_it_may_interest": "Urban Planners, City Officials, Construction Companies, Researchers analyzing urban development and street usage trends",
     "data_validated": true,
+    "item_noun": "street-use permits",
     "queries": {
-        "Monthly": "SELECT permit_type, status, date_trunc_ym(approved_date) AS month, COUNT(*) AS permit_count WHERE approved_date >= '2022-09-01' GROUP BY permit_type, status, month ORDER BY month, permit_type, status",
-        "Yearly": "SELECT permit_type, status, date_trunc_y(approved_date) AS year, COUNT(*) AS permit_count WHERE approved_date >= '2022-09-01' GROUP BY permit_type, status, year ORDER BY year, permit_type, status"
-    }
+        "Monthly": "SELECT date_trunc_ym(approved_date) AS month, permit_type, status, permit_purpose, permit_zipcode, COUNT(*) AS item_count WHERE approved_date >= start_date GROUP BY month, permit_type, status, permit_purpose, permit_zipcode ORDER BY month",
+        "Yearly": "SELECT date_trunc_y(approved_date) AS year, permit_type, status, permit_purpose, permit_zipcode, COUNT(*) AS item_count WHERE approved_date >= start_date GROUP BY year, permit_type, status, permit_purpose, permit_zipcode ORDER BY year"
+    },
+    "filename": "b6tj-gt35.json"
 }

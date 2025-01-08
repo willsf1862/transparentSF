@@ -143,26 +143,31 @@
     ],
     "publishing_department": "Entertainment Commission",
     "rows_updated_at": "2024-12-12T16:03:21Z",
-    "item_noun": "Entertainment Permit",
-    "usefulness": 3,
-    "report_category": "Other",
+    "usefulness": 1,
+    "report_category": "Economy",
     "NumericFields": [
         "item_count"
     ],
     "CategoryFields": [
-        "POE_Class_Code",
-        "Permit_Status",
-        "DBA_Name"
+        "permit_status",
+        "poe_class_code",
+        "license_type",
+        "analysis_neighborhood"
     ],
     "DateFields": [
         "month"
     ],
+    "LocationFields": [
+        "supervisor_district"
+    ],
     "periodic": true,
-    "district_level": false,
-    "whom_it_may_interest": "It may interest event organizers, city planners and the general public looking for information on places of entertainment in the city.",
+    "district_level": true,
+    "whom_it_may_interest": "Business owners, entrepreneurs, city planners, entertainment commission, and researchers interested in entertainment trends across neighborhoods.",
     "data_validated": true,
+    "item_noun": "entertainment permits",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(data_as_of) AS month, COUNT(*) AS item_count, POE_Class_Code, Permit_Status, DBA_Name WHERE data_as_of >= '2022-09-01' GROUP BY month, POE_Class_Code, Permit_Status, DBA_Name",
-        "Yearly": "SELECT date_trunc_y(data_as_of) AS year, COUNT(*) AS item_count, POE_Class_Code, Permit_Status, DBA_Name WHERE data_as_of >= '2022-09-01' GROUP BY year, POE_Class_Code, Permit_Status, DBA_Name"
-    }
+        "Monthly": "SELECT permit_status, poe_class_code, license_type, analysis_neighborhood, supervisor_district, date_trunc_ym(data_as_of) AS month, COUNT(*) AS item_count WHERE data_as_of >= start_date GROUP BY permit_status, poe_class_code, license_type, analysis_neighborhood, supervisor_district, month ORDER BY month",
+        "Yearly": "SELECT permit_status, poe_class_code, license_type, analysis_neighborhood, supervisor_district, date_trunc_y(data_as_of) AS year, COUNT(*) AS item_count WHERE data_as_of >= start_date GROUP BY permit_status, poe_class_code, license_type, analysis_neighborhood, supervisor_district, year ORDER BY year"
+    },
+    "filename": "86e8-rfem.json"
 }

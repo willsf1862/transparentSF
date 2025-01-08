@@ -106,16 +106,33 @@
         }
     ],
     "publishing_department": "Public Health",
-    "rows_updated_at": "2024-12-22T00:33:06Z",
-    "item_noun": "vaccination record",
+    "rows_updated_at": "2025-01-02T00:33:24Z",
     "usefulness": 3,
     "report_category": "Health",
-    "periodic": "yes",
-    "district_level": false,
-    "whom_it_may_interest": "public health officials, health researchers and policy makers",
+    "NumericFields": [
+        "total_recipients_current",
+        "population_estimate"
+    ],
+    "CategoryFields": [
+        "vaccine_type",
+        "vaccine_subtype",
+        "demographic_group",
+        "demographic_subgroup"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "demographic_subgroup"
+    ],
+    "periodic": true,
+    "district_level": true,
+    "whom_it_may_interest": "Public Health Officials, Policy Makers, Healthcare Providers, Researchers studying vaccination rates, and Community Organizations aiming to increase vaccination awareness and uptake.",
     "data_validated": true,
+    "item_noun": "vaccination records",
     "queries": {
-        "Monthly": "SELECT demographic_group, vaccine_type, demographic_subgroup, date_trunc_ym(data_as_of) AS month, COUNT(*) AS count WHERE data_as_of >= '2022-09-01' GROUP BY demographic_group, vaccine_type, demographic_subgroup, month ORDER BY month, demographic_group, vaccine_type, demographic_subgroup",
-        "Yearly": "SELECT demographic_group, vaccine_type, demographic_subgroup, date_trunc_y(data_as_of) AS year, COUNT(*) AS count WHERE data_as_of >= '2022-09-01' GROUP BY demographic_group, vaccine_type, demographic_subgroup, year ORDER BY year, demographic_group, vaccine_type, demographic_subgroup"
-    }
+        "Monthly": "SELECT vaccine_type, vaccine_subtype, demographic_group, demographic_subgroup, date_trunc_ym(max_date_administered) AS month, SUM(total_recipients_current) AS total_recipients_current, SUM(population_estimate) AS population_estimate WHERE max_date_administered >= start_date GROUP BY vaccine_type, vaccine_subtype, demographic_group, demographic_subgroup, month ORDER BY month, vaccine_type",
+        "Yearly": "SELECT vaccine_type, vaccine_subtype, demographic_group, demographic_subgroup, date_trunc_y(max_date_administered) AS year, SUM(total_recipients_current) AS total_recipients_current, SUM(population_estimate) AS population_estimate WHERE max_date_administered >= start_date GROUP BY vaccine_type, vaccine_subtype, demographic_group, demographic_subgroup, year ORDER BY year, vaccine_type"
+    },
+    "filename": "q6g7-y2et.json"
 }

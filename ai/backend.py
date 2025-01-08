@@ -103,7 +103,7 @@ def load_and_sort_json():
     """
     datasets = []
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    datasets_dir = os.path.join(current_dir, 'data', 'datasets/fixed')
+    datasets_dir = os.path.join(current_dir, 'data', 'datasets')
     logger.debug(f"Looking for datasets in: {datasets_dir}")
 
     if not os.path.exists(datasets_dir):

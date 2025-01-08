@@ -98,15 +98,31 @@
     ],
     "publishing_department": "Municipal Transportation Agency ",
     "rows_updated_at": "2024-12-20T17:47:20Z",
-    "item_noun": "citation",
     "usefulness": 3,
     "report_category": "Transportation",
-    "periodic": "yes",
+    "NumericFields": [
+        "citation_count"
+    ],
+    "CategoryFields": [
+        "intersection",
+        "directions_enforced",
+        "violation_type"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "analysis_neighborhood",
+        "supervisor_district"
+    ],
+    "periodic": true,
     "district_level": true,
-    "whom_it_may_interest": "Traffic management authorities, urban planners, city safety researchers and officials",
+    "whom_it_may_interest": "Traffic Safety Analysts, Urban Planners, Policy Makers, Researchers studying traffic patterns, and Citizens interested in traffic safety",
     "data_validated": true,
+    "item_noun": "red light camera citations",
     "queries": {
-        "Monthly": "SELECT supervisor_district, analysis_neighborhood, violation_type, date_trunc_ym(month) AS month, SUM(count) AS total_citations WHERE month >= '2022-09-01' GROUP BY supervisor_district, analysis_neighborhood, violation_type, month ORDER BY month, supervisor_district, analysis_neighborhood, violation_type",
-        "Yearly": "SELECT supervisor_district, analysis_neighborhood, violation_type, date_trunc_y(month) AS year, SUM(count) AS total_citations WHERE year >= '2022-09-01' GROUP BY supervisor_district, analysis_neighborhood, violation_type, year ORDER BY year, supervisor_district, analysis_neighborhood, violation_type"
-    }
+        "Monthly": "SELECT intersection, directions_enforced, violation_type, analysis_neighborhood, supervisor_district, date_trunc_ym(month) AS month, SUM(count) AS citation_count WHERE month >= start_date GROUP BY intersection, directions_enforced, violation_type, analysis_neighborhood, supervisor_district, month ORDER BY month",
+        "Yearly": "SELECT intersection, directions_enforced, violation_type, analysis_neighborhood, supervisor_district, date_trunc_y(month) AS year, SUM(count) AS citation_count WHERE month >= start_date GROUP BY intersection, directions_enforced, violation_type, analysis_neighborhood, supervisor_district, year ORDER BY year"
+    },
+    "filename": "uzmr-g2uc.json"
 }
