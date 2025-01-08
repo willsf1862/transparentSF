@@ -14,3 +14,4 @@ ai/logs
 .env
 manual/data
 TransparentAnalysis.code-workspace
+ai/generated_posts
