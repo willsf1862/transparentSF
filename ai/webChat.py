@@ -637,10 +637,11 @@ journalist_agent = Agent(
         Call generate_ghost_post(context_variables, content,title) only after ensuring the content is complete, concise, and properly formatted.  MAke it a very simple html.
 
         For every image or chart, ensure the src is correct and accessible.
+        Use Transfer_to_analyst_agent() ONLY if asked to by the user.
 
         """,
     # functions=[get_notes, query_docs, transfer_to_analyst_agent, generate_ghost_post],  
-    functions=[query_docs,  get_notes, generate_ghost_post],  
+    functions=[query_docs,  get_notes, generate_ghost_post, transfer_to_analyst_agent],  
     context_variables=context_variables,
     debug=True,
 )

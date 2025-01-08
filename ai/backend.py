@@ -96,86 +96,152 @@ def check_fixed_file_exists(filename: str) -> bool:
 
 def load_and_sort_json():
     """
-    Loads all .json files from data/datasets/fixed, filters for periodic=true and 
-    supervisor_district in locationField, extracts category, endpoint,
-    periodic (Yes/No), and last updated (formatted as YY.MM.DD),
-    then sorts them by category, then by last updated date.
+    Loads all .json files from both data/datasets and data/datasets/fixed directories,
+    extracts required information, and sorts them with fixed files at the top.
     """
     datasets = []
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    datasets_dir = os.path.join(current_dir, 'data', 'datasets')
-    logger.debug(f"Looking for datasets in: {datasets_dir}")
+    raw_datasets_dir = os.path.join(current_dir, 'data', 'datasets')
+    fixed_datasets_dir = os.path.join(current_dir, 'data', 'datasets', 'fixed')
+    logger.debug(f"Looking for datasets in: {raw_datasets_dir} and {fixed_datasets_dir}")
 
-    if not os.path.exists(datasets_dir):
-        logger.error(f"Datasets directory '{datasets_dir}' does not exist.")
+    if not os.path.exists(raw_datasets_dir):
+        logger.error(f"Raw datasets directory '{raw_datasets_dir}' does not exist.")
         return datasets
 
-    for filename in os.listdir(datasets_dir):
-        if filename.endswith('.json') and filename != 'analysis_map.json':  # Skip analysis_map.json
-            file_path = os.path.join(datasets_dir, filename)
-            try:
-                with open(file_path, 'r') as file:
-                    data = json.load(file)
+    # First, get list of all raw dataset files
+    raw_files = [f for f in os.listdir(raw_datasets_dir) 
+                 if f.endswith('.json') and f != 'analysis_map.json']
+
+    for filename in raw_files:
+        try:
+            # Check if fixed version exists first
+            fixed_file_path = os.path.join(fixed_datasets_dir, filename)
+            has_fixed = os.path.exists(fixed_file_path)
+            
+            # Set the json_path without 'data' prefix
+            json_path = os.path.join('datasets', 'fixed' if has_fixed else '', filename)
+            
+            dataset_info = {
+                'filename': filename,
+                'category': 'N/A',
+                'report_category': None,
+                'periodic': 'No',
+                'endpoint': 'N/A',
+                'item_noun': 'N/A',
+                'rows_updated_at': 'N/A',
+                'rows_updated_dt': None,
+                'has_fixed': has_fixed,
+                'json_path': json_path
+            }
+
+            # First read metadata from raw file
+            raw_file_path = os.path.join(raw_datasets_dir, filename)
+            with open(raw_file_path, 'r') as file:
+                raw_data = json.load(file)
+                if isinstance(raw_data, dict):
+                    # Get title and truncate it for item_noun
+                    title = raw_data.get('title', 'N/A')
+                    dataset_info['item_noun'] = (title[:37] + '...') if len(title) > 60 else title
                     
-                    # Skip if data is not a dict
-                    if not isinstance(data, dict):
-                        logger.warning(f"Skipping {filename}: data is not a dictionary")
-                        continue
-                        
-                    # Apply filters
-                    periodic = data.get('periodic', False)
-                    # Convert "yes" to True for periodic field
+                    # Extract just the endpoint identifier from the URL, keeping .json
+                    endpoint = raw_data.get('endpoint', 'N/A')
+                    if endpoint != 'N/A' and '/' in endpoint:
+                        # Extract just the endpoint ID from the full URL, keeping .json
+                        endpoint = endpoint.split('/')[-1]
+                    
+                    dataset_info.update({
+                        'category': raw_data.get('category', 'N/A'),
+                        'endpoint': endpoint,
+                    })
+                    
+                    periodic = raw_data.get('periodic', False)
                     if isinstance(periodic, str):
                         periodic = periodic.lower() == "yes"
-                    
-                    district_level = data.get('district_level', False)
-                    item_noun = data.get('item_noun', 'N/A')
-              
-                    
-                    category = data.get('category', 'N/A')
-                    endpoint = data.get('endpoint', 'N/A')
-                    periodic_str = "Yes" if periodic else "No"
+                    dataset_info['periodic'] = "Yes" if periodic else "No"
 
-                    rows_updated_at_str = data.get('rows_updated_at', 'N/A')
-                    rows_updated_dt = None
-
+                    rows_updated_at_str = raw_data.get('rows_updated_at', 'N/A')
                     if rows_updated_at_str != 'N/A':
                         try:
-                            # parse the date
                             dt_parsed = datetime.strptime(rows_updated_at_str, '%Y-%m-%dT%H:%M:%SZ')
-                            # store the datetime for sorting
-                            rows_updated_dt = dt_parsed
-                            # store the formatted date (YY.MM.DD) for display
-                            rows_updated_at_str = dt_parsed.strftime('%y.%m.%d')
+                            dataset_info['rows_updated_dt'] = dt_parsed
+                            dataset_info['rows_updated_at'] = dt_parsed.strftime('%y.%m.%d')
                         except ValueError:
-                            rows_updated_at_str = 'N/A'
-                            rows_updated_dt = None
+                            pass
 
-                    datasets.append({
-                        'filename': filename,
-                        'category': category,
-                        'periodic': periodic_str,
-                        'endpoint': endpoint,
-                        'item_noun': item_noun,
-                        'rows_updated_at': rows_updated_at_str,
-                        'rows_updated_dt': rows_updated_dt,
-                        'has_fixed': check_fixed_file_exists(filename)
-                    })
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON decode error in file '{filename}': {e}")
-            except Exception as e:
-                logger.exception(f"Error loading dataset '{filename}': {e}")
+            # If fixed version exists, override metadata with fixed version
+            if os.path.exists(fixed_file_path):
+                dataset_info['has_fixed'] = True
+                
+                with open(fixed_file_path, 'r') as file:
+                    fixed_data = json.load(file)
+                    if isinstance(fixed_data, dict):
+                        # For fixed files, use report_category instead of category
+                        dataset_info['report_category'] = fixed_data.get('report_category', 'N/A')
+                        
+                        # Update other metadata
+                        dataset_info.update({
+                            'endpoint': fixed_data.get('endpoint', dataset_info['endpoint']),
+                        })
+                        
+                        # Get title from fixed file and truncate it
+                        title = fixed_data.get('title', dataset_info['item_noun'])
+                        dataset_info['item_noun'] = (title[:57] + '...') if len(title) > 60 else title
+                        
+                        periodic = fixed_data.get('periodic', False)
+                        if isinstance(periodic, str):
+                            periodic = periodic.lower() == "yes"
+                        dataset_info['periodic'] = "Yes" if periodic else "No"
 
-    # We only do an initial sort here (category -> rows_updated_dt ascending)
+                        rows_updated_at_str = fixed_data.get('rows_updated_at', dataset_info['rows_updated_at'])
+                        if rows_updated_at_str != 'N/A':
+                            try:
+                                dt_parsed = datetime.strptime(rows_updated_at_str, '%Y-%m-%dT%H:%M:%SZ')
+                                dataset_info['rows_updated_dt'] = dt_parsed
+                                dataset_info['rows_updated_at'] = dt_parsed.strftime('%y.%m.%d')
+                            except ValueError:
+                                pass
+
+                        # Extract just the endpoint identifier from the URL for fixed files too
+                        endpoint = fixed_data.get('endpoint', dataset_info['endpoint'])
+                        if endpoint != 'N/A' and '/' in endpoint:
+                            endpoint = endpoint.split('/')[-1]  # Keep .json extension
+                        dataset_info['endpoint'] = endpoint
+
+            datasets.append(dataset_info)
+
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error in file '{filename}': {e}")
+        except Exception as e:
+            logger.exception(f"Error loading dataset '{filename}': {e}")
+
+    # Sort datasets: items with report_category first, then remaining items by category
     datasets.sort(
         key=lambda x: (
-            x['category'],
+            x['report_category'] is None,  # False (has report_category) comes before True (no report_category)
+            x['report_category'] if x['report_category'] is not None else '',  # Sort by report_category if it exists
+            x['category'] if x['report_category'] is None else '',  # Sort by category for items without report_category
             x['rows_updated_dt'] if x['rows_updated_dt'] else datetime.min
         )
     )
 
-    logger.info(f"Total datasets loaded (post-filtering): {len(datasets)}")
+    logger.info(f"Total datasets loaded: {len(datasets)}")
     return datasets
+
+
+def get_md_file_date(output_files):
+    """Get the most recent date from MD or HTML files in output_files."""
+    latest_date = None
+    for folder, files in output_files.items():
+        for file_type, file_path in files.items():
+            if file_type in ['md', 'html']:
+                try:
+                    file_date = datetime.fromtimestamp(os.path.getmtime(file_path))
+                    if latest_date is None or file_date > latest_date:
+                        latest_date = file_date
+                except Exception:
+                    continue
+    return latest_date
 
 
 @app.get("/backend")
@@ -184,31 +250,51 @@ async def backend(request: Request):
     datasets_info = load_and_sort_json()
     logger.debug(f"Loaded {len(datasets_info)} datasets")
 
-    # Build output links for each dataset
+    # Build output links for each dataset and check for MD/HTML files
     for dataset in datasets_info:
         endpoint = dataset['endpoint']
-        # Find matching output files
         output_files = find_output_files_for_endpoint(endpoint, output_dir)
         
         # Build URLs - handle the nested structure
         links = {}
+        has_analysis = False
         for folder, files in output_files.items():
             folder_links = {}
             for file_type, file_path in files.items():
-                if isinstance(file_path, str):  # Only process if file_path is a string
+                if isinstance(file_path, str):
                     url = get_output_file_url(file_path, output_dir)
-                    if url:  # Only add if we got a valid URL
+                    if url:
                         folder_links[file_type] = url
-            if folder_links:  # Only add folder if it has valid links
+                        if file_type in ['md', 'html']:
+                            has_analysis = True
+            if folder_links:
                 links[folder] = folder_links
+        
         dataset['output_links'] = links
+        dataset['has_analysis'] = has_analysis
+        
+        # Get last run date from MD/HTML files if they exist
+        if has_analysis:
+            last_run_date = get_md_file_date(output_files)
+            if last_run_date:
+                dataset['last_run_date'] = last_run_date
+                dataset['last_run_str'] = last_run_date.strftime('%y.%m.%d')
+            else:
+                dataset['last_run_date'] = None
+                dataset['last_run_str'] = 'N/A'
+        else:
+            dataset['last_run_date'] = None
+            dataset['last_run_str'] = 'N/A'
 
-    # Re-sort datasets
+    # Sort datasets with the new priority
     datasets_info.sort(
         key=lambda d: (
-            len(d['output_links']) == 0,
-            d['category'],
-            d['rows_updated_dt'] or datetime.min
+            not d['has_analysis'],  # True (has analysis) comes first
+            not d['has_fixed'],     # Then by fixed status
+            d['report_category'] is None,  # Then by report category presence
+            d['report_category'] if d['report_category'] is not None else '',
+            d['category'] if d['report_category'] is None else '',
+            d['last_run_date'] if d['last_run_date'] else datetime.min
         )
     )
 
@@ -243,23 +329,19 @@ async def prep_data(filename: str):
     try:
         # Process data
         process_single_file(filename, datasets_folder, output_folder, datetime.now(pytz.UTC), error_log)
-        # Rebuild analysis map
-        analysis_map_path = create_analysis_map(datasets_folder, output_folder)
 
         if error_log:
             logger.warning(f"Data prepared with warnings for file '{filename}': {error_log}")
             return JSONResponse({
                 'status': 'warning',
-                'message': 'Data prepared with warnings and analysis map updated.',
-                'analysis_map': analysis_map_path,
+                'message': 'Data prepared with warnings.',
                 'errors': error_log
             })
 
-        logger.info(f"File '{filename}' prepared successfully and analysis map updated.")
+        logger.info(f"File '{filename}' prepared successfully.")
         return JSONResponse({
             'status': 'success',
-            'message': f'File {filename} prepared successfully and analysis map updated.',
-            'analysis_map': analysis_map_path
+            'message': f'File {filename} prepared successfully.'
         })
     except Exception as e:
         logger.exception(f"Error preparing data for file '{filename}': {str(e)}")
@@ -268,17 +350,31 @@ async def prep_data(filename: str):
 
 @app.get("/run_analysis/{endpoint}")
 async def run_analysis(endpoint: str):
+    """Run analysis for a given endpoint."""
     logger.info(f"Received request to run analysis for endpoint: '{endpoint}'")
+    
+    # Remove .json extension if present
+    endpoint = endpoint.replace('.json', '')
+    
     error_log = []
     try:
+        logger.debug(f"Attempting to run export_for_endpoint with endpoint: {endpoint}")
         export_for_endpoint(endpoint, output_folder=output_dir,
-                            log_file_path=os.path.join(output_dir, 'processing_log.txt'))
+                          log_file_path=os.path.join(output_dir, 'processing_log.txt'))
+        
         if error_log:
             logger.warning(f"Analysis completed with warnings for endpoint '{endpoint}': {error_log}")
-            return JSONResponse({'status': 'warning', 'message': 'Analysis completed with warnings.', 'errors': error_log})
+            return JSONResponse({
+                'status': 'warning', 
+                'message': 'Analysis completed with warnings.', 
+                'errors': error_log
+            })
 
         logger.info(f"Analysis for endpoint '{endpoint}' completed successfully.")
-        return JSONResponse({'status': 'success', 'message': f'Analysis for endpoint {endpoint} completed successfully.'})
+        return JSONResponse({
+            'status': 'success', 
+            'message': f'Analysis for endpoint {endpoint} completed successfully.'
+        })
     except Exception as e:
         logger.exception(f"Error running analysis for endpoint '{endpoint}': {str(e)}")
         return JSONResponse({'status': 'error', 'message': str(e)})
@@ -290,10 +386,20 @@ async def get_updated_links(endpoint: str):
     Returns the updated output links for a single endpoint. Helps the front-end
     refresh the row's output links after an operation.
     """
+    # Remove .json extension if present to match how files are stored
+    endpoint = endpoint.replace('.json', '')
+    
     output_files = find_output_files_for_endpoint(endpoint, output_dir)
     links = {}
-    for file_type, path in output_files.items():
-        links[file_type] = get_output_file_url(path, output_dir)
+    for folder, files in output_files.items():
+        folder_links = {}
+        for file_type, file_path in files.items():
+            if isinstance(file_path, str):
+                url = get_output_file_url(file_path, output_dir)
+                if url:
+                    folder_links[file_type] = url
+        if folder_links:
+            links[folder] = folder_links
     return JSONResponse({'links': links})
 
 
@@ -326,20 +432,25 @@ async def reload_vector_db():
         return JSONResponse({"status": "error", "message": str(e)})
 
 
-@app.get("/dataset-json/{filename}")
+@app.get("/dataset-json/{filename:path}")
 async def get_dataset_json(filename: str):
     """Serve the JSON file for a dataset."""
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'data', 'datasets', 'fixed', filename)
+    
+    # Remove any leading '../' from the filename for security
+    clean_filename = filename.replace('../', '')
+    
+    # Add 'data' to the path here instead of expecting it in the URL
+    file_path = os.path.join(current_dir, 'data', clean_filename)
     
     if not os.path.exists(file_path):
-        logger.error(f"JSON file not found: {filename}")
+        logger.error(f"JSON file not found: {file_path}")
         raise HTTPException(status_code=404, detail="File not found")
         
     return FileResponse(
         file_path,
         media_type="application/json",
-        filename=filename
+        filename=os.path.basename(clean_filename)
     )
 
 
@@ -348,22 +459,24 @@ async def get_endpoint_json(endpoint: str):
     """Serve the JSON file for an endpoint's analysis results."""
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        results_dir = os.path.join(current_dir, 'data', 'analysis_map', 'individual_results')
+        results_dir = os.path.join(current_dir, 'output')  # Changed from analysis_map/individual_results
         
         # Look for files matching the endpoint
-        matching_files = [f for f in os.listdir(results_dir) 
-                         if f.endswith('.json') and endpoint in f]
+        matching_files = []
+        for root, _, files in os.walk(results_dir):
+            for file in files:
+                if file.endswith('.json') and endpoint in file:
+                    matching_files.append(os.path.join(root, file))
         
         if not matching_files:
             raise HTTPException(status_code=404, detail="No results found for this endpoint")
             
         # Use the most recent file if multiple exist
-        latest_file = sorted(matching_files)[-1]
-        file_path = os.path.join(results_dir, latest_file)
+        latest_file = max(matching_files, key=os.path.getmtime)
         
         # Read the file content instead of serving the file directly
         try:
-            with open(file_path, 'r') as f:
+            with open(latest_file, 'r') as f:
                 content = json.load(f)
             return JSONResponse(content=content)
         except json.JSONDecodeError:

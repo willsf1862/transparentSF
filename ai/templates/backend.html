@@ -32,26 +32,31 @@
             background-color: #f1f1f1; 
         }
         .actions button { 
-            padding: 6px 6px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            position: relative; 
-            transition: background-color 0.3s ease;
+            padding: 6px 12px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            min-width: 100px;  /* Give buttons consistent width */
+            margin: 0 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .prep-btn { 
-            background-color: #007BFF; 
-            color: white; 
+        .prep-btn {
+            background-color: #007BFF;
+            border-color: #0056b3;
         }
-        .run-btn { 
-            background-color: #28A745; 
-            color: white; 
+        .run-btn {
+            background-color: #28A745;
+            border-color: #1e7e34;
         }
-        .prep-btn:hover { 
-            background-color: #0056b3; 
+        .prep-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
         }
-        .run-btn:hover { 
-            background-color: #1e7e34; 
+        .run-btn:hover {
+            background-color: #1e7e34;
+            transform: translateY(-1px);
         }
         .button-disabled { 
             background-color: #6c757d !important; 
@@ -178,13 +183,13 @@
         }
 
         .sidebar {
-            flex: 0 0 200px;  /* Fixed width sidebar */
+            flex: 0 0 150px;  /* Reduce sidebar width from 200px to 150px */
             padding: 10px;
             background-color: #f8f9fa;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow-y: auto; /* Enable vertical scrolling */
-            max-height: 100%; /* Take full height of container */
+            overflow-y: auto;
+            max-height: 100%;
             position: sticky;
             top: 20px;
         }
@@ -200,17 +205,21 @@
             display: block;
             width: 100%;
             margin-bottom: 10px;
-            padding: 1px;
-            border: none;
+            padding: 8px 12px;  /* Increased padding */
+            border: 1px solid #138496;  /* Added border */
             border-radius: 4px;
             background-color: #17a2b8;
             color: white;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
+            font-weight: bold;  /* Make text bold */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);  /* Add subtle shadow */
         }
 
         .sidebar button:hover {
             background-color: #138496;
+            transform: translateY(-1px);  /* Slight lift effect */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         /* Adjust table container */
@@ -222,6 +231,41 @@
         .prep-btn.has-fixed {
             opacity: 0.6;
             background-color: #6c757d;  /* Grey color for better visibility */
+        }
+
+        /* Add loading animation for vector loader button */
+        .loading {
+            position: relative;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            right: 10px;
+            margin-top: -8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Add fixed widths for table columns */
+        table th:nth-child(2),  /* Category column */
+        table td:nth-child(2) {
+            max-width: 120px;
+            width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -246,7 +290,7 @@
                             <th>Category</th>
                             <th>Item Noun</th>
                             <th>Filename</th>
-                            <th>Last Updated</th>
+                            <th>Last Run</th>
                             <th>Actions</th>
                             <th>Outputs</th>
                             
@@ -254,19 +298,19 @@
                     </thead>
                     <tbody>
                         {% for dataset in datasets %}
-                        <tr data-endpoint="{{ dataset.endpoint }}" data-filename="{{ dataset.filename }}">
+                        <tr data-endpoint="{{ dataset.endpoint|replace('.json', '') }}" data-filename="{{ dataset.filename }}">
                             
                             <td>
                                 <input type="checkbox" class="row-check"/>
                             </td>
-                            <td>{{ dataset.category or 'N/A' }}</td>
-                            <td>{{ dataset.item_noun or 'N/A' }}</td>
+                            <td>{{ dataset.report_category if dataset.has_fixed else dataset.category }}</td>
+                            <td>{{ dataset.item_noun }}</td>
                             <td>
-                                <a href="#" class="json-link" data-filename="{{ dataset.filename }}" style="color: #0066cc; text-decoration: none;">
+                                <a href="#" class="json-link" data-filename="{{ dataset.json_path }}" style="color: #0066cc; text-decoration: none;">
                                     {{ dataset.filename }}
                                 </a>
                             </td>
-                            <td>{{ dataset.rows_updated_at if dataset.rows_updated_at != 'N/A' else 'N/A' }}</td>
+                            <td>{{ dataset.last_run_str }}</td>
                             <td class="actions">
                                 <button 
                                     class="prep-btn {% if dataset.has_fixed %}has-fixed{% endif %}" 
@@ -278,7 +322,7 @@
                                 <button 
                                     class="run-btn" 
                                     data-action="run_analysis" 
-                                    data-endpoint="{{ dataset.endpoint }}"
+                                    data-endpoint="{{ dataset.endpoint|replace('.json', '') }}"
                                 >
                                     Run Analysis
                                 </button>
@@ -518,6 +562,10 @@
             // *** RELOAD VECTOR DB BUTTON LOGIC ***
             const reloadDBBtn = document.getElementById('reload-vector-db-btn');
             reloadDBBtn.addEventListener('click', async () => {
+                // Add loading state
+                reloadDBBtn.classList.add('loading');
+                reloadDBBtn.disabled = true;
+                
                 try {
                     const resp = await fetch('/reload_vector_db');
                     const data = await resp.json();
@@ -528,6 +576,10 @@
                     }
                 } catch (error) {
                     alert('Failed to reload Vector DB: ' + error.message);
+                } finally {
+                    // Remove loading state
+                    reloadDBBtn.classList.remove('loading');
+                    reloadDBBtn.disabled = false;
                 }
             });
 
