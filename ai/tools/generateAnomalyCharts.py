@@ -38,31 +38,30 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='static
     for item in sorted_anomalies:
         if item['out_of_bounds']:
             chart_title = f"Anomaly in {metadata['y_axis_label']} in {item['group_value']} "
-        else: 
-            chart_title = f"{item['group_value']}"
-        try:
-            chart_html, chart_id = generate_chart_html(item, chart_title, metadata, chart_counter, output_dir)
-            all_charts_html.append(chart_html)
+            try:
+                chart_html, chart_id = generate_chart_html(item, chart_title, metadata, chart_counter, output_dir)
+                all_charts_html.append(chart_html)
+                chart_counter += 1  # Increment only when chart is generated
+            except Exception as e:
+                logging.error(f"Failed to generate chart for group {item.get('group_value', 'Unknown')}: {e}")
+                continue
+        else:
+            chart_id = None  # No chart generated for non-anomalous items
             
-            # Prepare data for the table
-            percent_difference = (
-                (item['difference'] / item['comparison_mean']) * 100 if item['comparison_mean'] else 0
-            )
-            table_data.append({
-                'group_value': item['group_value'],
-                'comparison_mean': round(item['comparison_mean'], 1),
-                'std_dev': round(item['stdDev'], 1),
-                'recent_mean': round(item['recent_mean'], 1),
-                'difference': round(item['difference'], 1),
-                'percent_difference': round(abs(percent_difference), 1),
-                'out_of_bounds': item['out_of_bounds'],
-                'chart_id': chart_id  # Store chart_id for markdown reference
-            })
-            chart_counter += 1  # Increment the chart counter
-
-        except Exception as e:
-            logging.error(f"Failed to generate chart for group {item.get('group_value', 'Unknown')}: {e}")
-            continue
+        # Prepare data for the table
+        percent_difference = (
+            (item['difference'] / item['comparison_mean']) * 100 if item['comparison_mean'] else 0
+        )
+        table_data.append({
+            'group_value': item['group_value'],
+            'comparison_mean': round(item['comparison_mean'], 1),
+            'std_dev': round(item['stdDev'], 1),
+            'recent_mean': round(item['recent_mean'], 1),
+            'difference': round(item['difference'], 1),
+            'percent_difference': round(abs(percent_difference), 1),
+            'out_of_bounds': item['out_of_bounds'],
+            'chart_id': chart_id  # Will be None for non-anomalous items
+        })
     
     # Create title string for HTML and markdown
     title_str = f"{metadata.get('numeric_field', '')} by {metadata.get('group_field', '')}"
@@ -146,7 +145,7 @@ def generate_anomalies_summary_with_charts(results, metadata, output_dir='static
             <tbody>
                 {% for row in table_data %}
                 <tr style="background-color: {% if row.out_of_bounds %}rgba(255, 0, 0, 0.1){% else %}transparent{% endif %};">
-                    <td>{% if row.out_of_bounds %}<a href="#chart{{ loop.index0 }}" style="color: #d9534f; text-decoration: none;">{{ row.group_value }}</a>{% else %}{{ row.group_value }}{% endif %}</td>
+                    <td>{% if row.out_of_bounds and row.chart_id %}<a href="#chart{{ loop.index0 }}" style="color: #d9534f; text-decoration: none;">{{ row.group_value }}</a>{% else %}{{ row.group_value }}{% endif %}</td>
                     <td>{{ "{:,.0f}".format(row.recent_mean) }}</td>
                     <td>{{ "{:,.0f}".format(row.comparison_mean) }}</td>
                     <td>{{ "{:,.0f}".format(row.difference) }}</td>
@@ -331,14 +330,26 @@ def generate_chart_html(item, chart_title, metadata, chart_counter, output_dir):
             )
         )
 
-    layout = go.Layout(
-        title=dict(text=chart_title, font=dict(size=14)),
-        xaxis=dict(
+    # Update the xaxis configuration based on date_field
+    xaxis_config = {}
+    if metadata.get('date_field') == 'year':
+        xaxis_config = dict(
+            tickformat='%Y',  # Show only year
+            dtick='M12',      # One tick per year
+            title=metadata.get('date_field', 'Value'),
+            ticklabelmode='period'
+        )
+    else:
+        xaxis_config = dict(
             tickformat='%b %Y',
             dtick='M1',
             title=metadata.get('date_field', 'Value'),
             ticklabelmode='period'
-        ),
+        )
+
+    layout = go.Layout(
+        title=dict(text=chart_title, font=dict(size=14)),
+        xaxis=xaxis_config,
         yaxis=dict(
             title=metadata.get('y_axis_label', 'Value'),
             rangemode='tozero'
@@ -353,7 +364,7 @@ def generate_chart_html(item, chart_title, metadata, chart_counter, output_dir):
             yanchor='top',
             font=dict(size=10)
         ),
-        margin=dict(t=50, b=80, l=50, r=20),
+        margin=dict(t=50, b=30, l=50, r=20),
         annotations=annotation,
         autosize=True
     )
@@ -412,34 +423,33 @@ def generate_markdown_summary(table_data, metadata, output_dir):
     md_lines.append(f"# {y_axis_label} Summary\n")
 
     if table_data:
-        md_lines.append("Below is a concise summary of the anomalies and their statistics.")
+        
+        md_lines.append(f"Searched for anomalies of {numeric_field} in {group_field} comparing {metadata['recent_period']['start']} to {metadata['recent_period']['end']} against {metadata['comparison_period']['start']} to {metadata['comparison_period']['end']}.")
         md_lines.append("")
         md_lines.append(f"| Group | Recent Mean | Comparison Mean | Difference | % Difference | Std Dev | Anomaly? | Chart |")
         md_lines.append("|---|---|---|---|---|---|---|---|")
     else:
-        md_lines.append(f"No anomalies detected for {numeric_field} by {group_field}.")
+        md_lines.append(f"No anomalies detected comparing {numeric_field} in {group_field} comparing {metadata['recent_period']['start']} to {metadata['recent_period']['end']} against {metadata['comparison_period']['start']} to {metadata['comparison_period']['end']}.")
         md_lines.append("")
 
     # Include a column referencing the saved PNG chart
     for row in table_data:
         anomaly_marker = "**Yes**" if row['out_of_bounds'] else "No"
-        # Relative path: since markdown and images in same folder (if referencing from same dir)
-        # If referencing from outside, adjust path as needed. Here we assume the markdown might be placed in output_dir.
-        # If you want to reference from outside this code, you might need a different relative path.
-        chart_rel_path = f"../static/chart_{row['chart_id']}.png"
+        # Only include chart reference if there is a chart_id
+        chart_cell = f"![Chart](../static/chart_{row['chart_id']}.png)" if row['chart_id'] else "N/A"
         md_lines.append(
-            f"| {row['group_value']} | {row['recent_mean']:,} | {row['comparison_mean']:,} | {row['difference']:,} | {row['percent_difference']}% | {row['std_dev']:,} | {anomaly_marker} | ![Chart]({chart_rel_path}) |"
+            f"| {row['group_value']} | {row['recent_mean']:,} | {row['comparison_mean']:,} | {row['difference']:,} | {row['percent_difference']}% | {row['std_dev']:,} | {anomaly_marker} | {chart_cell} |"
         )
 
-    md_lines.append("")
-    md_lines.append("**Anomalies** (Out of Bounds) detected above are highlighted with **Yes**.")
+    # md_lines.append("")
+    # md_lines.append("**Anomalies** (Out of Bounds) detected above are highlighted with **Yes**.")
 
-    md_lines.append("\n## Anomaly Highlights\n")
-    for row in table_data:
-        if row['out_of_bounds']:
-            direction = "increase" if row['difference'] > 0 else "decrease" if row['difference'] < 0 else "no change"
-            md_lines.append(
-                f"- **{row['group_value']}**: {row['recent_mean']:,} vs {row['comparison_mean']:,} historically, a {row['percent_difference']}% {direction}. [Chart](..static/chart_{row['chart_id']}.png)"
-            )
+    # md_lines.append("\n## Anomaly Highlights\n")
+    # for row in table_data:
+    #     if row['out_of_bounds']:
+    #         direction = "increase" if row['difference'] > 0 else "decrease" if row['difference'] < 0 else "no change"
+    #         md_lines.append(
+    #             f"- **{row['group_value']}**: {row['recent_mean']:,} vs {row['comparison_mean']:,} historically, a {row['percent_difference']}% {direction}. [Chart](..static/chart_{row['chart_id']}.png)"
+    #         )
 
     return "\n".join(md_lines)

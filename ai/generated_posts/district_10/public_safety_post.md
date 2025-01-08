@@ -1,0 +1,21 @@
+Here is a fact-driven analysis of long-term public safety trends in District 10, San Francisco from 2014 to 2024, illustrated with specific examples and data.
+
+1. **Law Enforcement Dispatched Calls for Service:**
+   - **Overarching Pattern:** The total call count has seen fluctuations, but recently, there is a noteworthy decrease compared to years past.
+   - **Specific Example:** In 2024, total call_count is 73,949, which is 2% below the YTD 2023 total of 75,300. An anomaly is found in "Other" categories, with 550% above the 10-year average for call counts.
+   - **Query URL:** [Law Enforcement Dispatched Calls](https://data.sfgov.org/resource/2zdj-bwza.json?%24query=SELECT+agency%2C+call_type_final_desc%2C+disposition%2C+priority_final%2C+supervisor_district%2C+police_district%2C+analysis_neighborhood%2C+date_trunc_y%28received_datetime%29+AS+year%2C+COUNT%28%2A%29+AS+call_count+WHERE+received_datetime+%3E%3D%272014-01-01%27+GROUP+BY+agency%2C+call_type_final_desc%2C+disposition%2C+priority_final%2C+supervisor_district%2C+police_district%2C+analysis_neighborhood%2C+year+ORDER+BY+year+LIMIT+5000+OFFSET+535000)
+   - **Supporting Chart:** ![Chart](../static/chart_d260eb3b.png)
+
+2. **Police Incident Reports:**
+   - **Overarching Pattern:** Incident reports have been decreasing over the years, with a significant drop in 2024.
+   - **Specific Example:** In 2024, the total incident count was 10,347, which is 19% below the 2023 total of 12,767. Notable decline in Property Crimes and Other Crimes.
+   - **Query URL:** [Police Incident Reports](https://data.sfgov.org/resource/wg3w-h783.json?%24query=SELECT+Incident_Category%2C+Incident_Subcategory%2C+supervisor_district%2C+CASE+WHEN+Incident_Category+IN+%28%27Assault%27%2C+%27Homicide%27%2C+%27Rape%27%2C+%27Robbery%27%2C+%27Human+Trafficking+%28A%29%2C+Commercial+Sex+Acts%27%2C+%27Human+Trafficking%2C+Commercial+Sex+Acts%27%2C+%27Human+Trafficking+%28B%29%2C+Involuntary+Servitude%27%2C+%27Offences+Against+The+Family+And+Children%27%2C+%27Weapons+Carrying+Etc%27%2C+%27Weapons+Offense%27%2C+%27Weapons+Offence%27%29+THEN+%27Violent+Crime%27+WHEN+Incident_Category+IN+%28%27Arson%27%2C+%27Burglary%27%2C+%27Forgery+And+Counterfeiting%27%2C+%27Fraud%27%2C+%27Larceny+Theft%27%2C+%27Motor+Vehicle+Theft%27%2C+%27Motor+Vehicle+Theft%3F%27%2C+%27Stolen+Property%27%2C+%27Vandalism%27%2C+%27Embezzlement%27%2C+%27Recovered+Vehicle%27%2C+%27Vehicle+Impounded%27%2C+%27Vehicle+Misplaced%27%29+THEN+%27Property+Crime%27+WHEN+Incident_Category+IN+%28%27Drug+Offense%27%2C+%27Drug+Violation%27%29+THEN+%27Drug+Crimes%27+ELSE+%27Other+Crimes%27+END+AS+grouped_category%2C+Report_Type_Description%2C+Police_District%2C+date_trunc_y%28Report_Datetime%29+AS+year%2C+COUNT%28%2A%29+AS+incident_count+WHERE+Report_Datetime+%3E%3D%272014-01-01%27+GROUP+BY+supervisor_district%2C+grouped_category%2C+Report_Type_Description%2C+Police_District%2C+Incident_Category%2C+Incident_Subcategory%2C+year+ORDER+BY+year%2C+grouped_category+LIMIT+5000+OFFSET+35000)
+   - **Supporting Chart:** ![Chart](../static/chart_f76310.png)
+
+3. **Traffic Crashes Resulting in Fatalities:**
+   - **Overarching Pattern:** Consistently low numbers, but increased in 2024 compared to the previous year.
+   - **Specific Example:** Fatality count in 2024 was 4, which is double compared to 2023 total of 2. Notable is the increase on City Streets.
+   - **Query URL:** [Fatal Traffic Crashes](https://data.sfgov.org/resource/dau3-4s8f.json?%24query=SELECT+collision_type%2C+street_type%2C+sex%2C+supervisor_district%2C+analysis_neighborhood%2C+police_district%2C+date_trunc_y%28collision_datetime%29+AS+year%2C+COUNT%28%2A%29+AS+fatality_count+WHERE+collision_datetime+%3E%3D%272014-01-01%27+GROUP+BY+collision_type%2C+street_type%2C+sex%2C+supervisor_district%2C+analysis_neighborhood%2C+police_district%2C+year+ORDER+BY+year+LIMIT+5000+OFFSET+0)
+   - **Supporting Chart:** ![Chart](../static/chart_f40c9d.png)
+
+These key trends and anomalies highlight shifts in public safety dynamics within District 10, potentially galvanizing further examination and response by the respective authorities.

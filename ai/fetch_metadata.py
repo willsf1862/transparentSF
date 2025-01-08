@@ -87,8 +87,9 @@ def main():
             print(f"Processing URL: {dataset_url}")
             dataset_info = scrape_dataset_metadata(dataset_url)
             if dataset_info:
-                title = dataset_info.get('title', 'Untitled')
-                filename = sanitize_filename(title) + '.json'
+                # Use the endpoint (dataset ID) as the filename instead of the title
+                endpoint = dataset_info.get('endpoint')
+                filename = f"{endpoint}.json"
                 output_path = os.path.join(output_folder, filename)
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(dataset_info, f, ensure_ascii=False, indent=4)

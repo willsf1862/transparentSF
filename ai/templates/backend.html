@@ -6,7 +6,10 @@
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            margin: 10px; 
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scrolling */
+            font-size: 14px; /* Reduced from default 16px */ 
         }
         table { 
             width: 100%; 
@@ -17,6 +20,7 @@
             border: 1px solid #ddd; 
             padding: 2px; 
             text-align: left; 
+            font-size: 13px; /* Reduced from 14px */
         }
         th { 
             background-color: #f4f4f4; 
@@ -28,7 +32,6 @@
             background-color: #f1f1f1; 
         }
         .actions button { 
-            margin-right: 10px; 
             padding: 6px 6px; 
             border: none; 
             border-radius: 4px; 
@@ -81,83 +84,248 @@
         .output-links a:hover {
             text-decoration: underline;
         }
-        /* Extra style for the top button */
-        #analyze-checked-btn {
+        /* Extra style for the top buttons */
+        #analyze-checked-btn,
+        #reload-vector-db-btn {
             background-color: #17a2b8;
             color: white;
             border: none;
             border-radius: 4px;
             margin-bottom: 10px;
-            padding: 8px 14px;
+            
             cursor: pointer;
         }
         #analyze-checked-btn:hover {
             background-color: #138496;
         }
+        #reload-vector-db-btn:hover {
+            background-color: #138496;
+        }
+        .version-select {
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 13px;
+            min-width: 120px;
+        }
+        
+        .version-select optgroup {
+            font-weight: bold;
+            font-style: italic;
+        }
+        
+        .version-select option {
+            font-weight: normal;
+            font-style: normal;
+            padding: 2px;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-height: 70vh;
+            overflow: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #jsonContent {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 14px;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* New layout styles */
+        .container {
+            display: flex;
+            gap: 20px;
+            margin: 20px;
+            height: calc(100vh - 40px); /* Full viewport height minus margins */
+            overflow: hidden; /* Prevent container from scrolling */
+        }
+
+        .sidebar {
+            flex: 0 0 200px;  /* Fixed width sidebar */
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 100%; /* Take full height of container */
+            position: sticky;
+            top: 20px;
+        }
+
+        .main-content {
+            flex: 1;  /* Takes remaining space */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding-right: 20px; /* Add some padding for the scrollbar */
+            max-height: 100%; /* Take full height of container */
+        }
+
+        .sidebar button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 1px;
+            border: none;
+            border-radius: 4px;
+            background-color: #17a2b8;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar button:hover {
+            background-color: #138496;
+        }
+
+        /* Adjust table container */
+        .table-container {
+            overflow-x: auto;  /* Makes table scrollable horizontally if needed */
+            max-width: 100%;
+        }
+
+        .prep-btn.has-fixed {
+            opacity: 0.6;
+            background-color: #6c757d;  /* Grey color for better visibility */
+        }
     </style>
 </head>
 <body>
-    <h1>Datasets</h1>
-    <!-- Top-level button to analyze all checked datasets -->
-    <button id="analyze-checked-btn">Analyze Checked</button>
+    <div class="container">
+        <!-- Left sidebar -->
+        <div class="sidebar">
+            <h2>Actions</h2>
+            <button id="analyze-checked-btn">Analyze Checked</button>
+            <button id="reload-vector-db-btn">Reload Vector DB</button>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Check</th>
-                <th>Category</th>
-                <th>Periodic?</th>
-                <th>Filename</th>
-                <th>Last Updated</th>
-                <th>Actions</th>
-                <th>Outputs</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for dataset in datasets %}
-            <tr data-endpoint="{{ dataset.endpoint }}" data-filename="{{ dataset.filename }}">
-                <td>
-                    <input type="checkbox" class="row-check"/>
-                </td>
-                <td>{{ dataset.category or 'N/A' }}</td>
-                <td>{{ dataset.periodic }}</td>
-                <td>{{ dataset.filename }}</td>
-                <td>{{ dataset.rows_updated_at if dataset.rows_updated_at != 'N/A' else 'N/A' }}</td>
-                <td class="actions">
-                    <button 
-                        class="prep-btn" 
-                        data-action="prep-data" 
-                        data-filename="{{ dataset.filename }}"
-                    >
-                        Prep Data
-                    </button>
-                    <button 
-                        class="run-btn" 
-                        data-action="run_analysis" 
-                        data-endpoint="{{ dataset.endpoint }}"
-                    >
-                        Run Analysis
-                    </button>
-                </td>
-                <td class="output-links">
-                    {% if dataset.output_links %}
-                        {% if dataset.output_links.html %}
-                            <a href="{{ dataset.output_links.html }}" target="_blank">HTML</a>
-                        {% endif %}
-                        {% if dataset.output_links.md %}
-                            <a href="{{ dataset.output_links.md }}" target="_blank">Markdown</a>
-                        {% endif %}
-                        {% if dataset.output_links.txt %}
-                            <a href="{{ dataset.output_links.txt }}" target="_blank">Log</a>
-                        {% endif %}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Main content area -->
+        <div class="main-content">
+            <h1>Datasets</h1>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            
+                            <th>Check</th>
+                            <th>Category</th>
+                            <th>Item Noun</th>
+                            <th>Filename</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                            <th>Outputs</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                        <tr data-endpoint="{{ dataset.endpoint }}" data-filename="{{ dataset.filename }}">
+                            
+                            <td>
+                                <input type="checkbox" class="row-check"/>
+                            </td>
+                            <td>{{ dataset.category or 'N/A' }}</td>
+                            <td>{{ dataset.item_noun or 'N/A' }}</td>
+                            <td>
+                                <a href="#" class="json-link" data-filename="{{ dataset.filename }}" style="color: #0066cc; text-decoration: none;">
+                                    {{ dataset.filename }}
+                                </a>
+                            </td>
+                            <td>{{ dataset.rows_updated_at if dataset.rows_updated_at != 'N/A' else 'N/A' }}</td>
+                            <td class="actions">
+                                <button 
+                                    class="prep-btn {% if dataset.has_fixed %}has-fixed{% endif %}" 
+                                    data-action="prep-data" 
+                                    data-filename="{{ dataset.filename }}"
+                                >
+                                    Prep Data
+                                </button>
+                                <button 
+                                    class="run-btn" 
+                                    data-action="run_analysis" 
+                                    data-endpoint="{{ dataset.endpoint }}"
+                                >
+                                    Run Analysis
+                                </button>
+                            </td>
+                            <td class="output-links">
+                                {% if dataset.output_links %}
+                                    {% if dataset.output_links|length > 1 %}
+                                        <select class="version-select" onchange="window.open(this.value, '_blank')">
+                                            <option value="">Select version...</option>
+                                            {% for folder, links in dataset.output_links.items() %}
+                                                <optgroup label="{{ folder }}">
+                                                    {% if links.html %}
+                                                        <option value="{{ links.html }}">HTML</option>
+                                                    {% endif %}
+                                                    {% if links.md %}
+                                                        <option value="{{ links.md }}">Markdown</option>
+                                                    {% endif %}
+                                                    {% if links.txt %}
+                                                        <option value="{{ links.txt }}">Log</option>
+                                                    {% endif %}
+                                                </optgroup>
+                                            {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        {% for folder, links in dataset.output_links.items() %}
+                                            {% if links.html %}
+                                                <a href="{{ links.html }}" target="_blank">HTML</a>
+                                            {% endif %}
+                                            {% if links.md %}
+                                                <a href="{{ links.md }}" target="_blank">Markdown</a>
+                                            {% endif %}
+                                            {% if links.txt %}
+                                                <a href="{{ links.txt }}" target="_blank">Log</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -173,36 +341,74 @@
                 const endpoint = row.getAttribute('data-endpoint');
                 try {
                     const resp = await fetch(`/get-updated-links/${encodeURIComponent(endpoint)}`);
-                    if (!resp.ok) return; // Ignore if error
+                    if (!resp.ok) return;
                     const data = await resp.json();
                     const links = data.links || {};
                     
-                    // Rebuild the "Outputs" cell
                     const outputCell = row.querySelector('.output-links');
                     outputCell.innerHTML = '';  // Clear old links
 
                     if (Object.keys(links).length === 0) {
                         outputCell.textContent = 'N/A';
+                    } else if (Object.keys(links).length > 1) {
+                        // Create dropdown for multiple versions
+                        const select = document.createElement('select');
+                        select.className = 'version-select';
+                        select.onchange = () => window.open(select.value, '_blank');
+                        
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = 'Select version...';
+                        select.appendChild(defaultOption);
+
+                        for (const [folder, folderLinks] of Object.entries(links)) {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = folder;
+
+                            if (folderLinks.html) {
+                                const opt = document.createElement('option');
+                                opt.value = folderLinks.html;
+                                opt.textContent = 'HTML';
+                                optgroup.appendChild(opt);
+                            }
+                            if (folderLinks.md) {
+                                const opt = document.createElement('option');
+                                opt.value = folderLinks.md;
+                                opt.textContent = 'Markdown';
+                                optgroup.appendChild(opt);
+                            }
+                            if (folderLinks.txt) {
+                                const opt = document.createElement('option');
+                                opt.value = folderLinks.txt;
+                                opt.textContent = 'Log';
+                                optgroup.appendChild(opt);
+                            }
+
+                            select.appendChild(optgroup);
+                        }
+                        outputCell.appendChild(select);
                     } else {
-                        if (links.html) {
+                        // Single version - show direct links
+                        const folderLinks = Object.values(links)[0];
+                        if (folderLinks.html) {
                             const aHtml = document.createElement('a');
-                            aHtml.href = links.html;
+                            aHtml.href = folderLinks.html;
                             aHtml.target = '_blank';
                             aHtml.textContent = 'HTML';
                             outputCell.appendChild(aHtml);
                             outputCell.appendChild(document.createTextNode(' '));
                         }
-                        if (links.md) {
+                        if (folderLinks.md) {
                             const aMd = document.createElement('a');
-                            aMd.href = links.md;
+                            aMd.href = folderLinks.md;
                             aMd.target = '_blank';
                             aMd.textContent = 'Markdown';
                             outputCell.appendChild(aMd);
                             outputCell.appendChild(document.createTextNode(' '));
                         }
-                        if (links.txt) {
+                        if (folderLinks.txt) {
                             const aTxt = document.createElement('a');
-                            aTxt.href = links.txt;
+                            aTxt.href = folderLinks.txt;
                             aTxt.target = '_blank';
                             aTxt.textContent = 'Log';
                             outputCell.appendChild(aTxt);
@@ -304,14 +510,24 @@
                     // to keep consistent spinner / error handling
                     runBtn.click();
 
-                    // Wait a bit for that request to finish. We can't just
-                    // do an await on 'click()', so let's do a small delay
-                    // plus we wait for the fetch done in handleButtonClick
-                    // by hooking into a shared promise if needed.
-                    // 
-                    // For a robust approach, you might refactor handleButtonClick
-                    // to return a promise. But here's a quick workaround:
+                    // Quick wait to avoid sending all requests at once
                     await new Promise(res => setTimeout(res, 2000));
+                }
+            });
+
+            // *** RELOAD VECTOR DB BUTTON LOGIC ***
+            const reloadDBBtn = document.getElementById('reload-vector-db-btn');
+            reloadDBBtn.addEventListener('click', async () => {
+                try {
+                    const resp = await fetch('/reload_vector_db');
+                    const data = await resp.json();
+                    if (data.status === 'success') {
+                        alert('Vector DB reloaded successfully!');
+                    } else {
+                        alert('Error reloading Vector DB: ' + data.message);
+                    }
+                } catch (error) {
+                    alert('Failed to reload Vector DB: ' + error.message);
                 }
             });
 
@@ -320,7 +536,61 @@
             actionButtons.forEach(button => {
                 button.addEventListener('click', handleButtonClick);
             });
+
+            // Modal functionality - Move this inside DOMContentLoaded
+            const modal = document.getElementById('jsonModal');
+            const span = document.querySelector('#jsonModal .close');
+            const jsonContent = document.getElementById('jsonContent');
+
+            if (!modal || !span || !jsonContent) {
+                console.error('Modal elements not found!');
+                return;
+            }
+
+            // Handle JSON link clicks
+            document.querySelectorAll('.json-link, .endpoint-json-link').forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const isEndpoint = link.classList.contains('endpoint-json-link');
+                    const value = isEndpoint ? 
+                        link.getAttribute('data-endpoint') : 
+                        link.getAttribute('data-filename');
+                    
+                    try {
+                        const url = isEndpoint ? 
+                            `/endpoint-json/${encodeURIComponent(value)}` : 
+                            `/dataset-json/${encodeURIComponent(value)}`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        jsonContent.textContent = JSON.stringify(data, null, 2);
+                        modal.style.display = 'block';
+                    } catch (error) {
+                        console.error('Error fetching JSON:', error);
+                        alert('Error loading JSON data');
+                    }
+                });
+            });
+
+            // Close modal when clicking (x)
+            span.onclick = function() {
+                modal.style.display = 'none';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
         });
     </script>
+
+    <div id="jsonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>JSON Data</h2>
+            <pre id="jsonContent"></pre>
+        </div>
+    </div>
 </body>
 </html>

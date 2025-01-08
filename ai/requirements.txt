@@ -12,5 +12,6 @@ selenium
 kaleido
 tiktoken
 webdriver-manager
+markdown2
 git+https://github.com/openai/swarm.git
 

@@ -90,7 +90,7 @@ combined_df = {"dataset": pd.DataFrame()}
 
 def load_and_combine_notes():
     logger = logging.getLogger(__name__)
-    data_folder = Path('output/2024-11/')
+    data_folder = Path('output/')
     combined_text = ''
     
     logger.info(f"Starting to load and combine notes from {data_folder} and its subfolders")
@@ -105,7 +105,7 @@ def load_and_combine_notes():
     
     logger.info("Finished loading and combining notes")
     print(f"First 100 characters:\n{combined_text[:100]}")
-    print(f"Total length: {len(combined_text)} characters")
+    print(f"Total length: {len(combined_text)} characters ({len(combined_text.split())} tokens)")
     
     return combined_text
 
@@ -614,33 +614,35 @@ journalist_agent = Agent(
     model=AGENT_MODEL,
     name="Journalist",
      instructions="""
-       You are a data journalist covering the city of San Francisco. Your team has prepared an extensive analysis of trends in the city, supported by notes and data. 
-       Follow these guidelines to create accurate, structured, and functional content for the Ghost publishing platform:
-        When discussing your story, always support your text with charts and data.  Use markdown to include them inline
-        Gather Notes and Data:
+       You are a reporter for anomalous SF. You investigate, discover, research and report on notable trends in city data that others might be overlooking. You job is to use your Query_docs function to find some interesting trends to research more carefully. You want to bring attention to details in the City data that illustrate broader trends that other might be covering in the medita. Your mission is to bring objective data into the conversation. So for example instead of reporting on an overall decline in property crime in SF, which is by itself quite notable, you might instead illustrate it through the more relatable detail that auto theft which had been quite high is down by more than 40% from its 2 year average. Then you might choose that anomaly for some further research to determine where its down, or which types are down, etc. Your style is crystal clear, sometimes pithy but always factual and to-the-point. You always share the "ehat" and never speculate on the "why". No value language that might equate a drop in crime for example as being a "good" thing when it might be a data error. Your team has assembled analysis of dozens of key city databases in Public Safety, City Management and Ethics, Health, Housing, Drugs, Homelessness, etc. 
+       
+       Your output here is a list of trends, the query URL that generated the raw data, which is available in the document, the urls of the charts supporting the data, and questions you would ask an analyst to answer for you.
 
-        Use query_docs(context_variables, "2024-11", query) for data not found in your notes. Always pass "2024-11" as the collection name. Pass only the query string describing the required data.
+       Note especially if there are any YTD trends that are significantly above the prior year, those might be part of a longer term trend that the analyst should investigate.
+       
+       Use get_notes() to get the notes for the data you are researching.  Once you have  asense for the kinds of metrics available, you can get the details you need like chart links and queries for raw data from your docs, which you can search. 
+
+        Use query_docs(context_variables, "<Collection Name>", query) for data not found in your notes. Pass only the query string describing the required data.
+
+        Collection names are:
+        - district_<number>
+        - citywide
+
+        If you are looking into a district, use the district_<number> collection.
+        If you are looking into a citywide trend, use the citywide collection.
+        
+        Only make one document_query per call back to your API, as the response can sometime be long.  You will want to process it one category at a time. 
         use generate_ghost_post(context_variables, content, title) to generate a ghost post.  It accepts a title and simple html content.
-   
 
-    For every image or chart, ensure the src is correct and accessible.
+        Call generate_ghost_post(context_variables, content,title) only after ensuring the content is complete, concise, and properly formatted.  MAke it a very simple html.
 
-Best Practices:
-
-Transfer to Analyst Agent:
-
-Use transfer_to_analyst_agent() when users ask about specific data details that are available in your notes or through query_docs().
-Publishing:
-
-Call generate_ghost_post(context_variables, mobiledoc,title) only after ensuring the mobiledoc is complete, concise, and properly formatted.  MAke it a very simple mobiledoc with no more than 1 cart and 2 sections.
-Make sure it follows the 0.3.1 version specification.
-
+        For every image or chart, ensure the src is correct and accessible.
 
         """,
     # functions=[get_notes, query_docs, transfer_to_analyst_agent, generate_ghost_post],  
-    functions=[query_docs, transfer_to_analyst_agent, generate_ghost_post],  
+    functions=[query_docs,  get_notes, generate_ghost_post],  
     context_variables=context_variables,
-    debug=False,
+    debug=True,
 )
 
 def set_dataset_in_context(context_variables, dataset):
@@ -921,4 +923,4 @@ async def chat(request: Request, session_id: str = Cookie(None)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("webChat:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("webChat:app", host="0.0.0.0", port=8001, reload=True)

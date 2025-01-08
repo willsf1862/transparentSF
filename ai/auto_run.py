@@ -7,6 +7,8 @@ from tools.anomaly_detection import anomaly_detection
 import datetime
 import logging
 from swarm import Swarm, Agent
+from urllib.parse import quote
+from ai.vector_loader import load_vectors
 
 # ------------------------------
 # Initialization
@@ -143,10 +145,10 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
             for numeric_field in numeric_fields:
                 # Update chart title for this combination
                 context_variables['chart_title'] = (
-                    f"{noun} <br> {numeric_field} by {date_field}"
+                    f"{title} <br> {'count' if numeric_fields[0] == 'item_count' else numeric_fields[0].replace('_', ' ')} by {date_fields[0]}"
                 )
                 context_variables['noun'] = (
-                    f"{noun}"
+                    f"{title}"
                 )
                 # Generate the chart
                 chart_result = generate_time_series_chart(
@@ -175,7 +177,7 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
         for cat_field in category_field:
             try:
                 context_variables['chart_title'] = (
-                    f"{title} <br> {numeric_fields[0]} by {date_fields[0]} {cat_field}"
+                    f"{title} <br> {'count' if numeric_fields[0] == 'item_count' else numeric_fields[0].replace('_', ' ')} by {date_fields[0]} by {cat_field}"
                 )
                 chart_result = generate_time_series_chart(
                     context_variables=context_variables,
@@ -228,10 +230,11 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
                 log_file.write(f"{index}: {title} - Error detecting anomalies: {str(e)}\n")
                 continue
 
-          # Add query URL information
+        # Add query URL information
         base_url = "https://data.sfgov.org/resource/"
-        params = "$query=" + query
-        query_url = f"{base_url}{endpoint}?{params}"
+        # URL encode the query parameter
+        encoded_query = quote(query)
+        query_url = f"{base_url}{endpoint}?$query={encoded_query}"
 
         processed_html_contents = []
         for content in all_html_contents:
@@ -249,7 +252,7 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
 
         # Prepare metadata for HTML
         metadata_html = f"<head><title>{noun}</title></head><body><h1>November update for {noun}</h1>\n"
-        metadata_html += f"<p><strong>Query URL:</strong> {query_url}</p>\n"
+        metadata_html += f"<p><strong>Query URL:</strong> <a href='{query_url}'>LINK</a></p>\n"
         for key, value in table_metadata.items():
             metadata_html += f"<p><strong>{key.capitalize()}:</strong> {value}</p>"
 
@@ -379,11 +382,12 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
         # Call the OpenAI API
         messages = [{"role": "user", "content": user_message}]
 
-        response = client.run(agent=analyst_agent, messages=messages)
-        assistant_reply = response.messages[-1]["content"]
-        assistant_reply_filename = os.path.join(output_folder, f"{sanitized_title}_{index}_assistant_reply.txt")
-        with open(assistant_reply_filename, 'w', encoding='utf-8') as f:
-            f.write(assistant_reply)
+        # Commenting out agent response to save on quota
+        # response = client.run(agent=analyst_agent, messages=messages)
+        # assistant_reply = response.messages[-1]["content"]
+        # assistant_reply_filename = os.path.join(output_folder, f"{sanitized_title}_{index}_assistant_reply.txt")
+        # with open(assistant_reply_filename, 'w', encoding='utf-8') as f:
+        #     f.write(assistant_reply)
 
         # Log success
         relative_html_path = os.path.relpath(html_filename, start=script_dir)
@@ -491,6 +495,8 @@ def main():
 
     print(f"\nProcessing complete for entries from index {num_start} to {num_end - 1}.")
     print(f"Log file location: {log_file_path}")
+
+   
 
 # ------------------------------
 # Entry Point

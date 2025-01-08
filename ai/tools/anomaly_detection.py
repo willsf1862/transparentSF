@@ -60,12 +60,14 @@ def get_date_ranges():
 
 def generate_anomalies_summary(results):
     anomalies = []
+    normal_items = []
     for item in results:
         group = item.get('group_value', 'Unknown Group')
         recent_mean = item.get('recent_mean')
         comparison_mean = item.get('comparison_mean')
         difference = item.get('difference')
         std_dev = item.get('stdDev', 0)
+        out_of_bounds = item.get('out_of_bounds', False)
 
         # Determine the direction of the difference
         if difference > 0:
@@ -78,29 +80,39 @@ def generate_anomalies_summary(results):
         # Absolute value of difference for reporting
         abs_difference = abs(difference)
 
-        # Format the anomaly message
-        anomaly_message = (
-            f"Anomaly detected in '{group}': "
-            f"Recent mean (RM: {recent_mean:.2f}) is {direction} than the comparison mean (CM: {comparison_mean:.2f}) "
-            f"by {abs_difference:.2f} units. "
-            f"Standard Deviation: {std_dev:.2f}."
-        )
+        # Format the message based on whether it's an anomaly or normal
+        if out_of_bounds:
+            message = (
+                f"Anomaly detected in '{group}': "
+                f"Recent mean (RM: {recent_mean:.2f}) is {direction} than the comparison mean (CM: {comparison_mean:.2f}) "
+                f"by {abs_difference:.2f} units. "
+                f"Standard Deviation: {std_dev:.2f}."
+            )
+            anomalies.append(message)
+        else:
+            message = (
+                f"'{group}': RM: {recent_mean:.2f}, CM: {comparison_mean:.2f}, Diff: {difference:.2f}"
+            )
+            normal_items.append(message)
 
-        anomalies.append(anomaly_message)
+    # Create the markdown summary
+    markdown_summary = "## Anomalies Summary\n\n"
+    
+    if anomalies:
+        markdown_summary += "### Anomalies Detected\n"
+        for anomaly in anomalies:
+            markdown_summary += f"- {anomaly}\n"
+    else:
+        markdown_summary += "No anomalies detected.\n"
+    
+    if normal_items:
+        markdown_summary += "\n### Items Within Normal Range\n"
+        for item in normal_items:
+            markdown_summary += f"- {item}\n"
 
-    # Create the summary message
-    summary = "\n".join(anomalies) if anomalies else "No significant anomalies were detected."
+    # Convert to HTML for backward compatibility
+    html_summary = f"<html><body>{markdown_summary}</body></html>"
 
-    # Log the summary
-    logging.info(f"Anomalies summary:\n{summary}")
-    # Convert the summary into light HTML
-    html_summary = "<html><body><h2>Anomalies Summary</h2><ul>"
-    for anomaly in anomalies:
-        html_summary += f"<li>{anomaly}</li>"
-    html_summary += "</ul></body></html>"
-
-    # Log the HTML summary
-    logging.info(f"Anomalies summary in HTML:\n{html_summary}")
     return {"anomalies": html_summary}
 
 def group_data_by_field_and_date(data_array, group_field, numeric_field, date_field):
@@ -226,6 +238,7 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
     logging.info(f"  start_date: {start_date} ({type(start_date)})")
     logging.info(f"  end_date: {end_date} ({type(end_date)})")
     logging.info(f"  date_field: {date_field}")
+    logging.info(f"  filter_conditions: {filter_conditions}")
 
     filtered_data = []
     for idx, item in enumerate(data):
@@ -312,15 +325,15 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
 
             # Update item with parsed date
             item[date_field] = item_date
-
+        
         # Now, check the filter_conditions
         for condition in filter_conditions:
             field = condition['field']
             operator = condition['operator']
             value = condition['value']
             is_date = condition.get('is_date', False)
-
             key_field = find_key(item, field)
+            
             if key_field is None:
                 meets_conditions = False
                 error_log.append(f"Record {idx}: Missing field '{field}' for condition '{field} {operator} {value}'. Skipping.")
@@ -382,30 +395,39 @@ def filter_data_by_date_and_conditions(data, filter_conditions, start_date=None,
                     error_log.append(f"Record {idx}: Error during date comparison for field '{field}': {e}. Skipping.")
                     break
             else:
-                # Existing code for non-date fields...
                 # Clean and convert values if numeric
                 if isinstance(item_value, str):
                     item_value = item_value.replace(',', '')
+                if isinstance(value, str):
+                    value = value.replace(',', '')
 
+                # Try numeric comparison first
                 try:
                     item_value_float = float(item_value)
                     value_float = float(value)
-                    comparison_possible = True
+                    is_numeric = True
                 except (ValueError, TypeError):
-                    item_value_float = item_value
-                    value_float = value
-                    comparison_possible = False
+                    is_numeric = False
 
                 # Condition checks for non-date fields
                 try:
-                    if operator == '==' and item_value != value:
-                        meets_conditions = False
-                        break
-                    elif operator == '!=' and item_value == value:
-                        meets_conditions = False
-                        break
+                    if operator in ['=', '==']:
+                        # For equality, use direct comparison without type conversion
+                        if is_numeric:
+                            meets_conditions = (item_value_float == value_float)
+                        else:
+                            meets_conditions = (str(item_value) == str(value))
+                        if not meets_conditions:
+                            break
+                    elif operator == '!=':
+                        if is_numeric:
+                            meets_conditions = (item_value_float != value_float)
+                        else:
+                            meets_conditions = (str(item_value) != str(value))
+                        if not meets_conditions:
+                            break
                     elif operator in ['<', '<=', '>', '>=']:
-                        if not comparison_possible:
+                        if not is_numeric:
                             meets_conditions = False
                             error_log.append(f"Record {idx}: Cannot compare non-numeric values for field '{field}' with operator '{operator}'. Skipping.")
                             break
@@ -455,8 +477,10 @@ def get_month_range(start_date, end_date):
     months = []
     current_date = start_date.replace(day=1)
     while current_date <= end_date:
+        # Only use YYYY-MM format consistently
         months.append(current_date.strftime("%Y-%m"))
         current_date += relativedelta(months=1)
+    logging.info(f"Generated month range: {months}")
     return months
 
 
@@ -545,44 +569,72 @@ def anomaly_detection(
     )
     logging.info(f"Grouped data size: {len(grouped_data)} groups.")
     print(grouped_data)
-    # Get the full list of months between comparison_period['start'] and recent_period['end']
+    # Get the full list of periods between comparison_period['start'] and recent_period['end']
     if date_field:
-        full_months = get_month_range(comparison_period['start'], recent_period['end'])
+        if date_field.lower() == 'year':
+            # Get full years between start and end, but format as YYYY-01
+            start_year = comparison_period['start'].year
+            end_year = recent_period['end'].year
+            full_months = [f"{year}-01" for year in range(start_year, end_year + 1)]
+        else:
+            # Get full months between start and end
+            full_months = get_month_range(comparison_period['start'], recent_period['end'])
     else:
         full_months = ['All']  # When date_field is not provided
-
+    logging.info (f"full months {full_months}")
     results = []
     for group_value, data_points in grouped_data.items():
         logging.info(f"Processing group: {group_value}")
 
-        # Expand data_points to include zeros for missing months
-        for month in full_months:
+        # Get the first actual data point date for this group
+        group_dates = sorted(data_points.keys())
+        if not group_dates:
+            continue  # Skip groups with no data
+            
+        first_group_date = group_dates[0]
+        
+        # Only fill zeros for months that are:
+        # 1. After the first actual data point
+        # 2. Within the comparison/recent periods
+        # 3. Before the last actual data point
+        filtered_full_months = [
+            month for month in full_months 
+            if month >= first_group_date
+        ]
+
+        # Now expand data_points only for relevant months
+        for month in filtered_full_months:
             if month not in data_points:
                 data_points[month] = 0
 
         dates = sorted(data_points.keys())
         counts = [data_points[date] for date in dates]
 
-        logging.debug(f"Dates in group {group_value}: {dates}")
+        logging.info(f"First data date for group {group_value}: {first_group_date}")
+        logging.info(f"Dates in group {group_value}: {dates}")
         logging.debug(f"Counts in group {group_value}: {counts}")
 
         comparison_counts = []
         recent_counts = []
 
+        # Only consider dates after the first actual data point
         for date_key in dates:
-            count = data_points[date_key]
-
-            if date_field:
-                item_date = datetime.datetime.strptime(date_key, "%Y-%m").date()
-                if comparison_period['start'] <= item_date <= comparison_period['end']:
-                    comparison_counts.append(count)
-                elif recent_period['start'] <= item_date <= recent_period['end']:
-                    recent_counts.append(count)
-            else:
-                # If date_field is not provided, consider all counts for comparison
-                comparison_counts = counts
-                recent_counts = counts
-                break  # No need to continue the loop
+            if date_key >= first_group_date:  # Only process dates after first actual data
+                count = data_points[date_key]
+                logging.debug(f"Processing date {date_key} with count: {count}")
+                if date_field:
+                    try:
+                        item_date = datetime.datetime.strptime(date_key, "%Y-%m").date()
+                        if comparison_period['start'] <= item_date <= comparison_period['end']:
+                            comparison_counts.append(count)
+                        elif recent_period['start'] <= item_date <= recent_period['end']:
+                            recent_counts.append(count)
+                    except ValueError as e:
+                        logging.error(f"Error parsing date {date_key}: {e}")
+                else:
+                    comparison_counts = counts
+                    recent_counts = counts
+                    break
 
         logging.info(f"Comparison counts for {group_value}: {comparison_counts}")
         logging.info(f"Recent counts for {group_value}: {recent_counts}")
@@ -625,7 +677,7 @@ def anomaly_detection(
                 logging.debug(f"Difference for {group_value}: {difference}")
                 logging.debug(f"Out of bounds for {group_value}: {out_of_bounds}")
 
-                if out_of_bounds:
+                if True:
                     results.append({
                         'group_value': group_value,
                         'comparison_mean': comparison_mean,

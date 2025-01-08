@@ -21,7 +21,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     raise ValueError("OpenAI API key not found in environment variables.")
 client = Swarm()
-GPT_MODEL = 'gpt-4-turbo'
+GPT_MODEL = 'gpt-4o'
 
 # ------------------------------
 # Utility Functions
@@ -95,7 +95,7 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
     """
     Process a single file from the datasets folder.
     """
-    individual_results_dir = os.path.join(output_folder, 'individual_results')
+    individual_results_dir = os.path.join(output_folder)
     os.makedirs(individual_results_dir, exist_ok=True)
 
     article_path = os.path.join(datasets_folder, filename)
@@ -133,8 +133,11 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
     result_path = os.path.join(individual_results_dir, result_filename)
 
     if os.path.exists(result_path):
-        print(f"Skipping already processed file: {filename}")
-        return
+        try:
+            os.remove(result_path)
+        except OSError as e:
+            print(f"Error removing existing file {result_path}: {e}")
+            return
 
     # Continue processing the file as before
     # Check 'rows_updated_at' and threshold
@@ -179,15 +182,15 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
 
             Your task is:
 
-            - Given dataset information (title, description, columns), generate a working API query with an endpoint and query that will work.
+            - Given dataset information (title, description, columns), generate a set of working API queries, one for monthly analysis, one for annaul with an endpoint and query that will work.
               The field name syou will select and return are the ones that are the output of the query, not the input, so if you use a date_field called _added_date, but select it as a trunc_ym(_added_date) as month, then you would use the fieldname month. 
               Whenever selecting fields always take the value of the fieldName key, NOT the name key.
               Construct a SoQL query that selects the following:
-              Date Fields = at least one date field.  Choose the one that is most likely to be of use to an analyst looking at patterns in San Francisco.  If you can't decide, you can take a few different date fields.  Data should be aggregated and grouped by month by default.  Make sure the field name you return matches the one you names in the query.  In the query, if you queried for date_trunc_ym(report_datetime) AS month, then use the name Month here, not date_trunc_ym(report_datetime).
+              Date Fields = at least one date field.  Choose the one that is most likely to be of use to an analyst looking at patterns in San Francisco.  In many cases there won't be a date field per-se, but rather a text field like "year" or "taxyear", etc.  If so, those are perfectly good date fields.  If you can't decide, you can take a few different date fields.  Data should be aggregated and grouped by month by default, but if the date fiels if obviosuly for a year, then use year.   Make sure the field name you return matches the one you names in the query.  In the query, if you queried for date_trunc_ym(report_datetime) AS month, then use the name Month here, not date_trunc_ym(report_datetime).
               Numeric Fields You also need at least one numeric field, use sum() to aggregate when grouping.  If you can't see an interesting numeric field, then use count(*) in the query and call that field 'item_count'. If you do that be sure to add 'item_count' to the numericFields you return.
               Category Fields It should alse include a few category fields that will allow you to breakdown the data into useful groups.  Prefer fields that have names as opposed to ids if you see both. 
-              Where clause - Include a where clause that filters for only data from 9/1/2022 forward. 
-              Aggregate data by month. 
+              Where clause - Include a where clause that filters for only data from "start_date" forward.  We will swap that out with the actual start date when we run the query.
+              
               Location Fields - If there are fields that indicate locations like supervisor district, neighborhood, zip code, etc, include them in this list of location fields and include them in the query. 
               
               Remember to use _ characters instead of spaces in field names
@@ -204,88 +207,49 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
                     
             - report_category: Categorize the dataset into one of the following categories: Safety, Health, Economy, Housing, Education, Transportation, Other.
             - usefulness: Estimate the usefullness on a scale of 1-3 (1=least useful, 3=most useful) for an monthly analysis of trends happening in San Francisco.
-            - column_metadata: Include metadata about all of the fields in the dataset that you have selected including the field name, description, and dataTypeName.
-            - table_metadata: Include metadata about the table including the title, description, endpoint and category.
             - periodic: Boolean: yes if this is the kind of data with constant new entries like police reports, or is it a lookup table like a list of departments or a rarely changing stock, like stop sign locations or wireless cariiers.  
             - item_noun - Rows in this table are what?  In the example abovethey are Police Incident Reports. 
+            - district_level: Boolean: yes if this is the kind of data with constant new entries like police reports, or is it a lookup table like a list of departments or a rarely changing stock, like stop sign locations or wireless cariiers.  
+            - whom_it_may_interest: Explain who would be interested in this data and why.
+            - data_validated: Boolean: yes if the data has been validated by the city, no if it is raw data.
+            - queries: A dictionary with two keys, 'Monthly' and 'Yearly', each with a SoQL query as the value.
 
-            Include a 'whom it may interest' section that explains who would be interested in this data and why.
-
-            Please provide the output in JSON format, with keys 'DateFields' 'NumericFields' 'CategoryFields' 'LocationFields' 'endpoint', 'query',  'report_category',  'usefulness', 'column_metadata', 'table_metadata',  'periodic', 'item_noun', 'whom_it_may_interest'.  The 'DateFields', 'NumericFields', and 'CategoryFields' keys should contain lists of OUTPUT field names, meaning the ones that the query will return. 
-            The 'endpoint' and 'query' keys should contain the API endpoint and the SoQL query, respectively.  The 'category' key should contain the category name.  The 'usefulness' key should contain the usefulness estimate.
+            Please provide the output in JSON format, with keys 'DateFields' 'NumericFields' 'CategoryFields' 'LocationFields' 'endpoint', 'query',  'report_category',  'usefulness', 'periodic', 'district_level', 'item_noun', 'whom_it_may_interest'.  The 'DateFields', 'NumericFields', and 'CategoryFields' keys should contain lists of OUTPUT field names, meaning the ones that the query will return. 
+            The 'endpoint' and 'query' keys should contain the API endpoint and the SoQL query, respectively.  The 'report_category' key should contain the category name.  The 'usefulness' key should contain the usefulness estimate.
 
             Ensure that the query is a valid SoQL query, and that the endpoint is correct (the dataset identifier).
             Remember no from clause. 
             
             Here's an example: 
-            {
-                "DateFields": [
-                    "month"
-                ],
-                "NumericFields": [
-                    "total_payments"
-                ],
-                "CategoryFields": [
-                    "organization_group",
-                    "department",
-                    "program",
-                    "character",
-                    "object"
-                ],
-                "endpoint": "n9pm-xkyq.json",
-                "query": "SELECT date_trunc_ym(data_loaded_at) AS month, sum(vouchers_paid) as total_payments, organization_group, department, program, character, object WHERE data_loaded_at >= '2022-09-01T00:00:00.000' GROUP BY month, organization_group, department, program, character, object",
-                "report_category": "Economy",
-                "column_metadata": [
-                    {
-                        "fieldName": "month",
-                        "description": "Datetime the data was loaded to the open data portal, grouped by month",
-                        "dataTypeName": "calendar_date"
-                    },
-                    {
-                        "fieldName": "total_payments",
-                        "description": "Total of completed payments to vendors",
-                        "dataTypeName": "number"
-                    },
-                    {
-                        "fieldName": "organization_group",
-                        "description": "Org Group is a group of Departments",
-                        "dataTypeName": "text"
-                    },
-                    {
-                        "fieldName": "department",
-                        "description": "Departments are the primary organizational unit used by the City and County of San Francisco",
-                        "dataTypeName": "text"
-                    },
-                    {
-                        "fieldName": "program",
-                        "description": "A program identifies the services a department provides",
-                        "dataTypeName": "text"
-                    },
-                    {
-                        "fieldName": "character",
-                        "description": "In the type hierarchy, Character is the highest level",
-                        "dataTypeName": "text"
-                    },
-                    {
-                        "fieldName": "object",
-                        "description": "In the type hierarchy, Object is the middle level",
-                        "dataTypeName": "text"
-                    }
-                ],
-                "table_metadata": {
-                    "title": "Vendor Payments (Vouchers)",
-                    "description": "The San Francisco Controller's Office maintains a database of payments made to vendors from fiscal year 2007 forward",
-                    "endpoint": "n9pm-xkyq.json",
-                    "category": "Economy",
-                    "periodic": true,
-                    "item_noun": "Vendor Payments",
-                    "district_level": false,
-                    "whom_it_may_interest": "Economists, Data Analysts, City and County controllers, vendors that work with the city, and citizens interested in the city's spending",
-                    "filename": "Vendor Payments (Vouchers).json",
-                    "data_validated": true,
-                    "usefulness": 3,
-                },
+            {"usefulness": 3,
+            "report_category": "Safety",
+            "NumericFields": [
+                "incident_count"
+            ],
+            "CategoryFields": [
+                "grouped_category",
+                "Incident_Category",
+                "Incident_Subcategory",
+                "Police_District",
+                "supervisor_district"
+            ],
+            "DateFields": [
+                "month"
+            ],
+            "LocationFields": [
+                "supervisor_district"
+            ],
+            "periodic": true,
+            "district_level": true,
+            "whom_it_may_interest": "Data Analysts, Public Safety Officials, Policy Makers, Researchers studying crime patterns and public safety trends, and Citizens concerned with neighborhood safety",
+            "data_validated": true,
+            "item_noun": "police incident reports",
+            "queries": {
+                "Monthly": "SELECT Incident_Category, Incident_Subcategory, supervisor_district, CASE WHEN Incident_Category IN ('Assault', 'Homicide', 'Rape', 'Robbery', 'Human Trafficking (A), Commercial Sex Acts', 'Human Trafficking, Commercial Sex Acts', 'Human Trafficking (B), Involuntary Servitude', 'Offences Against The Family And Children', 'Weapons Carrying Etc', 'Weapons Offense', 'Weapons Offence') THEN 'Violent Crime' WHEN Incident_Category IN ('Arson', 'Burglary', 'Forgery And Counterfeiting', 'Fraud', 'Larceny Theft', 'Motor Vehicle Theft', 'Motor Vehicle Theft?', 'Stolen Property', 'Vandalism', 'Embezzlement', 'Recovered Vehicle', 'Vehicle Impounded', 'Vehicle Misplaced') THEN 'Property Crime' WHEN Incident_Category IN ('Drug Offense', 'Drug Violation') THEN 'Drug Crimes' ELSE 'Other Crimes' END AS grouped_category, Report_Type_Description, Police_District, date_trunc_ym(Report_Datetime) AS month, COUNT(*) AS incident_count WHERE Report_Datetime >= start_date GROUP BY supervisor_district, grouped_category, Report_Type_Description, Police_District, Incident_Category, Incident_Subcategory, month ORDER BY month, grouped_category",
+                "Yearly": "SELECT Incident_Category, Incident_Subcategory, supervisor_district, CASE WHEN Incident_Category IN ('Assault', 'Homicide', 'Rape', 'Robbery', 'Human Trafficking (A), Commercial Sex Acts', 'Human Trafficking, Commercial Sex Acts', 'Human Trafficking (B), Involuntary Servitude', 'Offences Against The Family And Children', 'Weapons Carrying Etc', 'Weapons Offense', 'Weapons Offence') THEN 'Violent Crime' WHEN Incident_Category IN ('Arson', 'Burglary', 'Forgery And Counterfeiting', 'Fraud', 'Larceny Theft', 'Motor Vehicle Theft', 'Motor Vehicle Theft?', 'Stolen Property', 'Vandalism', 'Embezzlement', 'Recovered Vehicle', 'Vehicle Impounded', 'Vehicle Misplaced') THEN 'Property Crime' WHEN Incident_Category IN ('Drug Offense', 'Drug Violation') THEN 'Drug Crimes' ELSE 'Other Crimes' END AS grouped_category, Report_Type_Description, Police_District, date_trunc_y(Report_Datetime) AS year, COUNT(*) AS incident_count WHERE Report_Datetime >= start_date GROUP BY supervisor_district, grouped_category, Report_Type_Description, Police_District, Incident_Category, Incident_Subcategory, year ORDER BY year, grouped_category"
             }
+            }
+            
             Ensure the output is strictly formatted as valid JSON.  No operators or additioonal characters, Do not include any additional text or explanations outside the JSON block.
         """
     user_message = f"""
@@ -328,10 +292,18 @@ def process_single_file(filename, datasets_folder, output_folder, threshold_date
         result['filename'] = filename
         result['title'] = title
 
-        with open(result_path, 'w', encoding='utf-8') as f:
-            json.dump(result, f, indent=4)
+        # Combine with original file data
+        with open(article_path, 'r', encoding='utf-8') as f:
+            original_data = json.load(f)
+        
+        # Merge original data with new results
+        # result takes precedence in case of duplicate keys
+        combined_result = {**original_data, **result}
 
-        print(f"Successfully processed and saved '{title}'")
+        with open(result_path, 'w', encoding='utf-8') as f:
+            json.dump(combined_result, f, indent=4)
+
+        print(f"Successfully processed and saved '{title}' to {result_path}")
     except Exception as e:
         print(f"Error processing file '{filename}': {e}")
         error_log.append({'filename': filename, 'error': str(e)})
@@ -342,7 +314,7 @@ def main(filename=None):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(script_dir, 'data')
     datasets_folder = os.path.join(data_folder, 'datasets')
-    output_folder = os.path.join(data_folder, 'analysis_map')
+    output_folder = os.path.join(data_folder, 'datasets/fixed')
     error_log_path = os.path.join(output_folder, 'error_log.json')
     os.makedirs(output_folder, exist_ok=True)
 
@@ -370,8 +342,7 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(script_dir, 'data')
     datasets_folder = os.path.join(data_folder, 'datasets')
-    output_folder = os.path.join(data_folder, 'analysis_map')
+    output_folder = os.path.join(data_folder, 'datasets/fixed')
     # Check for a filename argument
     filename_arg = sys.argv[1] if len(sys.argv) > 1 else None
     # main(filename_arg)
-    create_analysis_map(datasets_folder, output_folder)

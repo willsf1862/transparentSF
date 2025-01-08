@@ -6,7 +6,7 @@ static
 manual/output
 manual
 ai/climate
-ai/data/datasets
+ai/data/datasets/old
 ai/data/policeHistory
 ai/data/anomaly_charts
 ai/output

@@ -1,10 +1,34 @@
 from tools.embedding import get_embedding
 import qdrant_client
 import re
+from typing import List, Dict
+import tiktoken
 
 qdrant = qdrant_client.QdrantClient(host="localhost", port=6333)
 
-def query_qdrant(query, collection_name, top_k=3):
+def estimate_tokens(text: str) -> int:
+    """Estimate the number of tokens in a text string using tiktoken."""
+    encoder = tiktoken.get_encoding("cl100k_base")
+    return len(encoder.encode(text))
+
+def trim_results_to_token_limit(results: List[Dict], max_tokens: int = 100000) -> List[Dict]:
+    """Trim results list if total tokens exceed max_tokens."""
+    total_tokens = 0
+    trimmed_results = []
+    
+    for result in results:
+        content = result.get('content', '')
+        tokens = estimate_tokens(content)
+        
+        if total_tokens + tokens <= max_tokens:
+            trimmed_results.append(result)
+            total_tokens += tokens
+        else:
+            break
+            
+    return trimmed_results
+
+def query_qdrant(query, collection_name, top_k=4):
     try:
         embedded_query = get_embedding(query)
         if not embedded_query:
@@ -41,11 +65,12 @@ def query_docs(context_variables, collection_name, query):
     print(f"Searching collection '{collection_name}' with query: {query}")
     query_results = query_qdrant(query, collection_name=collection_name)
     
-    # Dump raw query results for debugging
-    print("Raw query results:")
+    
     try:
         serialized_results = [article.payload for article in query_results]
-        print(serialized_results)
+        
+        # print("first few characgters of results:")
+        # print(str(serialized_results[0])[:100])
     except Exception as e:
         print(f"Error serializing query results: {e}")
 
@@ -71,7 +96,7 @@ def process_as_docs(query_results):
         description = payload.get("description", "")
         endpoint = payload.get("endpoint", "No Endpoint")
         columns = payload.get("columns", {})
-        
+        queries = payload.get("queries", {})
         column_names = list(columns.keys())
         columns_formatted = ", ".join(column_names) if column_names else "No Columns Available"
         truncated_description = re.sub(
@@ -83,6 +108,7 @@ def process_as_docs(query_results):
             f"   **Description:** {truncated_description}\n"
             f"   **Endpoint:** {endpoint}\n"
             f"   **Columns:** {columns_formatted}\n\n"
+            f"   **Queries:** {queries}\n\n"
         )
 
         output.append((title, description, endpoint, columns_formatted, column_names))
@@ -105,5 +131,18 @@ def process_as_content(query_results):
         )
 
         output.append({"content": content})
+
+    # Add token limit check
+    output = trim_results_to_token_limit(output)
+    
+    # Rebuild response with trimmed results
+    if len(output) < len(query_results):
+        response = f"Top {len(output)} text matches (results trimmed to stay within token limit):\n\n"
+        for i, result in enumerate(output, 1):
+            content = result["content"]
+            truncated_content = re.sub(
+                r"\s+", " ", (content[:100] + "...") if len(content) > 100 else content
+            )
+            response += f"{i}. **Content:** {truncated_content}\n\n"
 
     return {"response": response, "results": output}

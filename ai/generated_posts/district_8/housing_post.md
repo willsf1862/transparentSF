@@ -1,0 +1,19 @@
+I was unable to find specific data on housing metrics such as average rent, housing units built, eviction notices, and housing complaints directly. However, I can provide some insights and notable trends in District 8 using other related data available that may have impacts on housing indirectly. Here are some significant trends along with data sources:
+
+1. **Notices of Violation:**
+   - Overarching Trend: In 2024, there was a significant decrease in Notices of Violation issued by the Department of Building Inspection in District 8. This count dropped by 56% compared to the 2023 total.
+   - Memorable Example: In December 2024, the count was 1,190, representing a 26% decrease compared to the 10-year average of 1,603.
+   - Chart Links:
+     - [Notices of Violation issued by the Department of Building Inspection - Count by Year Chart](../static/chart_58bbad.png)
+     - [Notices of Violation issued by the Department of Building Inspection - Count by Year by Status](../static/chart_02ed99.png)
+   - Query URL: [Department of Building Inspection Notices Query](https://data.sfgov.org/resource/nbtm-fbw5.json?%24query=SELECT+date_trunc_y%28date_filed%29+AS+year%2C+status%2C+nov_category_description%2C+receiving_division%2C+assigned_division%2C+supervisor_district%2C+zipcode%2C+COUNT%28%2A%29+AS+item_count+WHERE+date_filed+%3E%3D%272014-01-01%27+GROUP+BY+year%2C+status%2C+nov_category_description%2C+receiving_division%2C+assigned_division%2C+supervisor_district%2C+zipcode+ORDER+BY+year+LIMIT+5000+OFFSET+10000)
+
+2. **Police Reports:**
+   - Overarching Trend: Incident reports in District 8 decreased by 8% in 2024 compared to 2023.
+   - Memorable Example: Incident count in December was 6,984, down from a six-year average of 8,515.
+   - Chart Links:
+     - [Police Department Incident Reports - Count by Year Chart](../static/chart_54814b.png)
+     - [Incident Reports by Grouped Category](../static/chart_cc1552.png)
+   - Query URL: [Police Department Incident Reports Query](https://data.sfgov.org/resource/wg3w-h783.json?%24query=SELECT+Incident_Category%2C+Incident_Subcategory%2C+supervisor_district%2C+CASE+WHEN+Incident_Category+IN+%28%27Assault%27%2C+%27Homicide%27%2C+%27Rape%27%2C+%27Robbery%27%2C+%27Human+Trafficking+%28A%29%2C+Commercial+Sex+Acts%27%2C+%27Human+Trafficking%2C+Commercial+Sex+Acts%27%2C+%27Human+Trafficking+%28B%29%2C+Involuntary+Servitude%27%2C+%27Offences+Against+The+Family+And+Children%27%2C+%27Weapons+Carrying+Etc%27%2C+%27Weapons+Offense%27%2C+%27Weapons+Offence%27%29+THEN+%27Violent+Crime%27+WHEN+Incident_Category+IN+%28%27Arson%27%2C+%27Burglary%27%2C+%27Forgery+And+Counterfeiting%27%2C+%27Fraud%27%2C+%27Larceny+Theft%27%2C+%27Motor+Vehicle+Theft%27%2C+%27Motor+Vehicle+Theft%3F%27%2C+%27Stolen+Property%27%2C+%27Vandalism%27%2C+%27Embezzlement%27%2C+%27Recovered+Vehicle%27%2C+%27Vehicle+Impounded%27%2C+%27Vehicle+Misplaced%27%29+THEN+%27Property+Crime%27+WHEN+Incident_Category+IN+%28%27Drug+Offense%27%2C+%27Drug+Violation%27%29+THEN+%27Drug+Crimes%27+ELSE+%27Other+Crimes%27+END+AS+grouped_category%2C+Report_Type_Description%2C+Police_District%2C+date_trunc_y%28Report_Datetime%29+AS+year+%2C+COUNT%28%2A%29+AS+incident_count+WHERE+Report_Datetime+%3E%3D%272014-01-01%27+GROUP+BY+supervisor_district%2C+grouped_category%2C+Report_Type_Description%2C+Police_District%2C+Incident_Category%2C+Incident_Subcategory%2C+year+ORDER+BY+year+%2C+grouped_category+LIMIT+5000+OFFSET+35000)
+
+These insights are derived from trends in violations and incidents which can indirectly depict housing scenarios, as fewer violations might indicate improved housing conditions but could also point to reduced housing enforcement or reporting. Further closely related data analysis might be necessary to draw complete conclusions specific to direct housing metrics.

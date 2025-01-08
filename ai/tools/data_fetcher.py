@@ -39,7 +39,7 @@ def fetch_data_from_api(query_object):
     cleaned_query = clean_query_string(query)
 
     has_limit = "limit" in cleaned_query.lower()
-    url = urljoin(base_url, endpoint)
+    url = urljoin(base_url, f"{endpoint}.json")    
     params = {"$query": cleaned_query}
 
     headers = {
