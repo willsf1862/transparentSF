@@ -285,11 +285,17 @@ def load_sf_public_data(qdrant_client, datasets_folder, vector_size):
         description = data.get('description', '')
         page_text = data.get('page_text', '')
         columns = data.get('columns', [])
-        url = data.get('filename', '')
-
+        url = data.get('url', '')
+        endpoint = data.get('endpoint', '')
+        queries = data.get('queries', [])
+        report_category = data.get('report_category', '')
+        publishing_department = data.get('publishing_department', '')
+        last_updated_date = data.get('last_updated_date', '')
+        periodic = data.get('periodic', '')
+        district_level = data.get('district_level', '')
         # Format text for embedding
         columns_formatted = format_columns(columns)
-        combined_text = f"Title: {title}\n\nDescription:\n{description}\n\nContent:\n{page_text}\n\n{columns_formatted}"
+        combined_text = f"Title: {title}\nURL: {url}\nEndpoint: {endpoint}\nDescription: {description}\nContent: {page_text}\nColumns: {columns_formatted}\nReport Category: {report_category}\nPublishing Department: {publishing_department}\nLast Updated: {last_updated_date}\nPeriodic: {periodic}\nDistrict Level: {district_level}\nQueries: {queries}"
 
         # Generate embedding
         embedding = get_embedding(combined_text)
@@ -302,7 +308,7 @@ def load_sf_public_data(qdrant_client, datasets_folder, vector_size):
             'title': title,
             'description': description,
             'url': url,
-            'endpoint': extract_endpoint(url),
+            'endpoint': endpoint,
             'columns': serialize_columns(columns),
             'column_names': [col.get('name', '').lower() for col in columns],
             'category': data.get('category', '').lower(),

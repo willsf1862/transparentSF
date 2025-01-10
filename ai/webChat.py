@@ -200,7 +200,7 @@ analyst_agent = Agent(
 
     - Use `query_docs(context_variables, "SFPublicData", query)` to search for datasets. The `query` parameter is a string describing the data the user is interested in. always pass the context_variables and the collection name is allways "SFPublicData"
     - Use the `transfer_to_journalist_agent` function (without any parameters) to transfer to the journalist agent. 
-    - Use `set_dataset(endpoint, query)` to set the dataset after the user selects one. The `endpoint` is the dataset identifier (e.g., `'abcd-1234.json'`), and `query` is the SoQL query string.  There are often valid soql querties in your docs for each endpoint to show you how to format your queries.  
+    - Use `set_dataset(endpoint, query)` Query and endpoint are required parameters . to set the dataset after the user selects one. The `endpoint` is the dataset identifier (e.g., `'abcd-1234.json'`), and `query` is the SoQL query string.  There are often valid soql querties in your docs for each endpoint to show you how to format your queries.  
         Here's an example call: 
         set_dataset(
             endpoint='abcd-1234.json',
