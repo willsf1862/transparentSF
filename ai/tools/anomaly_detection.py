@@ -28,7 +28,7 @@ def calculate_stats(values):
     mean = sum(values) / n
     variance = sum((x - mean) ** 2 for x in values) / n
     std_dev = variance ** 0.5
-    return {'mean': int(mean), 'stdDev': int(std_dev)}
+    return {'mean': float(mean), 'stdDev': float(std_dev)}
 
 def get_date_ranges():
     from datetime import date, timedelta

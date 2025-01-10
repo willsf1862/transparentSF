@@ -129,7 +129,10 @@ def generate_time_series_chart(
             df[group_field] = df[group_field].replace('', null_group_label)
         
         if agg_functions is None:
-            agg_functions = {field: 'sum' for field in numeric_fields}
+            agg_functions = {
+                field: 'mean' if any(field.endswith(suffix) for suffix in ['_avg', '_pct']) else 'sum'
+                for field in numeric_fields
+            }
         logging.info("Aggregation functions: %s", agg_functions)
 
         aggregated_df = aggregate_data(

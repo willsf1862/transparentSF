@@ -286,16 +286,31 @@
         }
     ],
     "publishing_department": "Building Inspection",
-    "rows_updated_at": "2024-12-22T11:26:09Z",
-    "item_noun": "permit",
-    "usefulness": 3,
+    "rows_updated_at": "2025-01-01T11:47:49Z",
+    "usefulness": 2,
     "report_category": "Housing",
-    "periodic": "yes",
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "status",
+        "neighborhoods_analysis_boundaries"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "supervisor_district",
+        "zipcode"
+    ],
+    "periodic": true,
     "district_level": true,
-    "whom_it_may_interest": "Housing developers, real estate professionals, urban planners, city officials, regulatory bodies",
-    "data_validated": true,
+    "whom_it_may_interest": "Urban Planners, Housing Authorities, Construction Companies, and Policy Makers interested in trends of plumbing and mechanical permits across San Francisco.",
+    "data_validated": false,
+    "item_noun": "plumbing and mechanical permits",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(filed_date) AS month, COUNT(*) AS permits_count, supervisor_district, neighborhoods_analysis_boundaries, status WHERE filed_date >= '2022-09-01' GROUP BY month, supervisor_district, neighborhoods_analysis_boundaries, status ORDER BY month, supervisor_district, neighborhoods_analysis_boundaries, status",
-        "Yearly": "SELECT date_trunc_y(filed_date) AS year, COUNT(*) AS permits_count, supervisor_district, neighborhoods_analysis_boundaries, status WHERE filed_date >= '2022-09-01' GROUP BY year, supervisor_district, neighborhoods_analysis_boundaries, status ORDER BY month, supervisor_district, neighborhoods_analysis_boundaries, status"
-    }
+        "Monthly": "SELECT status, neighborhoods_analysis_boundaries, supervisor_district, zipcode, date_trunc_ym(application_date) AS month, COUNT(*) AS item_count WHERE application_date >= 'start_date' GROUP BY status, neighborhoods_analysis_boundaries, supervisor_district, zipcode, month ORDER BY month",
+        "Yearly": "SELECT status, neighborhoods_analysis_boundaries, supervisor_district, zipcode, date_trunc_y(application_date) AS year, COUNT(*) AS item_count WHERE application_date >= 'start_date' GROUP BY status, neighborhoods_analysis_boundaries, supervisor_district, zipcode, year ORDER BY year"
+    },
+    "filename": "a6aw-rudh.json"
 }

@@ -205,16 +205,33 @@
         }
     ],
     "publishing_department": "Rent Arbitration Board",
-    "rows_updated_at": "2024-12-22T13:14:02Z",
-    "item_noun": "appeal",
+    "rows_updated_at": "2025-01-01T13:13:48Z",
     "usefulness": 2,
     "report_category": "Housing",
-    "periodic": "yes",
+    "NumericFields": [
+        "item_count"
+    ],
+    "CategoryFields": [
+        "filing_party",
+        "hardship_appeal",
+        "interpreter_request"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "appeal_source_zipcode",
+        "supervisor_district",
+        "neighborhood"
+    ],
+    "periodic": true,
     "district_level": true,
-    "whom_it_may_interest": "Research organizations, landlords, tenants, local government bodies",
+    "whom_it_may_interest": "Housing advocates, Legal analysts, City planners, Rent Board officials, Researchers studying housing trends and tenant-landlord dynamics.",
     "data_validated": true,
+    "item_noun": "rent board appeals",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(date_filed) AS month, COUNT(*) AS total_appeals, supervisor_district, filing_party, hardship_appeal WHERE date_filed>='2022-09-01' GROUP BY supervisor_district, filing_party, hardship_appeal, month",
-        "Yearly": "SELECT date_trunc_y(date_filed) AS year, COUNT(*) AS total_appeals, supervisor_district, filing_party, hardship_appeal WHERE date_filed>='2022-09-01' GROUP BY supervisor_district, filing_party, hardship_appeal, year"
-    }
+        "Monthly": "SELECT date_trunc_ym(date_filed) AS month, COUNT(*) AS item_count, filing_party, hardship_appeal, interpreter_request, appeal_source_zipcode, supervisor_district, neighborhood WHERE date_filed >= start_date GROUP BY month, filing_party, hardship_appeal, interpreter_request, appeal_source_zipcode, supervisor_district, neighborhood ORDER BY month",
+        "Yearly": "SELECT date_trunc_y(date_filed) AS year, COUNT(*) AS item_count, filing_party, hardship_appeal, interpreter_request, appeal_source_zipcode, supervisor_district, neighborhood WHERE date_filed >= start_date GROUP BY year, filing_party, hardship_appeal, interpreter_request, appeal_source_zipcode, supervisor_district, neighborhood ORDER BY year"
+    },
+    "filename": "w2ze-eag5.json"
 }

@@ -107,8 +107,11 @@ def aggregate_data(
     if agg_functions:
         agg_dict = agg_functions
     else:
-        agg_dict = {field: 'sum' for field in numeric_fields}
-        logging.debug("Using default aggregation functions: sum for all numeric fields.")
+        agg_dict = {
+            field: 'mean' if any(field.endswith(suffix) for suffix in ['_avg', '_pct']) else 'sum' 
+            for field in numeric_fields
+        }
+        logging.debug("Using 'mean' for fields ending in '_avg' or '_pct', 'sum' for others.")
 
     # Perform resampling and aggregation
     if group_field:

@@ -114,7 +114,7 @@ def main():
     # Define paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(script_dir, 'data')
-    datasets_folder = os.path.join(data_folder, 'datasets')
+    datasets_folder = os.path.join(data_folder, 'datasets/fixed')
     output_folder = os.path.join(script_dir, 'datasets')
 
     # Ensure the output directory exists

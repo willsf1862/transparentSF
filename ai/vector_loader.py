@@ -14,6 +14,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import tiktoken  # For counting tokens
+from tools.data_processing import format_columns, serialize_columns, extract_endpoint, convert_to_timestamp
 
 
 # ------------------------------
@@ -244,11 +245,95 @@ def load_vectors(base_path):
                 process_directory(district_path, collection_name, qdrant, vector_size)
 
     # Process SFPublicData collection
-    datasets_path = os.path.join(base_path, '../data/datasets', 'fixed')
+    datasets_path = os.path.join(base_path, 'ai/data/datasets', 'fixed')
     if os.path.exists(datasets_path):
-        process_directory(datasets_path, "SFPublicData", qdrant, vector_size)
+        logger.info("Processing SFPublicData collection")
+        load_sf_public_data(qdrant, datasets_path, vector_size)
 
     logger.info("Vector loading completed for all collections")
+    return True
+
+def load_sf_public_data(qdrant_client, datasets_folder, vector_size):
+    """Load SF Public Data into Qdrant."""
+    collection_name = 'SFPublicData'
+    
+    # Create or recreate collection
+    recreate_collection(collection_name, vector_size)
+
+    # Process each JSON file
+    article_list = [f for f in os.listdir(datasets_folder) if f.endswith('.json')]
+    if not article_list:
+        logger.warning(f"No JSON files found in {datasets_folder}")
+        return False
+
+    logger.info(f"Found {len(article_list)} JSON files to process for SFPublicData")
+    points_to_upsert = []
+
+    for idx, filename in enumerate(article_list, start=1):
+        article_path = os.path.join(datasets_folder, filename)
+        logger.info(f"Processing file {idx}/{len(article_list)}: {filename}")
+
+        try:
+            with open(article_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading {filename}: {e}")
+            continue
+
+        # Extract and format data
+        title = data.get('title', 'Untitled')
+        description = data.get('description', '')
+        page_text = data.get('page_text', '')
+        columns = data.get('columns', [])
+        url = data.get('filename', '')
+
+        # Format text for embedding
+        columns_formatted = format_columns(columns)
+        combined_text = f"Title: {title}\n\nDescription:\n{description}\n\nContent:\n{page_text}\n\n{columns_formatted}"
+
+        # Generate embedding
+        embedding = get_embedding(combined_text)
+        if not embedding:
+            logger.error(f"Failed to generate embedding for article '{title}'. Skipping.")
+            continue
+
+        # Prepare payload
+        payload = {
+            'title': title,
+            'description': description,
+            'url': url,
+            'endpoint': extract_endpoint(url),
+            'columns': serialize_columns(columns),
+            'column_names': [col.get('name', '').lower() for col in columns],
+            'category': data.get('category', '').lower(),
+            'publishing_department': str(data.get('publishing_department', '')).lower(),
+            'last_updated_date': convert_to_timestamp(data.get('rows_updated_at', ''))
+        }
+
+        point = rest.PointStruct(
+            id=str(uuid.uuid4()),
+            vector=embedding,
+            payload=payload
+        )
+        points_to_upsert.append(point)
+
+        # Batch upload every 100 points
+        if len(points_to_upsert) >= 100:
+            try:
+                qdrant_client.upsert(collection_name=collection_name, points=points_to_upsert)
+                logger.info(f"Successfully upserted batch of {len(points_to_upsert)} documents")
+                points_to_upsert = []
+            except Exception as e:
+                logger.error(f"Error upserting batch to Qdrant: {e}")
+
+    # Upload any remaining points
+    if points_to_upsert:
+        try:
+            qdrant_client.upsert(collection_name=collection_name, points=points_to_upsert)
+            logger.info(f"Successfully upserted final batch of {len(points_to_upsert)} documents")
+        except Exception as e:
+            logger.error(f"Error upserting final batch to Qdrant: {e}")
+
     return True
 
 if __name__ == '__main__':

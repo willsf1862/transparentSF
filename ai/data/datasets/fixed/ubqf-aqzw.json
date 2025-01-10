@@ -782,14 +782,14 @@
         "perceived_race_ethnicity",
         "perceived_gender",
         "reason_for_stop",
-        "results_of_stop"
+        "results_of_stop",
+        "supervisor_district"
     ],
     "DateFields": [
         "month"
     ],
     "LocationFields": [
-        "supervisor_district",
-        "analysis_neighborhoods"
+        "supervisor_district"
     ],
     "periodic": true,
     "district_level": true,
@@ -797,8 +797,8 @@
     "data_validated": true,
     "item_noun": "records of police stops",
     "queries": {
-        "Monthly": "SELECT perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, analysis_neighborhoods, date_trunc_ym(stop_datetime) AS month, COUNT(*) AS stop_count WHERE stop_datetime >= start_date GROUP BY perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, analysis_neighborhoods, month ORDER BY month",
-        "Yearly": "SELECT perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, analysis_neighborhoods, date_trunc_y(stop_datetime) AS year, COUNT(*) AS stop_count WHERE stop_datetime >= start_date GROUP BY perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, analysis_neighborhoods, year ORDER BY year"
+        "Monthly": "SELECT perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, date_trunc_ym(stop_datetime) AS month, COUNT(*) AS stop_count WHERE stop_datetime >= start_date GROUP BY perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, month ORDER BY month",
+        "Yearly": "SELECT perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, date_trunc_y(stop_datetime) AS year, COUNT(*) AS stop_count WHERE stop_datetime >= start_date GROUP BY perceived_race_ethnicity, perceived_gender, reason_for_stop, results_of_stop, supervisor_district, year ORDER BY year"
     },
     "filename": "ubqf-aqzw.json"
 }
