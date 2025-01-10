@@ -14,23 +14,25 @@
         /* General styles */
         body, html {
             height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
         }
 
+        /* Base styles */
         .main {
             display: flex;
-            height: 100%;
+            height: 100vh;
             width: 100%;
         }
 
-        /* Chat container */
         .chat {
-            width: 800px;
+            width: 50%; /* Default to 50% width */
+            height: 100vh;
             display: flex;
             flex-direction: column;
             border-right: 1px solid #ccc;
-            background-color: #ffffff;
         }
 
         h1 {
@@ -45,13 +47,15 @@
             display: flex;
             flex-direction: column;
             flex: 1;
-            padding: 10px;
+            height: calc(100vh - 50px);
             overflow: hidden;
+            padding: 10px;
         }
 
         #response-area {
             flex-grow: 1;
             overflow-y: auto;
+            height: calc(100% - 60px);
             border: 1px solid #eee;
             border-radius: 5px;
             padding: 10px;
@@ -187,8 +191,6 @@
             width: 5px;
             cursor: col-resize;
             background-color: #ccc;
-            position: relative;
-            z-index: 1;
         }
 
         /* Canvas container */
@@ -209,13 +211,35 @@
             text-align: center;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
+        /* Mobile styles */
+        @media (max-width: 767px) {
+            .divider,
+            .canvas-container {
+                display: none; /* Only hide on mobile */
+            }
+
             .chat {
                 width: 100%;
+                border-right: none;
             }
-            .divider {
-                display: none; /* Hide divider on small screens */
+
+            #userInput {
+                font-size: 16px; /* Prevent zoom on iOS */
+                padding: 8px;
+            }
+
+            .message {
+                max-width: 95%;
+                padding: 8px 12px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+                padding: 8px;
+            }
+
+            #submit-button {
+                padding: 8px 15px;
             }
         }
     </style>
@@ -458,34 +482,55 @@
         const divider = document.querySelector('.divider');
         const chat = document.querySelector('.chat');
         const canvas = document.querySelector('.canvas-container');
-
         let isDragging = false;
+        let isMobile = window.innerWidth < 768;
+
+        // Update resize handler on window resize
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth < 768;
+        });
 
         divider.addEventListener('mousedown', function(e) {
             isDragging = true;
-            document.body.style.cursor = 'col-resize';
+            document.body.style.cursor = isMobile ? 'row-resize' : 'col-resize';
             e.preventDefault();
         });
 
         document.addEventListener('mousemove', function(e) {
             if (!isDragging) return;
 
-            // Calculate new width for the chat
-            const main = document.querySelector('.main');
-            const mainRect = main.getBoundingClientRect();
-            let newChatWidth = e.clientX;
+            if (isMobile) {
+                // Vertical resizing for mobile
+                const main = document.querySelector('.main');
+                const mainRect = main.getBoundingClientRect();
+                let newChatHeight = e.clientY;
 
-            // Set minimum and maximum widths
-            const minWidth = 200; // Minimum width for chat
-            const maxWidth = mainRect.width - 200; // Minimum width for canvas
+                // Set minimum heights (20% of viewport height)
+                const minHeight = window.innerHeight * 0.2;
+                const maxHeight = window.innerHeight * 0.8;
 
-            if (newChatWidth < minWidth) newChatWidth = minWidth;
-            if (newChatWidth > maxWidth) newChatWidth = maxWidth;
+                if (newChatHeight < minHeight) newChatHeight = minHeight;
+                if (newChatHeight > maxHeight) newChatHeight = maxHeight;
 
-            chat.style.width = `${newChatWidth}px`;
+                chat.style.height = `${newChatHeight}px`;
+                canvas.style.height = `${window.innerHeight - newChatHeight - divider.offsetHeight}px`;
+            } else {
+                // Horizontal resizing for desktop
+                const main = document.querySelector('.main');
+                const mainRect = main.getBoundingClientRect();
+                let newChatWidth = e.clientX;
+
+                const minWidth = 200;
+                const maxWidth = mainRect.width - 200;
+
+                if (newChatWidth < minWidth) newChatWidth = minWidth;
+                if (newChatWidth > maxWidth) newChatWidth = maxWidth;
+
+                chat.style.width = `${newChatWidth}px`;
+            }
         });
 
-        document.addEventListener('mouseup', function(e) {
+        document.addEventListener('mouseup', function() {
             if (isDragging) {
                 isDragging = false;
                 document.body.style.cursor = 'default';
