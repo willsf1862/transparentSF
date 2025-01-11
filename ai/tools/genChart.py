@@ -623,9 +623,10 @@ def generate_time_series_chart(
 ![Chart]({relative_path.replace(os.sep, '/')})
 Caption: {caption}
 
-```json
-{aggregated_df.to_json(orient='records', date_format='iso')[:1000]}
-```"""
+### Data Table
+{crosstab_df.to_markdown()}
+
+"""
 
             # Include crosstab data table with toggle in HTML content
             html_content = f'''

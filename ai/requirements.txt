@@ -13,5 +13,6 @@ kaleido
 tiktoken
 webdriver-manager
 markdown2
+html2markdown
 git+https://github.com/openai/swarm.git
 

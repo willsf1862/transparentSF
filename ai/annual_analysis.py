@@ -312,7 +312,7 @@ def process_entry(index, data_entry, output_folder, log_file, script_dir):
             combined_markdown = "\n\n".join(processed_markdown_contents)
             metadata_md = f"# {metadata['noun']} {current_title_suffix}\n\n"
             metadata_md += f"**Query URL:** {query_url}\n\n"
-
+            metadata_md += f"**Description:** {metadata['description']}\n\n"
             metadata_md += "## Column Metadata\n\n| Field Name | Description | Data Type |\n|------------|-------------|-----------|\n"
             for column in metadata['column_metadata']:
                 if isinstance(column, dict):

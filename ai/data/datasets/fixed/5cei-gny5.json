@@ -430,7 +430,8 @@
         }
     ],
     "publishing_department": "Rent Arbitration Board",
-    "rows_updated_at": "2024-12-22T13:13:19Z",
+    "rows_updated_at": "2025-01-01T13:15:31Z",
+    "usefulness": 3,
     "report_category": "Housing",
     "NumericFields": [
         "item_count"
@@ -440,21 +441,37 @@
         "breach",
         "nuisance",
         "illegal_use",
+        "failure_to_sign_renewal",
+        "access_denial",
+        "unapproved_subtenant",
         "owner_move_in",
-        "ellis_act_withdrawal"
-    ],
-    "LocationFields": [
-        "zip",
-        "supervisor_district",
-        "neighborhood"
+        "demolition",
+        "capital_improvement",
+        "substantial_rehab",
+        "ellis_act_withdrawal",
+        "condo_conversion",
+        "roommate_same_unit",
+        "other_cause",
+        "late_payments",
+        "lead_remediation",
+        "development",
+        "good_samaritan_ends"
     ],
     "DateFields": [
         "month"
     ],
+    "LocationFields": [
+        "supervisor_district",
+        "neighborhood"
+    ],
     "periodic": true,
     "district_level": true,
+    "whom_it_may_interest": "Tenants, Landlords, Housing Policy Analysts, Urban Planners, and Legal Professionals monitoring eviction patterns and housing stability in San Francisco.",
+    "data_validated": true,
+    "item_noun": "eviction notices",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(file_date) AS month, count(*) as item_count, non_payment, breach, nuisance, illegal_use, owner_move_in, ellis_act_withdrawal, zip, supervisor_district, neighborhood WHERE file_date >= start_date GROUP BY month, non_payment, breach, nuisance, illegal_use, owner_move_in, ellis_act_withdrawal, zip, supervisor_district, neighborhood",
-        "Yearly": "SELECT date_trunc_y(file_date) AS year, count(*) as item_count, non_payment, breach, nuisance, illegal_use, owner_move_in, ellis_act_withdrawal, zip, supervisor_district, neighborhood WHERE file_date >= start_date GROUP BY year, non_payment, breach, nuisance, illegal_use, owner_move_in, ellis_act_withdrawal, zip, supervisor_district, neighborhood"
-    }
+        "Monthly": "SELECT date_trunc_ym(file_date) AS month, supervisor_district, neighborhood, non_payment, breach, nuisance, illegal_use, failure_to_sign_renewal, access_denial, unapproved_subtenant, owner_move_in, demolition, capital_improvement, substantial_rehab, ellis_act_withdrawal, condo_conversion, roommate_same_unit, other_cause, late_payments, lead_remediation, development, good_samaritan_ends, COUNT(*) AS item_count WHERE file_date >= start_date GROUP BY month, supervisor_district, neighborhood, non_payment, breach, nuisance, illegal_use, failure_to_sign_renewal, access_denial, unapproved_subtenant, owner_move_in, demolition, capital_improvement, substantial_rehab, ellis_act_withdrawal, condo_conversion, roommate_same_unit, other_cause, late_payments, lead_remediation, development, good_samaritan_ends ORDER BY month",
+        "Yearly": "SELECT date_trunc_y(file_date) AS year, supervisor_district, neighborhood, non_payment, breach, nuisance, illegal_use, failure_to_sign_renewal, access_denial, unapproved_subtenant, owner_move_in, demolition, capital_improvement, substantial_rehab, ellis_act_withdrawal, condo_conversion, roommate_same_unit, other_cause, late_payments, lead_remediation, development, good_samaritan_ends, COUNT(*) AS item_count WHERE file_date >= start_date GROUP BY year, supervisor_district, neighborhood, non_payment, breach, nuisance, illegal_use, failure_to_sign_renewal, access_denial, unapproved_subtenant, owner_move_in, demolition, capital_improvement, substantial_rehab, ellis_act_withdrawal, condo_conversion, roommate_same_unit, other_cause, late_payments, lead_remediation, development, good_samaritan_ends ORDER BY year"
+    },
+    "filename": "5cei-gny5.json"
 }

@@ -1,600 +1,681 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Transparent SF Agent Chat</title>
-    <style>
-        /* Reset default margins and paddings */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <title>Transparent SF Agent Chat</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
+        <style>
+            /* Reset and base styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        /* General styles */
-        body, html {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-        }
+            body,
+            html {
+                height: 100%;
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                /* Base font size */
+                font-size: 12px;
+            }
 
-        /* Base styles */
-        .main {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-
-        .chat {
-            width: 50%; /* Default to 50% width */
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #ccc;
-        }
-
-        h1 {
-            font-size: 1.5em;
-            text-align: center;
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-            background-color: #f1f1f1;
-        }
-
-        #chat-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            height: calc(100vh - 50px);
-            overflow: hidden;
-            padding: 10px;
-        }
-
-        #response-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            height: calc(100% - 60px);
-            border: 1px solid #eee;
-            border-radius: 5px;
-            padding: 10px;
-            background-color: #ffffff;
-        }
-
-        p {
-            margin-bottom: 1em;
-        }
-
-        .message-content ul,
-        .message-content ol {
-            margin: 0; 
-            padding-left: 20px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            list-style-position: outside; /* more standard positioning */
-        }
-
-        .message-content ul li,
-        .message-content ol li {
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Message styling */
-        .message {
-            padding: 10px 15px;
-            margin: 5px 0;
-            border-radius: 15px;
-            max-width: 97%;
-            word-wrap: break-word;
-            display: inline-block;
-            position: relative;
-            clear: both; /* Ensure messages start on a new line */
-        }
-
-        .user-message {
-            background-color: #e6f7ff;
-            color: #333;
-            float: left; /* Align to left */
-        }
-
-        .ai-message {
-            background-color: #f0f0f0;
-            color: #333;
-            float: left; /* Align to left */
-        }
-
-        /* Sender labels */
-        .sender {
-            font-weight: bold;
-            margin-bottom: 3px;
-            display: block;
-            font-size: 0.9em;
-        }
-
-        .message-content ol {
-            list-style-type: decimal;    /* Ensure numbering is decimal */
-            list-style-position: inside; /* Numbers appear inside the content area */
-            padding: 0;                  /* Adjust as needed */
-            margin: 0;                   /* Adjust as needed */
-        }
-
-        .message-content ol li {
-            display: inline-block;       /* Keeps block-level properties (including markers) but on the same line */
-            margin-right: 10px;
-            vertical-align: middle;      /* Adjust vertical alignment if needed */
-        }
-
-        /* Tool call styling */
-        .tool-call {
-            background-color: #fffae6;
-            color: #6b5b95;
-            font-style: italic;
-            border-left: 4px solid #6b5b95;
-            padding: 5px;
-            margin: 10px 0;
-        }
-
-        .tool-call-header {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-
-        .toggle-button {
-            background: none;
-            border: none;
-            font-weight: bold;
-            margin-right: 5px;
-            cursor: pointer;
-        }
-
-        .tool-call-args {
-            margin-left: 20px;
-            display: none; /* Initially collapsed */
-            white-space: pre-wrap;
-        }
-
-        /* Input area */
-        #input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        #userInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        #submit-button {
-            margin-left: 10px;
-            padding: 10px 20px;
-            border: none;
-            background-color: #007BFF;
-            color: #ffffff;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        #loading {
-            display: none;
-            color: #007bff;
-            font-style: italic;
-            margin-top: 5px;
-        }
-
-        /* Draggable divider */
-        .divider {
-            width: 5px;
-            cursor: col-resize;
-            background-color: #ccc;
-        }
-
-        /* Canvas container */
-        .canvas-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-        .canvas-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        /* Footer and Header (if any) can be styled here */
-        header, footer {
-            background-color: #f1f1f1;
-            padding: 10px;
-            text-align: center;
-        }
-
-        /* Mobile styles */
-        @media (max-width: 767px) {
-            .divider,
-            .canvas-container {
-                display: none; /* Only hide on mobile */
+            /* Layout */
+            .main {
+                display: flex;
+                height: 100vh;
+                width: 100%;
             }
 
             .chat {
-                width: 100%;
-                border-right: none;
+                width: 50%;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                border-right: 1px solid #ccc;
+                /* Ensure padding for better readability */
+                padding: 20px;
+            }
+
+            .chat h1 {
+                /* Header font size */
+                font-size: 2em;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            #chat-container {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                height: calc(100vh - 70px); /* Adjusted for increased padding */
+                overflow: hidden;
+                padding: 10px;
+            }
+
+            #response-area {
+                flex-grow: 1;
+                overflow-y: auto;
+                height: calc(100% - 80px); /* Adjusted for increased padding */
+                border: 1px solid #eee;
+                padding: 15px; /* Increased padding */
+                background-color: #ffffff;
+                /* Increase font size for messages */
+                font-size: 1.1em;
+                /* Prevent horizontal scroll */
+                overflow-x: hidden;
+            }
+
+            /* Message styling */
+            .message {
+                padding: 15px 20px; /* Increased padding */
+                margin: 8px 0; /* Increased margin */
+                border-radius: 20px; /* More rounded corners */
+                max-width: 100%;
+                word-wrap: break-word;
+                display: inline-block;
+                position: relative;
+                clear: both;
+                /* Increase font size */
+                font-size: 1.1em;
+            }
+
+            .user-message {
+                background-color: #e6f7ff;
+                align-self: flex-end;
+                float: right;
+            }
+            .ai-message {
+                background-color: #f0f0f0;
+                align-self: flex-start;
+                float: left;
+            }
+
+            .sender {
+                font-weight: bold;
+                display: inline;
+                font-size: 1em;
+            }
+
+            /* Tool call styling */
+            .tool-call {
+                background-color: #fffae6;
+                color: #6b5b95;
+                font-style: italic;
+                border-left: 4px solid #6b5b95;
+                padding: 8px; /* Increased padding */
+                margin: 12px 0; /* Increased margin */
+                font-size: 1em; /* Increased font size */
+            }
+
+            /* Input area */
+            #input-container {
+                display: flex;
+                margin-top: 15px; /* Increased margin */
             }
 
             #userInput {
-                font-size: 16px; /* Prevent zoom on iOS */
-                padding: 8px;
-            }
-
-            .message {
-                max-width: 95%;
-                padding: 8px 12px;
-            }
-
-            h1 {
-                font-size: 1.2em;
-                padding: 8px;
+                flex-grow: 1;
+                padding: 12px; /* Increased padding */
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                /* Ensure font size is at least 16px to prevent zoom */
+                font-size: 16px;
             }
 
             #submit-button {
-                padding: 8px 15px;
+                margin-left: 12px; /* Increased margin */
+                padding: 12px 24px; /* Increased padding */
+                border: none;
+                background-color: #007bff;
+                color: #ffffff;
+                border-radius: 5px;
+                cursor: pointer;
+                /* Ensure button has consistent font size */
+                font-size: 16px;
+                flex-shrink: 0; /* Prevent button from shrinking */
             }
-        }
-    </style>
-</head>
-<body>
-    <div class="main">
-        <div class="chat">
-            <h1>Transparent SF Agent Chat</h1>
-            <div id="chat-container">
-                <div id="response-area"></div>
-                <div id="loading">AI is thinking...</div>
-                <div id="input-container">
-                    <input type="text" id="userInput" placeholder="Type your message...">
-                    <button id="submit-button">Send</button>
+
+            /* Responsive Images and Charts */
+            #response-area img,
+        #response-area canvas, /* For charts rendered as canvas */
+        #response-area svg {
+                /* For SVG charts */
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 10px 0; /* Optional: Add some margin for spacing */
+            }
+
+            /* List Styling */
+            #response-area ul,
+            #response-area ol {
+                margin-left: 20px; /* Proper indentation */
+                padding-left: 10px; /* Additional padding to align bullets/numbers */
+            }
+
+            #response-area li {
+                margin-bottom: 5px; /* Spacing between list items */
+            }
+            #response-area p {
+                margin-top: 1em; /* Add space after paragraphs */
+            }
+
+            #response-area p:last-child {
+                margin-bottom: 0; /* Remove margin from last paragraph to avoid extra space */
+            }
+            /* Mobile and Portrait styles */
+            @media (max-width: 767px), (orientation: portrait) {
+                .divider,
+                .canvas-container {
+                    display: none;
+                }
+                #response-area p {
+                    margin-top: 0.8em; /* Slightly less spacing on mobile */
+                }
+                .chat {
+                    width: 100%;
+                    border-right: none;
+                    background-color: #1a1a1a;
+                    padding: 0; /* Removed padding to make chat 100% wide */
+                }
+
+                .chat h1 {
+                    /* Reduce header font size for mobile */
+                    font-size: 1.4em; /* Decreased from 1.8em to 1.6em */
+                    color: #ffffff;
+                    margin: 15px; /* Adjusted margin to compensate for removed padding */
+                    text-align: center;
+                }
+
+                body {
+                    font-size: 18px; /* Ensure base font size is 18px */
+                    background-color: #1a1a1a;
+                    color: #ffffff;
+                }
+
+                #chat-container {
+                    padding: 1px; /* Maintain minimal padding */
+                }
+
+                #response-area {
+                    background-color: #2d2d2d;
+                    border-color: #444;
+                    margin-bottom: 80px; /* Increased margin to accommodate fixed input */
+                    font-size: 1em; /* Slightly decreased from 1.2em to 1em */
+                    padding: 10px; /* Reduced padding to save space */
+                }
+
+                /* Reduce font size for messages on mobile */
+                .message {
+                    padding: 7px; /* Reduced padding to 1px on both sides */
+                    margin: 4px 0; /* Reduced margin */
+                    border-radius: 15px; /* Slightly less rounded corners */
+                    line-height: 1.2; /* Added line height */
+                }
+
+                .user-message {
+                    background-color: #264653;
+                    color: #ffffff;
+                }
+                .ai-message {
+                    background-color: #2a3f4d;
+                    color: #ffffff;
+                }
+
+                #input-container {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    padding: 15px; /* Maintained padding */
+                    background-color: #2d2d2d;
+                    z-index: 1000;
+                    /* Adjust flex properties for better alignment */
+                    display: flex;
+                    align-items: center;
+                }
+
+                #submit-button {
+                    background-color: #2a9d8f;
+                    font-size: 16px;
+                    padding: 12px 20px;
+                    min-height: 44px;
+                    flex-shrink: 0; /* Ensure button does not shrink */
+                }
+
+                #userInput {
+                    font-size: 16px;
+                    padding: 12px;
+                    min-height: 44px;
+                    border-radius: 8px;
+                    background-color: #333;
+                    color: #fff;
+                    /* Ensure input takes available space without causing overflow */
+                    margin-right: 10px;
+                }
+
+                /* Ensure the "Send" button is always visible and aligned */
+                #input-container button {
+                    white-space: nowrap;
+                }
+
+                /* Adjust tool-call font size on mobile */
+                .tool-call {
+                    font-size: 0.9em; /* Slightly reduced font size */
+                    padding: 6px; /* Reduced padding */
+                    margin: 10px 0; /* Reduced margin */
+                }
+
+                /* Adjust sender font size on mobile */
+                .sender {
+                    font-size: 0.9em; /* Reduced from 1em to 0.9em */
+                }
+
+                /* Responsive Images and Charts on Mobile */
+                #response-area img,
+                #response-area canvas,
+                #response-area svg {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 8px 0; /* Adjusted margin for mobile */
+                    margin-bottom: 0.8em; /* Slightly less spacing on mobile */
+
+                }
+
+                /* List Styling on Mobile */
+                #response-area ul,
+                #response-area ol {
+                    margin-left: 15px; /* Reduced indentation for mobile */
+                    padding-left: 10px; /* Additional padding to align bullets/numbers */
+                }
+
+                #response-area li {
+                    margin-bottom: 4px; /* Reduced spacing between list items */
+                }
+            }
+
+            .canvas-container {
+                flex: 1;  /* Add this to make it take remaining space */
+                height: 100vh;
+                display: flex;  /* Add this to ensure iframe fills container */
+            }
+
+            .canvas-container iframe {
+                flex: 1;  /* Add this to make iframe fill container */
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main">
+            <div class="chat">
+                <h1>Transparent SF Agent Chat</h1>
+                <div id="chat-container">
+                    <div id="response-area"></div>
+                    <div
+                        id="loading"
+                        style="display: none; padding: 10px; text-align: center"
+                    >
+                        AI is thinking...
+                    </div>
+                    <div id="input-container">
+                        <input
+                            type="text"
+                            id="userInput"
+                            placeholder="Type your message..."
+                            autocomplete="off"
+                        />
+                        <button id="submit-button">Send</button>
+                    </div>
                 </div>
             </div>
+            <div class="divider"></div>
+            <div class="canvas-container">
+                <iframe
+                    name="canvasTarget"
+                    style="width: 100%; height: 100%; border: none"
+                ></iframe>
+            </div>
         </div>
-        <div class="divider"></div>
-        <div class="canvas-container">
-            <iframe name="canvasTarget"></iframe>
-        </div>
-    </div>
 
+        <!-- Include Marked.js library -->
+        <script src="https://cdn.jsdelivr.net/npm/marked@4.2.12/marked.min.js"></script>
+        <!-- Include DOMPurify library -->
+        <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
 
-    <!-- Include Marked.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.2.12/marked.min.js"></script>
-    <!-- Include DOMPurify library -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
+        <script>
+            // Corrected element references
+            const responseArea = document.getElementById("response-area");
+            const userInput = document.getElementById("userInput"); // Correct ID
+            const submitBtn = document.getElementById("submit-button"); // Correct ID
+            const loading = document.getElementById("loading");
+            let currentAIMessage = null;
 
-    <script>
-        // Corrected element references
-        const responseArea = document.getElementById('response-area');
-        const userInput = document.getElementById('userInput'); // Correct ID
-        const submitBtn = document.getElementById('submit-button'); // Correct ID
-        const loading = document.getElementById('loading');
-        let currentAIMessage = null;    
+            function handleServerMessage(data) {
+                console.log("Received message:", data);
 
-        function handleServerMessage(data) {
-            console.log('Received message:', data);
-
-            if (currentAIMessage == null) {
-                currentAIMessage = addMessage(data.sender || "AI", "ai-message");
-                currentAIMessage.contentSegments = []; // Initialize content segments array
-            }
-
-            if (data.type === 'content' || data.type === 'tool_call') {
-                if (data.type === 'content') {
-                    // Append to the last content segment if it's a string
-                    if (typeof currentAIMessage.contentSegments[currentAIMessage.contentSegments.length - 1] === 'string') {
-                        currentAIMessage.contentSegments[currentAIMessage.contentSegments.length - 1] += data.content;
-                    } else {
-                        currentAIMessage.contentSegments.push(data.content);
-                    }
-                } else if (data.type === 'tool_call') {
-                    // Add the tool call object as a segment
-                    currentAIMessage.contentSegments.push({
-                        type: 'tool_call',
-                        function_name: data.function_name,
-                        arguments: data.arguments
-                    });
+                if (currentAIMessage == null) {
+                    currentAIMessage = addMessage(
+                        data.sender || "AI",
+                        "ai-message",
+                    );
+                    currentAIMessage.contentSegments = []; // Initialize content segments array
                 }
 
-                // Re-render the content segments
-                renderContentSegments(currentAIMessage);
-            } else {
-                console.warn('Unknown message type:', data.type);
-            }
-
-            responseArea.scrollTop = responseArea.scrollHeight;
-        }
-
-        function renderContentSegments(message) {
-            // Clear the content element
-            message.contentElement.innerHTML = '';
-
-            // Configure Marked.js
-            marked.setOptions({
-                breaks: true,
-                gfm: true,
-                headerIds: false,
-                mangle: false
-            });
-
-            // Process each segment
-            for (let segment of message.contentSegments) {
-                if (typeof segment === 'string') {
-                    // It's a markdown content segment
-                    try {
-                        const htmlContent = marked.parse(segment);
-                        const sanitizedContent = DOMPurify.sanitize(htmlContent);
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = sanitizedContent;
-
-                        // Append the content to the message content element
-                        while (tempDiv.firstChild) {
-                            message.contentElement.appendChild(tempDiv.firstChild);
+                if (data.type === "content" || data.type === "tool_call") {
+                    if (data.type === "content") {
+                        // Append to the last content segment if it's a string
+                        if (
+                            typeof currentAIMessage.contentSegments[
+                                currentAIMessage.contentSegments.length - 1
+                            ] === "string"
+                        ) {
+                            currentAIMessage.contentSegments[
+                                currentAIMessage.contentSegments.length - 1
+                            ] += data.content;
+                        } else {
+                            currentAIMessage.contentSegments.push(data.content);
                         }
-                    } catch (error) {
-                        console.warn('Markdown parsing error:', error);
-                        // Optionally, handle parsing errors
+                    } else if (data.type === "tool_call") {
+                        // Add the tool call object as a segment
+                        currentAIMessage.contentSegments.push({
+                            type: "tool_call",
+                            function_name: data.function_name,
+                            arguments: data.arguments,
+                        });
                     }
-                } else if (segment.type === 'tool_call') {
-                    // It's a tool call segment
-                    const toolCallElement = createToolCallElement(segment.function_name, segment.arguments);
-                    message.contentElement.appendChild(toolCallElement);
-                }
-            }
-        }
 
-        function createToolCallElement(functionName, args) {
-            const toolCallContainer = document.createElement('div');
-            toolCallContainer.className = 'tool-call';
-
-            const toolCallHeader = document.createElement('div');
-            toolCallHeader.className = 'tool-call-header';
-
-            const toggleButton = document.createElement('button');
-            toggleButton.textContent = '[+]';
-            toggleButton.className = 'toggle-button';
-
-            toolCallHeader.appendChild(toggleButton);
-            toolCallHeader.appendChild(document.createTextNode(` Tool Call: ${functionName}`));
-
-            const argsContainer = document.createElement('div');
-            argsContainer.className = 'tool-call-args';
-            argsContainer.textContent = `Arguments: ${JSON.stringify(args, null, 2)}`;
-
-            toggleButton.addEventListener('click', () => {
-                if (argsContainer.style.display === 'none') {
-                    argsContainer.style.display = 'block';
-                    toggleButton.textContent = '[-]';
+                    // Re-render the content segments
+                    renderContentSegments(currentAIMessage);
                 } else {
-                    argsContainer.style.display = 'none';
-                    toggleButton.textContent = '[+]';
+                    console.warn("Unknown message type:", data.type);
                 }
-            });
 
-            argsContainer.style.display = 'none'; // Start collapsed
-            toolCallContainer.appendChild(toolCallHeader);
-            toolCallContainer.appendChild(argsContainer);
+                responseArea.scrollTop = responseArea.scrollHeight;
+            }
 
-            return toolCallContainer;
-        }
+            function renderContentSegments(message) {
+                // Clear the content element
+                message.contentElement.innerHTML = "";
 
-        async function sendMessage() {
-            const query = userInput.value.trim();
-            if (!query) return;
-
-            // Add user's message to chat log
-            const userMessage = addMessage("You", "user-message");
-            const htmlContent = marked.parse(query);
-            userMessage.contentElement.innerHTML = DOMPurify.sanitize(htmlContent);
-
-            // Reset currentAIMessage to null
-            currentAIMessage = null;
-
-            loading.style.display = 'block';
-            userInput.value = '';
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query }),
+                // Configure Marked.js
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false,
                 });
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
+                // Process each segment
+                for (let segment of message.contentSegments) {
+                    if (typeof segment === "string") {
+                        // It's a markdown content segment
+                        try {
+                            const htmlContent = marked.parse(segment);
+                            const sanitizedContent =
+                                DOMPurify.sanitize(htmlContent);
+                            const tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = sanitizedContent;
 
-                let buffer = '';
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                            // Modify links to open in the specified frame
+                            modifyLinksToOpenInFrame(tempDiv, "canvasTarget");
 
-                    const chunk = decoder.decode(value);
-                    console.log('Received chunk:', chunk);
-                    buffer += chunk;
+                            // Append the content to the message content element
+                            while (tempDiv.firstChild) {
+                                message.contentElement.appendChild(
+                                    tempDiv.firstChild,
+                                );
+                            }
+                        } catch (error) {
+                            console.warn("Markdown parsing error:", error);
+                            // Optionally, handle parsing errors
+                        }
+                    } else if (segment.type === "tool_call") {
+                        // It's a tool call segment
+                        const toolCallElement = createToolCallElement(
+                            segment.function_name,
+                            segment.arguments,
+                        );
+                        message.contentElement.appendChild(toolCallElement);
+                    }
+                }
+            }
 
-                    // Process complete lines
-                    let lines = buffer.split('\n');
-                    buffer = lines.pop(); // Keep the last incomplete line in the buffer
+            function createToolCallElement(functionName, args) {
+                const toolCallContainer = document.createElement("div");
+                toolCallContainer.className = "tool-call";
 
-                    for (const line of lines) {
-                        if (line.trim()) {
-                            try {
-                                const data = JSON.parse(line);
-                                handleServerMessage(data);
-                            } catch (e) {
-                                console.error('Error parsing JSON:', e);
-                                console.error('Invalid JSON:', line);
+                const toolCallHeader = document.createElement("div");
+                toolCallHeader.className = "tool-call-header";
+
+                const toggleButton = document.createElement("button");
+                toggleButton.textContent = "[+]";
+                toggleButton.className = "toggle-button";
+                // Style the toggle button for better visibility
+                toggleButton.style.background = "none";
+                toggleButton.style.border = "none";
+                toggleButton.style.color = "#6b5b95";
+                toggleButton.style.cursor = "pointer";
+                toggleButton.style.fontSize = "1em";
+                toggleButton.style.marginRight = "10px";
+
+                toolCallHeader.appendChild(toggleButton);
+                toolCallHeader.appendChild(
+                    document.createTextNode(` Tool Call: ${functionName}`),
+                );
+
+                const argsContainer = document.createElement("div");
+                argsContainer.className = "tool-call-args";
+                argsContainer.textContent = `Arguments: ${JSON.stringify(args, null, 2)}`;
+                argsContainer.style.marginLeft = "24px"; // Indent arguments for clarity
+
+                toggleButton.addEventListener("click", () => {
+                    if (argsContainer.style.display === "none") {
+                        argsContainer.style.display = "block";
+                        toggleButton.textContent = "[-]";
+                    } else {
+                        argsContainer.style.display = "none";
+                        toggleButton.textContent = "[+]";
+                    }
+                });
+
+                argsContainer.style.display = "none"; // Start collapsed
+                toolCallContainer.appendChild(toolCallHeader);
+                toolCallContainer.appendChild(argsContainer);
+
+                return toolCallContainer;
+            }
+
+            async function sendMessage() {
+                const query = userInput.value.trim();
+                if (!query) return;
+
+                // Add user's message to chat log
+                const userMessage = addMessage("You", "user-message");
+                const htmlContent = marked.parse(query);
+                userMessage.contentElement.innerHTML =
+                    DOMPurify.sanitize(htmlContent);
+
+                // Reset currentAIMessage to null
+                currentAIMessage = null;
+
+                loading.style.display = "block";
+                userInput.value = "";
+
+                try {
+                    const response = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query }),
+                    });
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+
+                    let buffer = "";
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value);
+                        console.log("Received chunk:", chunk);
+                        buffer += chunk;
+
+                        // Process complete lines
+                        let lines = buffer.split("\n");
+                        buffer = lines.pop(); // Keep the last incomplete line in the buffer
+
+                        for (const line of lines) {
+                            if (line.trim()) {
+                                try {
+                                    const data = JSON.parse(line);
+                                    handleServerMessage(data);
+                                } catch (e) {
+                                    console.error("Error parsing JSON:", e);
+                                    console.error("Invalid JSON:", line);
+                                }
                             }
                         }
                     }
-                }
 
-                // Process any remaining data in the buffer
-                if (buffer.trim()) {
-                    try {
-                        const data = JSON.parse(buffer);
-                        handleServerMessage(data);
-                    } catch (e) {
-                        console.error('Error parsing JSON:', e);
-                        console.error('Invalid JSON:', buffer);
+                    // Process any remaining data in the buffer
+                    if (buffer.trim()) {
+                        try {
+                            const data = JSON.parse(buffer);
+                            handleServerMessage(data);
+                        } catch (e) {
+                            console.error("Error parsing JSON:", e);
+                            console.error("Invalid JSON:", buffer);
+                        }
                     }
+                } catch (error) {
+                    console.error("Error:", error);
+                    addMessage(
+                        "Error",
+                        "error-message",
+                    ).contentElement.textContent =
+                        "An error occurred. Please try again.";
+                } finally {
+                    loading.style.display = "none";
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage("Error", "error-message").contentElement.textContent = "An error occurred. Please try again.";
-            } finally {
-                loading.style.display = 'none';
             }
-        }
+            function addMessage(sender, messageType) {
+                const messageContainer = document.createElement("div");
+                messageContainer.className = `message ${messageType}`;
 
-        function addMessage(sender, messageType) {
-            const messageContainer = document.createElement('div');
-            messageContainer.className = `message ${messageType}`;
+                const senderElement = document.createElement("div");
+                senderElement.className = "sender";
+                senderElement.textContent = sender ? `${sender}:` : "";
 
-            const senderElement = document.createElement('span');
-            senderElement.className = 'sender';
-            senderElement.textContent = sender ? `${sender}:` : '';
+                const contentElement = document.createElement("div");
+                contentElement.className = "message-content";
 
-            const contentElement = document.createElement('div'); // Use a div to allow block-level elements
-            contentElement.className = 'message-content';
+                messageContainer.appendChild(senderElement);
+                messageContainer.appendChild(contentElement);
+                responseArea.appendChild(messageContainer);
+                responseArea.scrollTop = responseArea.scrollHeight;
 
-            messageContainer.appendChild(senderElement);
-            messageContainer.appendChild(contentElement);
-
-            responseArea.appendChild(messageContainer);
-            responseArea.scrollTop = responseArea.scrollHeight;
-
-            return {
-                messageContainer,
-                senderElement,
-                contentElement,
-                contentSegments: [] // Initialize content segments array
-            };
-        }
-
-        // JavaScript for draggable divider
-        const divider = document.querySelector('.divider');
-        const chat = document.querySelector('.chat');
-        const canvas = document.querySelector('.canvas-container');
-        let isDragging = false;
-        let isMobile = window.innerWidth < 768;
-
-        // Update resize handler on window resize
-        window.addEventListener('resize', () => {
-            isMobile = window.innerWidth < 768;
-        });
-
-        divider.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            document.body.style.cursor = isMobile ? 'row-resize' : 'col-resize';
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-
-            if (isMobile) {
-                // Vertical resizing for mobile
-                const main = document.querySelector('.main');
-                const mainRect = main.getBoundingClientRect();
-                let newChatHeight = e.clientY;
-
-                // Set minimum heights (20% of viewport height)
-                const minHeight = window.innerHeight * 0.2;
-                const maxHeight = window.innerHeight * 0.8;
-
-                if (newChatHeight < minHeight) newChatHeight = minHeight;
-                if (newChatHeight > maxHeight) newChatHeight = maxHeight;
-
-                chat.style.height = `${newChatHeight}px`;
-                canvas.style.height = `${window.innerHeight - newChatHeight - divider.offsetHeight}px`;
-            } else {
-                // Horizontal resizing for desktop
-                const main = document.querySelector('.main');
-                const mainRect = main.getBoundingClientRect();
-                let newChatWidth = e.clientX;
-
-                const minWidth = 200;
-                const maxWidth = mainRect.width - 200;
-
-                if (newChatWidth < minWidth) newChatWidth = minWidth;
-                if (newChatWidth > maxWidth) newChatWidth = maxWidth;
-
-                chat.style.width = `${newChatWidth}px`;
+                return {
+                    messageContainer,
+                    contentElement,
+                    contentSegments: [], // Initialize content segments array
+                };
             }
-        });
+            // JavaScript for draggable divider
+            const divider = document.querySelector(".divider");
+            const chat = document.querySelector(".chat");
+            const canvas = document.querySelector(".canvas-container");
+            let isDragging = false;
+            let isMobile = window.innerWidth < 768;
 
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-                document.body.style.cursor = 'default';
-            }
-        });
+            // Update resize handler on window resize
+            window.addEventListener("resize", () => {
+                isMobile = window.innerWidth < 768;
+            });
 
-        // Ensure JavaScript runs after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const submitButton = document.getElementById('submit-button');
-            const inputBox = document.getElementById('userInput'); 
-            
-            if (submitButton && inputBox) {
-                submitButton.addEventListener('click', sendMessage);
-                inputBox.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
-            } else {
-                console.error('submit-button or input-box not found.');
-            }
-        });
-        function modifyLinksToOpenInFrame(element, frameId) {
-    const links = element.getElementsByTagName('a');
-    for (let link of links) {
-        link.setAttribute('target', frameId);
-    }
-}
+            divider.addEventListener("mousedown", function (e) {
+                isDragging = true;
+                document.body.style.cursor = isMobile
+                    ? "row-resize"
+                    : "col-resize";
+                e.preventDefault();
+            });
 
-// Call this function after rendering each message to the chat response area
-function renderContentSegments(message) {
-    message.contentElement.innerHTML = ''; // Clear previous content
-    
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        headerIds: false,
-        mangle: false
-    });
+            document.addEventListener("mousemove", function (e) {
+                if (!isDragging) return;
 
-    for (let segment of message.contentSegments) {
-        if (typeof segment === 'string') {
-            try {
-                const htmlContent = marked.parse(segment);
-                const sanitizedContent = DOMPurify.sanitize(htmlContent);
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = sanitizedContent;
+                if (isMobile) {
+                    // Vertical resizing for mobile
+                    const main = document.querySelector(".main");
+                    const mainRect = main.getBoundingClientRect();
+                    let newChatHeight = e.clientY;
 
-                // Modify links to open in the specified frame
-                modifyLinksToOpenInFrame(tempDiv, 'canvasTarget');
+                    // Set minimum heights (20% of viewport height)
+                    const minHeight = window.innerHeight * 0.2;
+                    const maxHeight = window.innerHeight * 0.8;
 
-                while (tempDiv.firstChild) {
-                    message.contentElement.appendChild(tempDiv.firstChild);
+                    if (newChatHeight < minHeight) newChatHeight = minHeight;
+                    if (newChatHeight > maxHeight) newChatHeight = maxHeight;
+
+                    chat.style.height = `${newChatHeight}px`;
+                    canvas.style.height = `${window.innerHeight - newChatHeight - divider.offsetHeight}px`;
+                } else {
+                    // Horizontal resizing for desktop
+                    const main = document.querySelector(".main");
+                    const mainRect = main.getBoundingClientRect();
+                    let newChatWidth = e.clientX;
+
+                    const minWidth = 200;
+                    const maxWidth = mainRect.width - 200;
+
+                    if (newChatWidth < minWidth) newChatWidth = minWidth;
+                    if (newChatWidth > maxWidth) newChatWidth = maxWidth;
+
+                    chat.style.width = `${newChatWidth}px`;
                 }
-            } catch (error) {
-                console.warn('Markdown parsing error:', error);
-            }
-        } else if (segment.type === 'tool_call') {
-            const toolCallElement = createToolCallElement(segment.function_name, segment.arguments);
-            message.contentElement.appendChild(toolCallElement);
-        }
-    }
-}
+            });
 
-    </script>
-</body>
+            document.addEventListener("mouseup", function () {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.style.cursor = "default";
+                }
+            });
+
+            // Ensure JavaScript runs after DOM is loaded
+            document.addEventListener("DOMContentLoaded", function () {
+                const submitButton = document.getElementById("submit-button");
+                const inputBox = document.getElementById("userInput");
+
+                if (submitButton && inputBox) {
+                    submitButton.addEventListener("click", sendMessage);
+                    inputBox.addEventListener("keypress", function (e) {
+                        if (e.key === "Enter") {
+                            sendMessage();
+                        }
+                    });
+                } else {
+                    console.error("submit-button or input-box not found.");
+                }
+            });
+
+            function modifyLinksToOpenInFrame(element, frameId) {
+                const links = element.getElementsByTagName("a");
+                for (let link of links) {
+                    link.setAttribute("target", frameId);
+                }
+            }
+
+            // Remove duplicate renderContentSegments function to avoid conflicts
+            // The second definition of renderContentSegments has been integrated above.
+        </script>
+    </body>
 </html>

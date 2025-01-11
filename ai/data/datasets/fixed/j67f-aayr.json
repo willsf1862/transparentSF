@@ -52,16 +52,29 @@
         }
     ],
     "publishing_department": "Building Inspection",
-    "rows_updated_at": "2024-12-13T16:21:10Z",
-    "item_noun": "building permit record",
+    "rows_updated_at": "2024-12-31T23:06:47Z",
     "usefulness": 3,
     "report_category": "Housing",
-    "periodic": "yes",
+    "NumericFields": [
+        "total_units_certified"
+    ],
+    "CategoryFields": [
+        "document_type"
+    ],
+    "DateFields": [
+        "month"
+    ],
+    "LocationFields": [
+        "building_address"
+    ],
+    "periodic": true,
     "district_level": false,
-    "whom_it_may_interest": "city planners, developers, policy makers, housing advocacy groups",
-    "data_validated": true,
+    "whom_it_may_interest": "Urban Planners, Housing Authorities, Real Estate Developers, Policy Makers, Data Analysts, and Citizens interested in housing development trends",
+    "data_validated": false,
+    "item_noun": "residential unit certifications",
     "queries": {
-        "Monthly": "SELECT date_trunc_ym(date_issued) AS month, building_permit_application, building_address, document_type, SUM(number_of_units_certified) AS total_units_certified WHERE date_issued >= '2022-09-01' GROUP BY month, building_permit_application, building_address, document_type ORDER BY month, building_permit_application, building_address, document_type",
-        "Yearly": "SELECT date_trunc_y(date_issued) AS year, building_permit_application, building_address, document_type, SUM(number_of_units_certified) AS total_units_certified WHERE date_issued >= '2022-09-01' GROUP BY year, building_permit_application, building_address, document_type ORDER BY month, building_permit_application, building_address, document_type"
-    }
+        "Monthly": "SELECT document_type, building_address, date_trunc_ym(date_issued) AS month, SUM(number_of_units_certified) AS total_units_certified WHERE date_issued >= start_date GROUP BY document_type, building_address, month ORDER BY month",
+        "Yearly": "SELECT document_type, building_address, date_trunc_y(date_issued) AS year, SUM(number_of_units_certified) AS total_units_certified WHERE date_issued >= start_date GROUP BY document_type, building_address, year ORDER BY year"
+    },
+    "filename": "j67f-aayr.json"
 }
