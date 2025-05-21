@@ -60,7 +60,8 @@ TransparentSF is a web-based application that combined AI agents with public dat
    PG_PORT=5432
    PG_USER=postgres
    PG_PASSWORD=your_postgres_password # Set this if you configured a password
-   PG_DBNAME=transparentsf 
+   PG_DBNAME=transparentsf
+   FACEBOOK_ACCESS_TOKEN=your_facebook_access_token # Optional: For Facebook Ad Library connector
    ```
 
 4. **Set up PostgreSQL:**
@@ -151,6 +152,7 @@ TransparentSF is a web-based application that combined AI agents with public dat
     - `anomaly_detection.py`: Anomaly detection with PostgreSQL storage
     - `init_postgres_db.py`: Database initialization tool
     - `view_anomalies.py`: Tool for viewing anomalies in the database
+    - `facebook_ad_library.py`: Connector for the Facebook Ad Library API
 - `/output`: Generated analysis results
 - (deprecated) `ghostbridge.js`: Ghost CMS integration
 
