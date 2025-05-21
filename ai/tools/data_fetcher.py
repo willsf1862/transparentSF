@@ -373,3 +373,47 @@ def set_dataset(context_variables, *args, **kwargs):
     except Exception as e:
         logger.exception("Unexpected error in set_dataset")
         return {'error': f'Unexpected error: {str(e)}', 'queryURL': None}
+
+
+def set_facebook_ads_dataset(context_variables, *args, **kwargs):
+    """Fetch Facebook Ad Library data and store it as a pandas DataFrame.
+
+    Parameters
+    ----------
+    context_variables : dict
+        Dictionary that will receive the ``dataset`` DataFrame.
+    *args, **kwargs :
+        Parameters to pass to :func:`fetch_facebook_ads_library_paged`.
+
+    The helper accepts either a single positional dictionary of parameters or
+    keyword arguments (and the nested ``kwargs`` style used by the agents).
+
+    Returns
+    -------
+    dict
+        Result dictionary from :func:`_map_result_to_dataset` containing either
+        ``status`` on success or ``error`` information.
+    """
+
+    logger.info("=== Starting set_facebook_ads_dataset ===")
+    logger.info("Args received: %s", args)
+    logger.info("Kwargs received: %s", json.dumps(kwargs, indent=2))
+
+    try:
+        # Handle nested kwargs structure (agent style)
+        if 'kwargs' in kwargs and isinstance(kwargs['kwargs'], dict):
+            params = kwargs['kwargs']
+        elif args and isinstance(args[0], dict):
+            params = args[0]
+        else:
+            params = kwargs
+
+        logger.info("Final parameters for Facebook fetch: %s", json.dumps(params, indent=2))
+
+        result = fetch_facebook_ads_library_paged(params)
+        logger.info("Facebook API result status: %s", 'success' if 'data' in result else 'error')
+        return _map_result_to_dataset(context_variables, result)
+
+    except Exception as e:
+        logger.exception("Unexpected error in set_facebook_ads_dataset")
+        return {'error': f'Unexpected error: {str(e)}', 'queryURL': None}
