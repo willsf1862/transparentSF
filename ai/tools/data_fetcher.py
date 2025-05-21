@@ -128,6 +128,69 @@ def fetch_data_from_api(query_object):
         'queryURL': response.url if response else None
     }
 
+def fetch_facebook_ads_library(params):
+    """Fetch data from the Facebook Ad Library API.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary of query parameters to pass directly to the API.
+
+    Returns
+    -------
+    dict
+        Dictionary containing either the returned data and query URL or an
+        error message.
+    """
+    logger.info(
+        "Starting fetch_facebook_ads_library with params: %s",
+        json.dumps(params, indent=2)
+    )
+    base_url = "https://graph.facebook.com/v18.0/ads_archive"
+
+    try:
+        response = requests.get(base_url, params=params)
+        logger.debug("Facebook API URL: %s", response.url)
+        response.raise_for_status()
+        try:
+            data = response.json()
+        except ValueError:
+            logger.exception(
+                "Failed to decode JSON response. Status Code: %s, Response Content: %s",
+                response.status_code,
+                response.text[:200],
+            )
+            return {
+                'error': 'Failed to decode JSON response from Facebook API.',
+                'queryURL': response.url,
+            }
+
+        record_count = len(data.get('data', [])) if isinstance(data, dict) else len(data)
+        logger.info("Fetched %d records from Facebook API", record_count)
+        return {
+            'data': data,
+            'queryURL': response.url,
+        }
+    except requests.HTTPError as http_err:
+        error_content = ''
+        try:
+            error_json = response.json()
+            if isinstance(error_json, dict):
+                error_content = error_json.get('error', {}).get('message', response.text[:200])
+            else:
+                error_content = response.text[:200]
+        except ValueError:
+            error_content = response.text[:200]
+        logger.exception(
+            "HTTP error occurred: %s. Response Content: %s",
+            http_err,
+            error_content,
+        )
+        return {'error': error_content, 'queryURL': response.url}
+    except Exception as err:
+        logger.exception("An error occurred: %s", err)
+        return {'error': str(err), 'queryURL': response.url if 'response' in locals() else None}
+
 def set_dataset(context_variables, *args, **kwargs):
     """
     Fetches data from the API and sets it in the context variables.
