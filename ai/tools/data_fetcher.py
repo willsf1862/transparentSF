@@ -191,15 +191,35 @@ def fetch_facebook_ads_library(params):
         logger.exception("An error occurred: %s", err)
         return {'error': str(err), 'queryURL': response.url if 'response' in locals() else None}
 
+def _map_result_to_dataset(context_variables, result):
+    """Map a fetch_data_from_api result into a DataFrame and store it in context variables."""
+    if result and 'data' in result:
+        data = result['data']
+        if data:
+            df = pd.DataFrame(data)
+            context_variables['dataset'] = df
+            logger.info(f"Dataset successfully created with shape: {df.shape}")
+            return {'status': 'success', 'queryURL': result.get('queryURL')}
+        else:
+            logger.warning("API returned empty data")
+            return {'error': 'No data returned from the API', 'queryURL': result.get('queryURL')}
+    elif isinstance(result, dict) and 'error' in result:
+        logger.error(f"API returned error: {result['error']}")
+        return {'error': result['error'], 'queryURL': result.get('queryURL')}
+    else:
+        logger.error("Unexpected API response format")
+        return {'error': 'Unexpected API response format', 'queryURL': result.get('queryURL') if isinstance(result, dict) else None}
+
+
 def set_dataset(context_variables, *args, **kwargs):
     """
     Fetches data from the API and sets it in the context variables.
-    
+
     Args:
         context_variables: Dictionary to store the dataset
         endpoint: The dataset identifier (e.g., 'ubvf-ztfx')
         query: The complete SoQL query string
-        
+
     The function can be called in two ways:
     1. With positional arguments:
        set_dataset(context_variables, "dataset-id", query="your-soql-query")
@@ -207,7 +227,7 @@ def set_dataset(context_variables, *args, **kwargs):
        set_dataset(context_variables, endpoint="dataset-id", query="your-soql-query")
     3. With nested kwargs (agent style):
        set_dataset(context_variables, args="{}", kwargs={"endpoint": "x", "query": "y"})
-        
+
     Returns:
         Dictionary with status and optional error message
     """
@@ -226,7 +246,7 @@ def set_dataset(context_variables, *args, **kwargs):
             # Handle direct kwargs or positional args
             endpoint = args[0] if args else kwargs.get('endpoint')
             query = kwargs.get('query')
-        
+
         # Validate required parameters
         if not endpoint:
             logger.error("Missing endpoint parameter")
@@ -234,7 +254,7 @@ def set_dataset(context_variables, *args, **kwargs):
         if not query:
             logger.error("Missing query parameter")
             return {'error': 'Query is required', 'queryURL': None}
-            
+
         # Clean up endpoint - ensure it ends with .json
         if not endpoint.endswith('.json'):
             endpoint = f"{endpoint}.json"
@@ -242,27 +262,12 @@ def set_dataset(context_variables, *args, **kwargs):
 
         logger.info(f"Final parameters - Endpoint: {endpoint}, Query: {query}")
         query_object = {'endpoint': endpoint, 'query': query}
-        
+
         result = fetch_data_from_api(query_object)
         logger.info(f"API result status: {'success' if 'data' in result else 'error'}")
-        
-        if result and 'data' in result:
-            data = result['data']
-            if data:
-                df = pd.DataFrame(data)
-                context_variables['dataset'] = df
-                logger.info(f"Dataset successfully created with shape: {df.shape}")
-                return {'status': 'success', 'queryURL': result.get('queryURL')}
-            else:
-                logger.warning("API returned empty data")
-                return {'error': 'No data returned from the API', 'queryURL': result.get('queryURL')}
-        elif 'error' in result:
-            logger.error(f"API returned error: {result['error']}")
-            return {'error': result['error'], 'queryURL': result.get('queryURL')}
-        else:
-            logger.error("Unexpected API response format")
-            return {'error': 'Unexpected API response format', 'queryURL': result.get('queryURL')}
-            
+
+        return _map_result_to_dataset(context_variables, result)
+
     except Exception as e:
         logger.exception("Unexpected error in set_dataset")
         return {'error': f'Unexpected error: {str(e)}', 'queryURL': None}
