@@ -1,6 +1,7 @@
 # data_fetcher.py
 import requests
 import re
+import os
 from urllib.parse import urljoin
 import pandas as pd
 import logging
@@ -190,6 +191,108 @@ def fetch_facebook_ads_library(params):
     except Exception as err:
         logger.exception("An error occurred: %s", err)
         return {'error': str(err), 'queryURL': response.url if 'response' in locals() else None}
+
+def fetch_facebook_ads_library_paged(params):
+    """Fetch data from the Facebook Ad Library API with paging support.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary of query parameters to pass to the API. The dictionary may
+        optionally contain an ``access_token`` key. If omitted, the function
+        will attempt to read ``FACEBOOK_ACCESS_TOKEN`` from the environment.
+
+    Returns
+    -------
+    dict
+        Dictionary containing either the aggregated returned data and query
+        URL or an error message.
+    """
+    logger.info(
+        "Starting fetch_facebook_ads_library_paged with params: %s",
+        json.dumps(params, indent=2),
+    )
+
+    base_url = "https://graph.facebook.com/v18.0/ads_archive"
+    params = dict(params or {})
+    access_token = params.get("access_token") or os.getenv("FACEBOOK_ACCESS_TOKEN")
+
+    if not access_token:
+        logger.error("Missing Facebook access token")
+        return {"error": "Facebook access token is required", "queryURL": None}
+
+    params["access_token"] = access_token
+
+    all_data = []
+    url = base_url
+
+    while True:
+        logger.debug("Facebook API request URL: %s params: %s", url, params)
+        try:
+            response = requests.get(url, params=params)
+            logger.debug("Response Status Code: %s", response.status_code)
+            response.raise_for_status()
+            try:
+                data = response.json()
+            except ValueError:
+                logger.exception(
+                    "Failed to decode JSON response. Status Code: %s, Response Content: %s",
+                    response.status_code,
+                    response.text[:200],
+                )
+                return {
+                    "error": "Failed to decode JSON response from Facebook API.",
+                    "queryURL": response.url,
+                }
+
+            if not isinstance(data, dict):
+                logger.error("Unexpected response format from Facebook API")
+                return {
+                    "error": "Unexpected response format from Facebook API",
+                    "queryURL": response.url,
+                }
+
+            batch = data.get("data", [])
+            all_data.extend(batch)
+            logger.info("Fetched %d records in current batch.", len(batch))
+
+            next_url = data.get("paging", {}).get("next")
+            if not next_url:
+                break
+            url = next_url
+            params = {}
+        except requests.HTTPError as http_err:
+            error_content = ""
+            try:
+                error_json = response.json()
+                if isinstance(error_json, dict):
+                    error_content = error_json.get("error", {}).get(
+                        "message", response.text[:200]
+                    )
+                else:
+                    error_content = response.text[:200]
+            except ValueError:
+                error_content = response.text[:200]
+            logger.exception(
+                "HTTP error occurred: %s. Response Content: %s",
+                http_err,
+                error_content,
+            )
+            return {"error": error_content, "queryURL": response.url}
+        except Exception as err:
+            logger.exception("An error occurred: %s", err)
+            return {
+                "error": str(err),
+                "queryURL": response.url if "response" in locals() else None,
+            }
+
+    logger.info(
+        "Finished fetching Facebook data. Total records retrieved: %d", len(all_data)
+    )
+    return {
+        "data": all_data,
+        "queryURL": response.url if "response" in locals() else None,
+    }
 
 def set_dataset(context_variables, *args, **kwargs):
     """
