@@ -19,7 +19,7 @@ from ai_dataprep import process_single_file  # Ensure these imports are correct
 from periodic_analysis import export_for_endpoint  # Ensure this import is correct
 import logging
 from generate_dashboard_metrics import main as generate_metrics
-from tools.data_fetcher import fetch_data_from_api
+from tools.data_fetcher import fetch_data_from_api, _map_result_to_dataset
 import pandas as pd
 from pathlib import Path
 from openai import OpenAI
@@ -1191,16 +1191,19 @@ async def execute_query(request: Request):
             
         # Execute query using existing data_fetcher
         result = fetch_data_from_api({'endpoint': endpoint, 'query': query})
-        
-        if 'error' in result:
+
+        # Map result into DataFrame similar to set_dataset
+        context_for_df = {}
+        map_result = _map_result_to_dataset(context_for_df, result)
+
+        if 'error' in map_result:
             return JSONResponse({
                 'status': 'error',
-                'message': result['error'],
-                'queryURL': result.get('queryURL')
+                'message': map_result['error'],
+                'queryURL': map_result.get('queryURL')
             })
-            
-        # Convert data to DataFrame
-        df = pd.DataFrame(result['data'])
+
+        df = context_for_df['dataset']
         
         # Generate table based on format
         if format_type == 'markdown':
